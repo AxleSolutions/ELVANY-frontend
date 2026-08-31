@@ -1,9 +1,10 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { uploadPaymentSlipToCloudinary, uploadPopupAdImageToCloudinary } from '../lib/cloudinary';
+import { uploadPaymentSlipToCloudinary } from '../lib/cloudinary';
 import { PRODUCTS } from '../data/products';
 import { INITIAL_ORDERS } from '../data/orders';
 import { INITIAL_OFFERS } from '../data/offers';
 import { DEFAULT_POPUP_AD } from '../data/popupAd';
+
 
 
 /**
@@ -91,7 +92,7 @@ export async function getProducts() {
 
   // 1. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const res = await fetch(`${apiUrl}/products`);
     if (res.ok) {
       const json = await res.json();
@@ -125,7 +126,7 @@ export async function getProducts() {
 
 
 export async function getNewsletterSubscribers() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API (has service access to Supabase database)
   try {
@@ -178,7 +179,7 @@ export async function getNewsletterSubscribers() {
  * =========================================================================
  */
 export async function createOrder(orderPayload, paymentSlipFile = null) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   let slipData = null;
 
   // 1. Upload payment slip to Cloudinary if provided
@@ -236,6 +237,15 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
   // 3. Persist to Supabase Direct Fallback
   if (isSupabaseConfigured && supabase) {
     try {
+      const isQr = completeOrder.paymentMethod?.toLowerCase().includes('qr');
+      const structuredAddress = {
+        ...(completeOrder.deliveryAddress || {}),
+        location: completeOrder.customerLocation || completeOrder.deliveryAddress?.location || 'Colombo, Sri Lanka',
+        deliveryFeeLKR: completeOrder.deliveryFeeLKR || 0,
+        paymentType: isQr ? 'lanka_qr' : 'bank_transfer',
+        specificPaymentMethod: isQr ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer'
+      };
+
       const { data: insertedOrder, error: orderErr } = await supabase
         .from('orders')
         .insert({
@@ -243,14 +253,12 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
           customer_name: completeOrder.customerName,
           customer_email: completeOrder.customerEmail || 'client@elvany.com',
           customer_phone: completeOrder.customerPhone || '',
-          delivery_address: completeOrder.deliveryAddress || {
-            location: completeOrder.customerLocation
-          },
-          payment_method: completeOrder.paymentMethod?.toLowerCase().includes('bank') ? 'bank_transfer' : 'cod',
-          status: completeOrder.status,
-          subtotal_lkr: completeOrder.totalLKR,
+          delivery_address: structuredAddress,
+          payment_method: 'bank_transfer',
+          status: completeOrder.status || 'Pending Slip Verification',
+          subtotal_lkr: completeOrder.subtotalLKR || completeOrder.totalLKR,
           discount_lkr: completeOrder.savingsLKR || 0,
-          grand_total_lkr: completeOrder.totalLKR,
+          grand_total_lkr: completeOrder.grandTotalLKR || completeOrder.totalLKR,
           has_slip_attached: completeOrder.hasSlipAttached,
           payment_slip_url: completeOrder.paymentSlipUrl,
           payment_slip_public_id: completeOrder.paymentSlipPublicId,
@@ -263,35 +271,56 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
       if (orderErr) {
         console.warn('Supabase order insert error, using local state:', orderErr.message);
       } else if (insertedOrder && completeOrder.items?.length > 0) {
+        // Fetch products to map valid UUIDs for order_items foreign key
+        const { data: dbProducts } = await supabase.from('products').select('id, title');
+
         // Insert order line items
-        const lineItems = completeOrder.items.map((item) => ({
-          order_id: insertedOrder.id,
-          product_id: item.productId || item.id || null,
-          product_title: item.name || item.title,
-          color: item.color || 'Onyx Black',
-          size: item.selectedSize || item.size || 'M (40)',
-          unit_price_lkr: item.priceLKR || 18500,
-          original_price_lkr: item.originalPriceLKR || item.priceLKR || 18500,
-          quantity: item.quantity || item.qty || 1,
-          product_image_url: item.image || '/images/hero_tshirt.jpg'
-        }));
+        const lineItems = completeOrder.items.map((item) => {
+          let matchedProdId = item.productId || item.id;
+          if (!matchedProdId || matchedProdId.length !== 36 || !matchedProdId.includes('-')) {
+            const found = dbProducts?.find(p => p.title?.toLowerCase().trim() === (item.title || item.name || '').toLowerCase().trim());
+            matchedProdId = found?.id || dbProducts?.[0]?.id || null;
+          }
+
+          return {
+            order_id: insertedOrder.id,
+            product_id: matchedProdId,
+            product_title: item.name || item.title || 'Haute Atelier Garment',
+            color: item.color || 'Onyx Black',
+            size: item.selectedSize || item.size || 'M (40)',
+            unit_price_lkr: parseFloat(item.priceLKR || 18500),
+            original_price_lkr: parseFloat(item.originalPriceLKR || item.priceLKR || 18500),
+            quantity: parseInt(item.quantity || item.qty || 1, 10),
+            product_image_url: item.image || '/images/hero_tshirt.jpg'
+          };
+        });
 
         await supabase.from('order_items').insert(lineItems);
 
-        // Decrement stock in product_stock
+        // Decrement live stock in product_stock
         for (const item of completeOrder.items) {
-          const prodId = item.productId || item.id;
           const size = (item.selectedSize || item.size || '').trim();
           const orderedQty = parseInt(item.quantity || item.qty || 1, 10);
-          if (prodId && size) {
-            try {
+          const itemTitle = (item.title || item.name || '').trim().toLowerCase();
+
+          try {
+            let matchedProduct = dbProducts?.find(p => p.id === (item.productId || item.id));
+            if (!matchedProduct && itemTitle) {
+              matchedProduct = dbProducts?.find(p => p.title?.toLowerCase().trim() === itemTitle) || dbProducts?.[0];
+            }
+
+            if (matchedProduct) {
               const { data: variants } = await supabase
                 .from('product_variants')
                 .select('id, color_name')
-                .eq('product_id', prodId);
+                .eq('product_id', matchedProduct.id);
 
               if (variants?.length > 0) {
-                const variantId = variants[0].id;
+                const matchedVariant = (item.color 
+                  ? variants.find(v => v.color_name?.toLowerCase().trim() === item.color.toLowerCase().trim())
+                  : null) || variants[0];
+
+                const variantId = matchedVariant.id;
                 const { data: stockRows } = await supabase
                   .from('product_stock')
                   .select('id, size_code, stock_quantity')
@@ -304,7 +333,8 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
                   ) || stockRows[0];
 
                   if (stockRow) {
-                    const newStock = Math.max(0, (stockRow.stock_quantity || 0) - orderedQty);
+                    const currentStock = Number(stockRow.stock_quantity) || 0;
+                    const newStock = Math.max(0, currentStock - orderedQty);
                     await supabase
                       .from('product_stock')
                       .update({ stock_quantity: newStock })
@@ -312,9 +342,9 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
                   }
                 }
               }
-            } catch (stkErr) {
-              console.warn('Direct fallback stock decrement error:', stkErr);
             }
+          } catch (stkErr) {
+            console.warn('Fallback stock decrement error:', stkErr);
           }
         }
       }
@@ -328,7 +358,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
 
 
 export async function getOrders() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -346,7 +376,7 @@ export async function getOrders() {
           orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
           createdAt: o.created_at || o.createdAt,
           status: o.status || 'Pending Slip Verification',
-          paymentMethod: (o.payment_method === 'bank_transfer' || (o.paymentMethod || '').toLowerCase().includes('bank')) ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+          paymentMethod: (o.payment_method === 'lanka_qr' || (o.paymentMethod || '').toLowerCase().includes('qr')) ? 'LankaQR Instant Transfer' : (o.payment_method === 'bank_transfer' || (o.paymentMethod || '').toLowerCase().includes('bank')) ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
           hasSlipAttached: Boolean(o.has_slip_attached || o.paymentSlipUrl || o.payment_slip_url),
           paymentSlipUrl: o.payment_slip_url || o.paymentSlipUrl,
           paymentSlipName: o.payment_slip_name || o.paymentSlipName,
@@ -395,7 +425,8 @@ export async function getOrders() {
           orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
           createdAt: o.created_at,
           status: o.status,
-          paymentMethod: o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+          paymentMethod: o.payment_method === 'lanka_qr' ? 'LankaQR Instant Transfer' : o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+
           hasSlipAttached: o.has_slip_attached,
           paymentSlipUrl: o.payment_slip_url,
           paymentSlipName: o.payment_slip_name,
@@ -424,7 +455,7 @@ export async function getOrders() {
 }
 
 export async function updateOrderStatus(orderCode, newStatus) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -469,7 +500,7 @@ const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-
 
 export async function saveProduct(productData) {
   const isNew = !productData.id || !isUuid(productData.id);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API (Full Service-Role Supabase Access)
   try {
@@ -586,7 +617,7 @@ export async function saveProduct(productData) {
 }
 
 export async function toggleProductStatus(productId, nextActiveState) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -619,7 +650,7 @@ export async function toggleProductStatus(productId, nextActiveState) {
 
 export async function deleteProduct(productId) {
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -772,7 +803,7 @@ export async function getOffers() {
 
   // 2. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const res = await fetch(`${apiUrl}/offers`);
     if (res.ok) {
       const json = await res.json();
@@ -847,7 +878,7 @@ export async function saveOffer(offerData) {
 
   // Fallback to Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? `${apiUrl}/offers` : `${apiUrl}/offers/${offerData.id}`;
     const res = await fetch(url, {
@@ -880,7 +911,7 @@ export async function toggleOfferStatus(offerId, nextActiveState) {
 
   // Also sync to backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     await fetch(`${apiUrl}/offers/${offerId}/toggle`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -902,7 +933,7 @@ export async function deleteOffer(offerId) {
 
   // Also sync to backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     await fetch(`${apiUrl}/offers/${offerId}`, {
       method: 'DELETE'
     });
@@ -919,7 +950,7 @@ export async function deleteOffer(offerId) {
 export async function getReviews() {
   // 1. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const res = await fetch(`${apiUrl}/reviews`);
     if (res.ok) {
       const json = await res.json();
@@ -992,7 +1023,7 @@ export async function getReviews() {
 
 
 export async function addReview(reviewData) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -1072,7 +1103,7 @@ export async function toggleReviewFeatured(reviewId, nextFeaturedState) {
 }
 
 export async function deleteReview(reviewId) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   try {
     const res = await fetch(`${apiUrl}/reviews/${reviewId}`, {
       method: 'DELETE'
@@ -1102,7 +1133,7 @@ export async function deleteReview(reviewId) {
  */
 export async function getDatabaseCart(email) {
   if (!email) return [];
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API
   try {
@@ -1140,7 +1171,7 @@ export async function getDatabaseCart(email) {
 
 export async function saveDatabaseCart(email, cart) {
   if (!email) return [];
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const cleanCart = Array.isArray(cart) ? cart : [];
 
   // Always keep user-specific local copy
@@ -1179,7 +1210,7 @@ export async function saveDatabaseCart(email, cart) {
  * Get current popup ad settings from backend / Supabase with local fallback
  */
 export async function getPopupAdSettings() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // 1. Try Backend API (which checks Supabase promotions & local JSON)
   try {
@@ -1243,7 +1274,7 @@ export async function getPopupAdSettings() {
  * Save popup ad settings to Backend API, Supabase Database, and localStorage
  */
 export async function savePopupAdSettings(settings) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const cleanSettings = {
     enabled: settings.enabled !== false,
     imageUrl: settings.imageUrl || '/images/editorial_brutalist.jpg',
@@ -1322,6 +1353,197 @@ export async function savePopupAdSettings(settings) {
  * Upload an advertisement image file directly to Cloudinary
  */
 export async function uploadPopupAdImage(file) {
-  return await uploadPopupAdImageToCloudinary(file);
+  if (!file) return null;
+
+  // 1. Try Backend Cloudinary Upload Route
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const res = await fetch(`${apiUrl}/uploads/ad-image`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.data?.url) {
+        return {
+          secure_url: data.data.url,
+          public_id: data.data.public_id || `ad_${Date.now()}`,
+          format: data.data.format || 'jpg'
+        };
+      }
+    }
+  } catch (apiErr) {
+    console.warn('Backend ad image upload notice:', apiErr);
+  }
+
+  // 2. Fallback to FileReader Data URI
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve({
+        secure_url: reader.result,
+        public_id: `local_ad_${Date.now()}`,
+        format: file.type?.split('/')[1] || 'jpg'
+      });
+    };
+    reader.readAsDataURL(file);
+  });
 }
+
+/* =========================================================================
+   RESTOCK / GARMENT RE-ISSUE DEMAND REQUESTS
+   ========================================================================= */
+
+const LOCAL_RESTOCK_KEY = 'elvany_restock_requests';
+
+/**
+ * Submit a new restock / re-issue request
+ */
+export async function createRestockRequest(payload) {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  const normalizedReq = {
+    id: `req-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    productId: payload.productId || null,
+    productTitle: payload.productTitle || 'Haute Atelier Garment',
+    productImage: payload.productImage || '/images/hero_tshirt.jpg',
+    variantColor: payload.variantColor || 'Onyx Black',
+    sizeCode: payload.sizeCode || 'M (40)',
+    customerName: payload.customerName || 'VIP Client',
+    customerEmail: payload.customerEmail || '',
+    customerPhone: payload.customerPhone || '',
+    notes: payload.notes || '',
+    status: 'Pending Atelier Review',
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Try Backend API
+  try {
+    const res = await fetch(`${apiUrl}/restock-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        // Save to localStorage as backup
+        try {
+          const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+          const updated = [json.data, ...existing.filter(r => r.id !== json.data.id)];
+          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
+        } catch {}
+        return json.data;
+      }
+    }
+  } catch (apiErr) {
+    console.warn('API createRestockRequest notice:', apiErr);
+  }
+
+  // 2. LocalStorage Fallback
+  try {
+    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+    const updated = [normalizedReq, ...existing];
+    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
+    return normalizedReq;
+  } catch {
+    return normalizedReq;
+  }
+}
+
+/**
+ * Fetch all restock requests for admin review
+ */
+export async function getRestockRequests() {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // 1. Try Backend API
+  try {
+    const res = await fetch(`${apiUrl}/restock-requests`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        // Save to localStorage as backup
+        try {
+          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(json.data));
+        } catch {}
+
+        return {
+          requests: json.data,
+          stats: json.stats || {}
+        };
+      }
+    }
+  } catch (apiErr) {
+    console.warn('API getRestockRequests notice:', apiErr);
+  }
+
+  // 2. LocalStorage Fallback
+  const stored = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+  return {
+    requests: stored,
+    stats: {}
+  };
+}
+
+/**
+ * Update request status (e.g. Restocked / Handled)
+ */
+export async function updateRestockRequestStatus(id, status) {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // 1. LocalStorage update
+  try {
+    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+    const updated = existing.map(r => r.id === id ? { ...r, status } : r);
+    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
+  } catch {}
+
+  // 2. Backend API
+  try {
+    const res = await fetch(`${apiUrl}/restock-requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data;
+    }
+  } catch (err) {
+    console.warn('API updateRestockRequestStatus notice:', err);
+  }
+
+  return { id, status };
+}
+
+/**
+ * Delete a restock request
+ */
+export async function deleteRestockRequest(id) {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // 1. LocalStorage update
+  try {
+    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+    const updated = existing.filter(r => r.id !== id);
+    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
+  } catch {}
+
+  // 2. Backend API
+  try {
+    await fetch(`${apiUrl}/restock-requests/${id}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn('API deleteRestockRequest notice:', err);
+  }
+
+  return true;
+}
+
+
+
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Eye, ShoppingBag, Check, Ruler, Loader2 } from 'lucide-react';
+import { ArrowRight, Eye, ShoppingBag, Check, Ruler, Loader2, Bell } from 'lucide-react';
 
 export const FeaturedTees = ({ 
   products = [], 
@@ -119,20 +119,27 @@ export const FeaturedTees = ({
                       {isLoggedIn ? (
                         <button 
                           className="btn-quick-add"
-                          disabled={isOutOfStock}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isOutOfStock) return;
+                            if (isOutOfStock) {
+                              onSelectProduct(product);
+                              return;
+                            }
                             onAddToCart(product, userProfileSize);
                           }}
                           style={{
-                            opacity: isOutOfStock ? 0.4 : 1,
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                            backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                            border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                            color: isOutOfStock ? 'var(--gold-bright)' : undefined,
+                            cursor: 'pointer'
                           }}
-                          title={isOutOfStock ? 'Garment currently sold out' : `Add to bag in your profile size (${userProfileSize})`}
+                          title={isOutOfStock ? 'Garment sold out — Click to request atelier re-issue' : `Add to bag in your profile size (${userProfileSize})`}
                         >
                           {isOutOfStock ? (
-                            <span>OUT</span>
+                            <>
+                              <Bell size={13} />
+                              <span>RE-ISSUE</span>
+                            </>
                           ) : isJustAdded ? (
                             <>
                               <Check size={13} />
@@ -148,20 +155,23 @@ export const FeaturedTees = ({
                       ) : (
                         <button 
                           className="btn-quick-add"
-                          disabled={isOutOfStock}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isOutOfStock) return;
                             onSelectProduct(product);
                           }}
                           style={{
-                            opacity: isOutOfStock ? 0.4 : 1,
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                            backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                            border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                            color: isOutOfStock ? 'var(--gold-bright)' : undefined,
+                            cursor: 'pointer'
                           }}
-                          title={isOutOfStock ? 'Garment currently sold out' : 'Inspect piece & select your size'}
+                          title={isOutOfStock ? 'Garment sold out — Click to request atelier re-issue' : 'Inspect piece & select your size'}
                         >
                           {isOutOfStock ? (
-                            <span>OUT</span>
+                            <>
+                              <Bell size={13} />
+                              <span>RE-ISSUE</span>
+                            </>
                           ) : (
                             <>
                               <Ruler size={13} />

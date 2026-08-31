@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
+import { RestockRequestModal } from './RestockRequestModal';
 
 export const ProductDetailPage = ({
   products = PRODUCTS,
@@ -28,6 +29,8 @@ export const ProductDetailPage = ({
   const savings = isOfferActive ? (originalPrice - effectivePrice) : 0;
 
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[1] || product?.sizes?.[0] || 'M (40)');
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+
   
   // Dynamic color palette mapping
   const colorNames = [
@@ -402,10 +405,14 @@ export const ProductDetailPage = ({
                   </div>
 
                   <button
-                    disabled={!isAvailable}
+                    type="button"
                     className={`btn-primary-gold pdp-add-btn ${isJustAdded ? 'added' : ''}`}
-                    onClick={() => {
-                      if (!isAvailable) return;
+                    onClick={(e) => {
+                      if (!isAvailable) {
+                        e.preventDefault();
+                        setIsRestockModalOpen(true);
+                        return;
+                      }
                       const productToAdd = isOfferActive ? {
                         ...product,
                         priceLKR: effectivePrice,
@@ -419,14 +426,19 @@ export const ProductDetailPage = ({
                       const addQty = Math.min(qty, selectedSizeStock);
                       onAddToCart(productToAdd, selectedSize, addQty);
                     }}
-
                     style={{
-                      opacity: isAvailable ? 1 : 0.5,
-                      cursor: isAvailable ? 'pointer' : 'not-allowed'
+                      opacity: 1,
+                      cursor: 'pointer',
+                      backgroundColor: !isAvailable ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                      border: !isAvailable ? '1px solid var(--gold-bright)' : undefined,
+                      color: !isAvailable ? 'var(--gold-bright)' : undefined
                     }}
                   >
                     {!isAvailable ? (
-                      <span>CURRENTLY SOLD OUT</span>
+                      <>
+                        <Bell size={18} />
+                        <span>REQUEST RE-ISSUE</span>
+                      </>
                     ) : isJustAdded ? (
                       <>
                         <Check size={18} />
@@ -442,6 +454,9 @@ export const ProductDetailPage = ({
                 </div>
               );
             })()}
+
+
+
 
 
             {/* Trust Badges */}
@@ -777,8 +792,21 @@ export const ProductDetailPage = ({
         </div>
 
       </div>
+
+      {/* Atelier Garment Re-Issue Request Modal */}
+      <RestockRequestModal
+        isOpen={isRestockModalOpen}
+        onClose={() => setIsRestockModalOpen(false)}
+        product={product}
+        selectedColor={selectedColor}
+        selectedSize={selectedSize}
+        loggedInUser={loggedInUser}
+        userProfile={userProfile}
+      />
     </div>
   );
 };
+
+
 
 

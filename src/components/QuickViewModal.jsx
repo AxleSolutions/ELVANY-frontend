@@ -1,27 +1,39 @@
 import React, { useState } from 'react';
-import { X, Check, Shield, Sparkles, ShoppingBag } from 'lucide-react';
+import { X, Check, Shield, Sparkles, ShoppingBag, Bell } from 'lucide-react';
+import { RestockRequestModal } from './RestockRequestModal';
 
 export const QuickViewModal = ({
   product,
   isOpen,
   onClose,
-  onAddToCart
+  onAddToCart,
+  loggedInUser,
+  userProfile
 }) => {
   if (!isOpen || !product) return null;
 
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-  const [selectedImg, setSelectedImg] = useState(product.images[0] || product.image);
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || 'M (40)');
+  const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.jpg');
   const [added, setAdded] = useState(false);
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+
+  const selectedSizeStock = product.inventory ? (product.inventory[selectedSize] ?? 10) : 10;
+  const isOutOfStock = selectedSizeStock <= 0 || product.status === 'Sold Out';
 
   const getPrice = () => {
-    return `LKR ${product.priceLKR.toLocaleString()}`;
+    return `LKR ${(product.priceLKR || 18500).toLocaleString()}`;
   };
 
   const handleAdd = () => {
+    if (isOutOfStock) {
+      setIsRestockModalOpen(true);
+      return;
+    }
     onAddToCart(product, selectedSize);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
+
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -145,10 +157,23 @@ export const QuickViewModal = ({
           <div style={{ marginTop: 'auto' }}>
             <button
               className="btn-primary-gold"
-              style={{ width: '100%', justifyContent: 'center', padding: '1.1rem 2rem' }}
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                padding: '1.1rem 2rem',
+                backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                color: isOutOfStock ? 'var(--gold-bright)' : undefined
+              }}
               onClick={handleAdd}
             >
-              {added ? (
+              {isOutOfStock ? (
+                <>
+                  <Bell size={16} />
+                  <span>REQUEST RE-ISSUE</span>
+                </>
+              ) : added ? (
+
                 <>
                   <Check size={16} />
                   <span>ADDED TO PRIVATE BAG</span>
@@ -181,6 +206,18 @@ export const QuickViewModal = ({
           </div>
         </div>
       </div>
+
+      {/* Restock Request Modal */}
+      <RestockRequestModal
+        isOpen={isRestockModalOpen}
+        onClose={() => setIsRestockModalOpen(false)}
+        product={product}
+        selectedColor={product.color || 'Onyx Black'}
+        selectedSize={selectedSize}
+        loggedInUser={loggedInUser}
+        userProfile={userProfile}
+      />
     </div>
   );
 };
+

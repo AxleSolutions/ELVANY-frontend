@@ -136,8 +136,9 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                     {order.paymentSlipName || 'Commercial_Bank_Transfer_Slip.png'}
                   </div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginBottom: '0.8rem' }}>
-                    Reconciled Amount: <strong style={{ color: 'var(--gold-bright)' }}>LKR {(order.totalLKR || 18500).toLocaleString()}</strong> to Commercial Bank Account #1000 8942 5500.
+                    Reconciled Amount: <strong style={{ color: 'var(--gold-bright)' }}>LKR {(order.totalLKR || 18500).toLocaleString()}</strong> ({order.paymentMethod || 'HNB Account #019020601780 / LankaQR'}).
                   </div>
+
 
                   {order.status === 'Pending Slip Verification' && (
                     <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>

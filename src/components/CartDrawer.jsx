@@ -317,14 +317,9 @@ export const CartDrawer = ({
                   className="btn-primary-gold cart-checkout-btn"
                   onClick={handleCheckoutClick}
                 >
-                  <span>CONFIRM & PLACE ORDER</span>
+                  <span>CHECKOUT</span>
                   <ArrowRight size={15} />
                 </button>
-
-                <div className="cart-trust-badge">
-                  <ShieldCheck size={14} color="var(--gold-primary)" />
-                  <span>Includes Verified QR Order Review Certificate</span>
-                </div>
               </div>
             )}
           </>

@@ -14,6 +14,7 @@ import { CustomersCRM } from './CustomersCRM';
 import { ConciergeSettings } from './ConciergeSettings';
 import { OffersManager } from './OffersManager';
 import { PopupAdManager } from './PopupAdManager';
+import { RestockRequestsManager } from './RestockRequestsManager';
 import { ProductEditModal } from './components/ProductEditModal';
 import { OrderDetailsModal } from './components/OrderDetailsModal';
 import { OfferEditModal } from './components/OfferEditModal';
@@ -37,8 +38,12 @@ import {
   updateReviewStatus,
   toggleReviewFeatured,
   deleteReview,
-  getNewsletterSubscribers
+  getNewsletterSubscribers,
+  getRestockRequests,
+  updateRestockRequestStatus,
+  deleteRestockRequest
 } from '../services/dbService';
+
 
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import './admin.css';
@@ -239,6 +244,7 @@ export const AdminApp = ({
   const [reviews, setReviews] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
+  const [restockRequests, setRestockRequests] = useState([]);
   const [settings, setSettings] = useState(INITIAL_STORE_SETTINGS);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
 
@@ -261,12 +267,13 @@ export const AdminApp = ({
     async function syncAdminDatabase() {
       setIsLoadingAdmin(true);
       try {
-        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers] = await Promise.allSettled([
+        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers, dbRestock] = await Promise.allSettled([
           getProducts(),
           getOrders(),
           getOffers(),
           getReviews(),
-          getNewsletterSubscribers()
+          getNewsletterSubscribers(),
+          getRestockRequests()
         ]);
 
         if (dbProducts.status === 'fulfilled' && Array.isArray(dbProducts.value)) {
@@ -282,7 +289,6 @@ export const AdminApp = ({
         } else {
           setOrders([]);
         }
-
 
         const resolvedOffers = dbOffers.status === 'fulfilled' && Array.isArray(dbOffers.value) 
           ? dbOffers.value 
@@ -301,6 +307,13 @@ export const AdminApp = ({
         } else {
           setSubscribers([]);
         }
+
+        if (dbRestock.status === 'fulfilled' && dbRestock.value?.requests) {
+          setRestockRequests(dbRestock.value.requests);
+        } else {
+          setRestockRequests([]);
+        }
+
 
         // Live Reviews & Customer CRM Sync from Supabase
         if (isSupabaseConfigured && supabase) {
@@ -500,11 +513,35 @@ export const AdminApp = ({
   };
 
 
+  // Restock / Re-Issue Demand Actions
+  const handleUpdateRestockStatus = async (id, newStatus) => {
+    setRestockRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    showToast(`Re-issue request #${id} marked as: ${newStatus}`);
+    try {
+      await updateRestockRequestStatus(id, newStatus);
+    } catch (err) {
+      console.warn('Restock update notice:', err);
+    }
+  };
+
+  const handleDeleteRestockRequest = async (id) => {
+    if (window.confirm('Remove this re-issue demand request?')) {
+      setRestockRequests(prev => prev.filter(r => r.id !== id));
+      showToast('Re-issue request removed.');
+      try {
+        await deleteRestockRequest(id);
+      } catch (err) {
+        console.warn('Restock delete notice:', err);
+      }
+    }
+  };
+
   // Settings Action
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
     showToast('Maison brand & concierge configuration saved.');
   };
+
 
   if (!isAdminAuthorized) {
     return (
@@ -718,6 +755,7 @@ export const AdminApp = ({
         pendingReviewsCount={reviews.filter(r => r.status === 'Pending').length}
         offersCount={localOffers.filter(o => o.isActive).length}
         isPopupAdActive={localPopupAd?.enabled}
+        restockRequestsCount={restockRequests.length}
       />
 
 
@@ -733,6 +771,7 @@ export const AdminApp = ({
           orders={orders}
           reviews={reviews}
           products={products}
+          restockRequests={restockRequests}
         />
 
         {/* Content Body */}
@@ -811,6 +850,14 @@ export const AdminApp = ({
                   orders={orders}
                   onUpdateOrderStatus={handleUpdateOrderStatus}
                   onViewOrder={handleViewOrder}
+                />
+              )}
+
+              {activeTab === 'restockRequests' && (
+                <RestockRequestsManager
+                  requests={restockRequests}
+                  onUpdateStatus={handleUpdateRestockStatus}
+                  onDeleteRequest={handleDeleteRestockRequest}
                 />
               )}
 

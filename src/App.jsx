@@ -546,16 +546,10 @@ export function App() {
   };
 
   const handleCheckout = async (newOrder, paymentSlipFile = null) => {
-    confetti({
-      particleCount: 90,
-      spread: 75,
-      origin: { y: 0.6 },
-      colors: ['#c5a059', '#e2be79', '#ffffff', '#141518']
-    });
-    addToast(`Order #${newOrder.orderId} confirmed with package certificate.`);
+    let created = null;
     if (newOrder) {
       try {
-        const created = await createOrder(newOrder, paymentSlipFile);
+        created = await createOrder(newOrder, paymentSlipFile);
         setOrdersList((prev) => [created || newOrder, ...prev]);
       } catch (err) {
         console.error('Order creation error:', err);
@@ -563,7 +557,17 @@ export function App() {
       }
     }
     syncCartState([]);
+
+    // Trigger celebration animation ONLY AFTER order is confirmed and saved
+    confetti({
+      particleCount: 90,
+      spread: 75,
+      origin: { y: 0.6 },
+      colors: ['#c5a059', '#e2be79', '#ffffff', '#141518']
+    });
+    addToast(`Order #${newOrder.orderId} confirmed with package certificate.`);
   };
+
 
   const handleSubscribeSuccess = (email) => {
     addToast(`Subscribed ${email} to the ELVANY Private Circle.`);

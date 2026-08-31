@@ -34,7 +34,8 @@ export const AdminDashboard = ({
 
   const handleExportSubscribers = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
       const response = await fetch(`${apiUrl}/newsletter/export`);
       if (response.ok) {
         const blob = await response.blob();
@@ -102,12 +103,20 @@ export const AdminDashboard = ({
           <button 
             type="button" 
             className="btn-secondary-outline"
+            onClick={() => onNavigateTab('restockRequests')}
+          >
+            <span>RE-ISSUE DEMANDS</span>
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary-outline"
             onClick={() => onNavigateTab('orders')}
           >
             <span>VIEW DISPATCH QUEUE</span>
           </button>
         </div>
       </div>
+
 
       {/* KPI Stat Cards Grid */}
       <div className="admin-stats-grid">

@@ -8,14 +8,29 @@ export const AdminHeader = ({
   onSearchChange,
   orders = [],
   reviews = [],
-  products = []
+  products = [],
+  restockRequests = []
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Compute live notifications from database state
   const liveNotifications = [];
 
-  // 1. Pending orders
+  // 1. Pending restock requests
+  restockRequests
+    .filter(r => (r.status || '').includes('Pending'))
+    .slice(0, 3)
+    .forEach(r => {
+      liveNotifications.push({
+        id: `rst-${r.id}`,
+        title: 'Garment Re-Issue Demand',
+        desc: `${r.customerName} requested restock for ${r.productTitle} (${r.variantColor}, Size ${r.sizeCode}).`,
+        time: r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent',
+        unread: true
+      });
+    });
+
+  // 2. Pending orders
   orders
     .filter(o => o.status === 'Pending Verification' || o.hasSlipAttached)
     .slice(0, 3)
@@ -29,7 +44,7 @@ export const AdminHeader = ({
       });
     });
 
-  // 2. Pending reviews
+  // 3. Pending reviews
   reviews
     .filter(r => r.status === 'Pending')
     .slice(0, 2)
@@ -43,7 +58,7 @@ export const AdminHeader = ({
       });
     });
 
-  // 3. Low stock alerts (< 25 units)
+  // 4. Low stock alerts (< 25 units)
   products
     .filter(p => {
       if (!p.inventory) return false;
@@ -71,6 +86,7 @@ export const AdminHeader = ({
       case 'orders': return 'Client Orders & VIP Dispatch Hub';
       case 'reviews': return 'Client Evaluations & Moderation';
       case 'customers': return 'Private Client Registry & CRM';
+      case 'restockRequests': return 'Garment Re-Issue Demand Hub';
       case 'settings': return 'Maison Brand & Concierge Settings';
       default: return 'Atelier Backoffice';
     }

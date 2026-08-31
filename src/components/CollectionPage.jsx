@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Home, Eye, ShoppingBag, Check, Ruler } from 'lucide-react';
+import { Home, Eye, ShoppingBag, Check, Ruler, Bell } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../data/products';
 
 export const CollectionPage = ({
@@ -260,20 +260,28 @@ export const CollectionPage = ({
                       {isLoggedIn ? (
                         <button 
                           className="btn-quick-add"
-                          disabled={isOutOfStock}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isOutOfStock) return;
+                            if (isOutOfStock) {
+                              if (onSelectProduct) onSelectProduct(product);
+                              else if (onOpenQuickView) onOpenQuickView(product);
+                              return;
+                            }
                             onAddToCart(product, userProfileSize);
                           }}
                           style={{
-                            opacity: isOutOfStock ? 0.4 : 1,
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                            backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                            border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                            color: isOutOfStock ? 'var(--gold-bright)' : undefined,
+                            cursor: 'pointer'
                           }}
-                          title={isOutOfStock ? 'Garment currently sold out' : `Add to bag in your profile size (${userProfileSize})`}
+                          title={isOutOfStock ? 'Garment sold out — Click to request atelier re-issue' : `Add to bag in your profile size (${userProfileSize})`}
                         >
                           {isOutOfStock ? (
-                            <span>OUT</span>
+                            <>
+                              <Bell size={13} />
+                              <span>RE-ISSUE</span>
+                            </>
                           ) : isJustAdded ? (
                             <>
                               <Check size={13} />
@@ -289,10 +297,8 @@ export const CollectionPage = ({
                       ) : (
                         <button 
                           className="btn-quick-add"
-                          disabled={isOutOfStock}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isOutOfStock) return;
                             if (onSelectProduct) {
                               onSelectProduct(product);
                             } else if (onOpenQuickView) {
@@ -300,13 +306,18 @@ export const CollectionPage = ({
                             }
                           }}
                           style={{
-                            opacity: isOutOfStock ? 0.4 : 1,
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                            backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                            border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                            color: isOutOfStock ? 'var(--gold-bright)' : undefined,
+                            cursor: 'pointer'
                           }}
-                          title={isOutOfStock ? 'Garment currently sold out' : 'Inspect piece & select your size'}
+                          title={isOutOfStock ? 'Garment sold out — Click to request atelier re-issue' : 'Inspect piece & select your size'}
                         >
                           {isOutOfStock ? (
-                            <span>OUT</span>
+                            <>
+                              <Bell size={13} />
+                              <span>RE-ISSUE</span>
+                            </>
                           ) : (
                             <>
                               <Ruler size={13} />

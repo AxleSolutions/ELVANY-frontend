@@ -30,7 +30,8 @@ export const Newsletter = ({ onSubscribeSuccess }) => {
 
     // 2. Send to Backend API (which writes to Excel/CSV spreadsheet)
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
       await fetch(`${apiUrl}/newsletter/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

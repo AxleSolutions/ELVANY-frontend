@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, 
@@ -18,10 +18,28 @@ import {
   X,
   UserCheck,
   Download,
-  Printer
+  Printer,
+  QrCode,
+  Smartphone,
+  Monitor,
+  Copy,
+  Sparkles,
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 
+
 import { CITIES_LIST } from './AccountPage';
+
+// Configurable delivery fee logic (Supports flat standard rates, city-based rates, or free thresholds)
+export const STANDARD_DELIVERY_FEE_LKR = 450;
+export const FREE_DELIVERY_THRESHOLD_LKR = 35000;
+
+export const calculateDeliveryFee = (subtotalAmount, selectedCity = '') => {
+  if (!subtotalAmount || subtotalAmount <= 0) return 0;
+  if (subtotalAmount >= FREE_DELIVERY_THRESHOLD_LKR) return 0;
+  return STANDARD_DELIVERY_FEE_LKR;
+};
 
 export const CheckoutPage = ({
   cart = [],
@@ -82,14 +100,19 @@ export const CheckoutPage = ({
 
   // Multi-step state: 1 = Delivery, 2 = Payment & Gifting
   const [currentStep, setCurrentStep] = useState(1);
+  const [confirmedOrder, setConfirmedOrder] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Auto-scroll to top when switching checkout steps or confirming order
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [currentStep, confirmedOrder]);
 
   // Default address toggle for logged in client
   const [useDefaultAddress, setUseDefaultAddress] = useState(Boolean(isLoggedIn && savedDefault?.hasAddress));
   const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   // Form State - Step 1: Delivery
-  // If NOT logged in: EVERYTHING IS KEPT BLANK!
-  // If logged in: auto-fill saved default address if available, otherwise fill user name/email and keep address blank.
   const initialNameParts = isLoggedIn ? (userProfile?.name || loggedInUser || '').replace(/\s*\([^)]*\)/g, '').trim().split(' ') : [];
   const [email, setEmail] = useState(isLoggedIn ? (savedDefault?.email || userProfile?.email || '') : '');
   const [phone, setPhone] = useState(isLoggedIn ? (savedDefault?.phone || userProfile?.phone || '') : '');
@@ -125,33 +148,48 @@ export const CheckoutPage = ({
     }
   };
 
-
-
-  // Form State - Step 2: Payment Method (Bank Transfer or COD)
-  const [paymentMethod, setPaymentMethod] = useState('bank'); // 'bank' | 'cod'
+  // Form State - Step 2: Payment Method (QR or Bank Transfer)
+  const [paymentMethod, setPaymentMethod] = useState('qr'); // 'qr' | 'bank'
   const [paymentSlipFile, setPaymentSlipFile] = useState(null);
   const [paymentSlipPreview, setPaymentSlipPreview] = useState(null);
+  const [slipUploadError, setSlipUploadError] = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
+  const [copiedAccount, setCopiedAccount] = useState(false);
+
+  // Financial calculations
+  const getPrice = (item) => item.priceLKR || item.price || 18500;
+  const getOriginalPrice = (item) => item.originalPriceLKR || getPrice(item);
+
+  const subtotal = cart.reduce((sum, item) => sum + getPrice(item) * (item.qty || 1), 0);
+  const totalOriginal = cart.reduce((sum, item) => sum + getOriginalPrice(item) * (item.qty || 1), 0);
+  const totalSavings = totalOriginal - subtotal;
+  const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+
+  // Dynamic Delivery Fee Calculation
+  const deliveryFee = calculateDeliveryFee(subtotal, city);
+  const grandTotal = subtotal + deliveryFee;
+
+  const handleCopyAmount = () => {
+    navigator.clipboard.writeText(grandTotal.toString());
+    setCopiedAmount(true);
+    setTimeout(() => setCopiedAmount(false), 2500);
+  };
+
+  const handleCopyAccount = (accNo) => {
+    navigator.clipboard.writeText(accNo.replace(/\s+/g, ''));
+    setCopiedAccount(true);
+    setTimeout(() => setCopiedAccount(false), 2500);
+  };
 
   // Gifting option
   const [isGift, setIsGift] = useState(false);
   const [giftMessage, setGiftMessage] = useState('');
 
-  // Submission / Passport state
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confirmedOrder, setConfirmedOrder] = useState(null);
-
   const formatLKR = (val) => {
-    return `LKR ${val.toLocaleString()}`;
+    return `LKR ${(val || 0).toLocaleString()}`;
   };
 
-  const getPrice = (item) => item.priceLKR || item.price || 18500;
-  const getOriginalPrice = (item) => item.originalPriceLKR || getPrice(item);
 
-  // Financial calculations
-  const subtotal = cart.reduce((sum, item) => sum + getPrice(item) * (item.qty || 1), 0);
-  const totalOriginal = cart.reduce((sum, item) => sum + getOriginalPrice(item) * (item.qty || 1), 0);
-  const totalSavings = totalOriginal - subtotal;
-  const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
 
   // Handle Slip Upload
   const handleSlipUpload = (e) => {
@@ -159,6 +197,7 @@ export const CheckoutPage = ({
     if (!file) return;
 
     setPaymentSlipFile(file);
+    setSlipUploadError(false);
     const reader = new FileReader();
     reader.onload = () => {
       setPaymentSlipPreview(reader.result);
@@ -169,20 +208,34 @@ export const CheckoutPage = ({
   const handleRemoveSlip = () => {
     setPaymentSlipFile(null);
     setPaymentSlipPreview(null);
+    setSlipUploadError(true);
   };
 
   const handleProceedToPayment = (e) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !phone || !address || !city) return;
     setCurrentStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
+
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cart.length === 0) return;
 
+    // Strict Enforcement: Payment slip is mandatory for both QR and Bank Transfer
+    if (!paymentSlipFile) {
+      setSlipUploadError(true);
+      const slipElem = document.getElementById('payment-slip-upload-section');
+      if (slipElem) {
+        slipElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     setIsSubmitting(true);
+    setSlipUploadError(false);
+
 
     try {
       const orderId = `ELV-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -206,17 +259,23 @@ export const CheckoutPage = ({
           postalCode,
           country,
           deliveryNotes,
-          location: fullLocation
+          location: fullLocation,
+          deliveryFeeLKR: deliveryFee
         },
         orderDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        status: paymentMethod === 'bank' ? 'Pending Slip Verification' : 'Payment Verified — Processing Dispatch',
-        paymentMethod: paymentMethod === 'bank' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+        status: 'Pending Slip Verification',
+        paymentMethod: paymentMethod === 'qr' ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
         hasSlipAttached: !!paymentSlipFile,
-        totalLKR: subtotal,
+        subtotalLKR: subtotal,
+        deliveryFeeLKR: deliveryFee,
+        shippingFeeLKR: deliveryFee,
+        totalLKR: grandTotal,
+        grandTotalLKR: grandTotal,
         savingsLKR: totalSavings,
         isGift,
         giftMessage: isGift ? giftMessage : '',
         deliveryNotes,
+
         items: cart.map((c) => ({
           productId: c.id,
           id: c.id,
@@ -460,7 +519,7 @@ export const CheckoutPage = ({
                           <span style="font-size: 18px; font-weight: 700; color: #c5a059;">LKR ${(confirmedOrder.totalLKR || 0).toLocaleString()}</span>
                         </div>
                         <div class="footer-note">
-                          This document certifies authentic origin from Maison ELVANY atelier.<br/>
+                          This document certifies authentic origin from Maison ELVANY wear.<br/>
                           Express Courier Island-Wide Delivery Guaranteed.
                         </div>
                       </div>
@@ -965,9 +1024,49 @@ export const CheckoutPage = ({
                     </h3>
                   </div>
 
-                  {/* Payment Tabs: Bank Transfer and COD */}
+                  {/* Payment Tabs: LankaQR and Bank Transfer */}
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.8rem' }}>
                     
+                    {/* LankaQR / Direct QR Option */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('qr')}
+                      style={{
+                        backgroundColor: paymentMethod === 'qr' ? 'var(--gold-bright)' : '#07080a',
+                        color: paymentMethod === 'qr' ? '#000000' : '#ffffff',
+                        border: paymentMethod === 'qr' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
+                        padding: '1.2rem 0.8rem',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'var(--transition-fast)',
+                        position: 'relative'
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '8px',
+                        backgroundColor: paymentMethod === 'qr' ? '#000000' : 'var(--gold-bright)',
+                        color: paymentMethod === 'qr' ? 'var(--gold-bright)' : '#000000',
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        padding: '2px 6px',
+                        borderRadius: '2px',
+                        letterSpacing: '0.08em'
+                      }}>
+                        FAST & INSTANT
+                      </span>
+                      <QrCode size={24} />
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textAlign: 'center' }}>
+                        LANKAQR / DIRECT QR
+                      </span>
+                    </button>
+
                     {/* Bank Transfer Option */}
                     <button
                       type="button"
@@ -976,220 +1075,436 @@ export const CheckoutPage = ({
                         backgroundColor: paymentMethod === 'bank' ? 'var(--gold-bright)' : '#07080a',
                         color: paymentMethod === 'bank' ? '#000000' : '#ffffff',
                         border: paymentMethod === 'bank' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                        padding: '1.3rem 1rem',
+                        padding: '1.2rem 0.8rem',
                         borderRadius: '2px',
                         cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '0.6rem',
+                        gap: '0.5rem',
                         transition: 'var(--transition-fast)'
                       }}
                     >
                       <Building2 size={24} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.08em' }}>DIRECT BANK TRANSFER</span>
-                    </button>
-
-                    {/* Cash on Delivery Option */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('cod')}
-                      style={{
-                        backgroundColor: paymentMethod === 'cod' ? 'var(--gold-bright)' : '#07080a',
-                        color: paymentMethod === 'cod' ? '#000000' : '#ffffff',
-                        border: paymentMethod === 'cod' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                        padding: '1.3rem 1rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        transition: 'var(--transition-fast)'
-                      }}
-                    >
-                      <Truck size={24} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.08em' }}>CASH ON DELIVERY (COD)</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textAlign: 'center' }}>
+                        DIRECT BANK TRANSFER
+                      </span>
                     </button>
                   </div>
 
-                  {/* Bank Transfer Details with Image Slip Upload */}
-                  {paymentMethod === 'bank' && (
+                  {/* 1. LankaQR / Direct QR Payment Method Details */}
+                  {paymentMethod === 'qr' && (
                     <div style={{ backgroundColor: '#07080a', border: '1px solid var(--border-dark)', padding: '1.8rem', borderRadius: '2px', fontSize: '0.85rem' }}>
-                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '1rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Building2 size={16} />
-                        <span>Maison ELVANY Commercial Bank Account</span>
+                      
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <QrCode size={18} />
+                          <span>LankaQR Instant Atelier Settlement</span>
+                        </div>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-light-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', backgroundColor: '#0b0c0f', padding: '1.2rem', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div>Bank Name: <strong style={{ color: '#ffffff' }}>Commercial Bank of Ceylon PLC</strong></div>
-                        <div>Beneficiary Name: <strong style={{ color: '#ffffff' }}>ELVANY ATELIER (PVT) LTD</strong></div>
-                        <div>Account Number: <strong style={{ color: 'var(--gold-bright)', fontSize: '1rem' }}>1000 8942 5500</strong></div>
-                        <div>Branch / Code: <strong style={{ color: '#ffffff' }}>Colombo 07 Elite Commercial Branch</strong></div>
-                        <div>Reference: <strong style={{ color: 'var(--gold-bright)' }}>Your Name / Mobile Number</strong></div>
-                      </div>
-
-                      {/* Client Login Guard for Bank Transfers */}
-                      {!loggedInUser ? (
-                        <div style={{
-                          backgroundColor: '#0e0f14',
-                          border: '1px solid var(--gold-bright)',
-                          borderRadius: '2px',
-                          padding: '1.8rem 1.4rem',
-                          textAlign: 'center',
-                          marginTop: '1rem'
-                        }}>
+                      {/* QR Display Card & Amount Panel */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                        gap: '1.6rem',
+                        alignItems: 'center',
+                        backgroundColor: '#0b0c0f',
+                        padding: '1.5rem',
+                        borderRadius: '2px',
+                        border: '1px solid var(--gold-border)',
+                        marginBottom: '1.6rem'
+                      }}>
+                        
+                        {/* QR Code Presentation Box */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                           <div style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(197, 160, 89, 0.15)',
+                            padding: '12px',
+                            backgroundColor: '#ffffff',
+                            borderRadius: '4px',
+                            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
+                            border: '2px solid var(--gold-bright)',
+                            display: 'inline-block',
+                            marginBottom: '1rem'
+                          }}>
+                            <img 
+                              src="/QR/elvany_qr.jpeg" 
+                              alt="ELVANY Business LankaQR Code"
+                              style={{
+                                width: '190px',
+                                height: '190px',
+                                objectFit: 'contain',
+                                display: 'block'
+                              }}
+                              onError={(e) => {
+                                e.target.src = '/QR/WhatsApp Image 2026-08-31 at 13.16.57.jpeg';
+                              }}
+                            />
+                          </div>
+
+                          {/* Quick Download QR CTA */}
+                          <a
+                            href="/QR/elvany_qr.jpeg"
+                            download="ELVANY_Atelier_Payment_QR.jpeg"
+                            className="btn-outline-gold"
+                            style={{
+                              padding: '0.55rem 1rem',
+                              fontSize: '0.74rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              textDecoration: 'none',
+                              fontWeight: 700
+                            }}
+                          >
+                            <Download size={13} />
+                            <span>DOWNLOAD QR IMAGE</span>
+                          </a>
+                        </div>
+
+                        {/* Amount Due & Copy Helper */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                            TOTAL PAYABLE AMOUNT
+                          </div>
+                          
+                          <div style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '1.8rem',
                             color: 'var(--gold-bright)',
+                            fontWeight: 800,
+                            letterSpacing: '0.04em'
+                          }}>
+                            {formatLKR(grandTotal)}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={handleCopyAmount}
+                              style={{
+                                backgroundColor: copiedAmount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                                border: copiedAmount ? '1px solid #4ade80' : '1px solid var(--border-dark)',
+                                color: copiedAmount ? '#4ade80' : '#ffffff',
+                                padding: '6px 12px',
+                                borderRadius: '2px',
+                                fontSize: '0.74rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                fontWeight: 600
+                              }}
+                            >
+                              {copiedAmount ? <Check size={13} /> : <Copy size={13} />}
+                              <span>{copiedAmount ? 'AMOUNT COPIED!' : 'COPY EXACT AMOUNT'}</span>
+                            </button>
+                          </div>
+
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginTop: '0.4rem' }}>
+                            Merchant: <strong style={{ color: '#ffffff' }}>ELVANY WEAR</strong><br />
+                            Accepted via any registered Sri Lankan banking or fintech application.
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Device-Specific Dual Guided Instructions */}
+                      <div style={{ marginBottom: '1.6rem' }}>
+                        <div style={{ fontSize: '0.76rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
+                          HOW TO COMPLETE YOUR PAYMENT:
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                          
+                          {/* Option A: Desktop / Laptop Instruction Card */}
+                          <div style={{
+                            backgroundColor: '#0c0d11',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            padding: '1.1rem',
+                            borderRadius: '2px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.6rem' }}>
+                              <Monitor size={15} color="var(--gold-bright)" />
+                              <span>If on Desktop / Laptop</span>
+                            </div>
+                            <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.6 }}>
+                              <li>Open your <strong>Banking App</strong> or QR Wallet on your mobile phone.</li>
+                              <li>Select <strong>"Scan QR"</strong> and point your camera at the QR code above.</li>
+                              <li>Enter the exact amount <strong>{formatLKR(grandTotal)}</strong> & confirm transfer.</li>
+                              <li>Take a screenshot of the payment receipt and upload below.</li>
+                            </ol>
+                          </div>
+
+                          {/* Option B: Mobile Phone Shopper Instruction Card */}
+                          <div style={{
+                            backgroundColor: '#0c0d11',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            padding: '1.1rem',
+                            borderRadius: '2px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.6rem' }}>
+                              <Smartphone size={15} color="var(--gold-bright)" />
+                              <span>If on Mobile Phone</span>
+                            </div>
+                            <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.6 }}>
+                              <li>Tap <strong>"DOWNLOAD QR IMAGE"</strong> above or take a quick screenshot of the QR.</li>
+                              <li>Open your Bank App & select <strong>"Scan / Upload QR from Gallery"</strong>.</li>
+                              <li>Enter <strong>{formatLKR(grandTotal)}</strong> and complete the transaction.</li>
+                              <li>Take a screenshot of the confirmation screen and upload below.</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+
+
+                      {/* Upload Payment Screenshot Box */}
+                      <div id="payment-slip-upload-section">
+                        <label className="form-label" style={{ marginBottom: '0.6rem' }}>
+                          UPLOAD QR PAYMENT SCREENSHOT / RECEIPT (IMAGE) *
+                        </label>
+                        
+                        {!paymentSlipPreview ? (
+                          <label style={{
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            margin: '0 auto 1rem auto'
+                            gap: '0.6rem',
+                            border: slipUploadError ? '1px dashed #ef4444' : '1px dashed var(--gold-border)',
+                            borderRadius: '2px',
+                            padding: '1.8rem 1.2rem',
+                            backgroundColor: slipUploadError ? 'rgba(239, 68, 68, 0.05)' : '#0d0e12',
+                            cursor: 'pointer',
+                            transition: 'border-color 0.2s ease'
                           }}>
-                            <Lock size={20} />
-                          </div>
-                          <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#ffffff', marginBottom: '0.5rem', fontWeight: 500 }}>
-                            Client Login Required for Bank Transfers
-                          </h4>
-                          <p style={{ fontSize: '0.84rem', color: 'var(--text-light-secondary)', maxWidth: '440px', margin: '0 auto 1.4rem auto', lineHeight: 1.5 }}>
-                            Because bank transfer slips require concierge verification before confirmation, you must be logged into your private client account to submit your receipt.
-                          </p>
-                          <button
-                            type="button"
-                            className="btn-primary-gold"
-                            onClick={onOpenAuthModal}
-                            style={{ padding: '0.85rem 1.8rem', fontSize: '0.82rem', letterSpacing: '0.12em', fontWeight: 800 }}
-                          >
-                            <UserCheck size={16} />
-                            <span>LOG IN / CREATE CLIENT ACCOUNT</span>
-                          </button>
-                        </div>
-                      ) : (
-                        /* Authenticated Slip Uploader */
-                        <div>
-                          <label className="form-label" style={{ marginBottom: '0.6rem' }}>UPLOAD PAYMENT SLIP / BANK RECEIPT (IMAGE)</label>
-                          
-                          {!paymentSlipPreview ? (
-                            <label style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '0.6rem',
-                              border: '1px dashed var(--gold-border)',
-                              borderRadius: '2px',
-                              padding: '1.8rem 1.2rem',
-                              backgroundColor: '#0d0e12',
-                              cursor: 'pointer',
-                              transition: 'border-color 0.2s ease'
-                            }}>
-                              <UploadCloud size={28} color="var(--gold-bright)" />
-                              <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Drag & Drop Payment Slip</span>
-                              <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Supported formats: JPG, PNG, WEBP, PDF (Max 10MB)</span>
-                              <input 
-                                type="file" 
-                                accept="image/*,application/pdf" 
-                                onChange={handleSlipUpload}
-                                style={{ display: 'none' }}
+                            <UploadCloud size={28} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
+                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Screenshot</span>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Supported formats: JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                            <input 
+                              type="file" 
+                              accept="image/*,application/pdf" 
+                              onChange={handleSlipUpload}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                        ) : (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: '1px solid var(--gold-bright)',
+                            backgroundColor: '#0d0e12',
+                            padding: '0.8rem 1.2rem',
+                            borderRadius: '2px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                              <img 
+                                src={paymentSlipPreview} 
+                                alt="Payment receipt screenshot" 
+                                style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
                               />
-                            </label>
-                          ) : (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              border: '1px solid var(--gold-bright)',
-                              backgroundColor: '#0d0e12',
-                              padding: '0.8rem 1.2rem',
-                              borderRadius: '2px'
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                                <img 
-                                  src={paymentSlipPreview} 
-                                  alt="Slip preview" 
-                                  style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
-                                />
-                                <div>
-                                  <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
-                                  <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for concierge verification</div>
-                                </div>
+                              <div>
+                                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'QR_Payment_Receipt.png'}</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ QR transaction receipt attached for immediate concierge dispatch</div>
                               </div>
-
-                              <button
-                                type="button"
-                                onClick={handleRemoveSlip}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: 'var(--text-light-muted)',
-                                  cursor: 'pointer',
-                                  padding: '4px',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }}
-                                title="Remove slip"
-                              >
-                                <X size={18} />
-                              </button>
                             </div>
-                          )}
-                        </div>
-                      )}
+
+                            <button
+                              type="button"
+                              onClick={handleRemoveSlip}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-light-muted)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                              title="Remove receipt"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+                        )}
+
+                        {slipUploadError && !paymentSlipFile && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            border: '1px solid #ef4444',
+                            padding: '0.8rem 1rem',
+                            borderRadius: '2px',
+                            color: '#f87171',
+                            fontSize: '0.78rem',
+                            marginTop: '0.8rem',
+                            fontWeight: 600
+                          }}>
+                            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
+                            <span>MANDATORY: Please upload your payment transfer receipt or transaction screenshot to place order.</span>
+                          </div>
+                        )}
+                      </div>
 
                     </div>
                   )}
 
-                  {/* Cash on Delivery Details */}
-                  {paymentMethod === 'cod' && (
+                  {/* 2. Direct Bank Transfer Option Details */}
+                  {paymentMethod === 'bank' && (
                     <div style={{ backgroundColor: '#07080a', border: '1px solid var(--border-dark)', padding: '1.8rem', borderRadius: '2px', fontSize: '0.85rem' }}>
-                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '0.8rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Truck size={16} />
-                        <span>White-Glove Courier Concierge</span>
+                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '1rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Building2 size={16} />
+                        <span>Maison ELVANY Official Bank Account</span>
                       </div>
-                      <p style={{ color: 'var(--text-light-secondary)', margin: 0, lineHeight: 1.6 }}>
-                        Pay securely in cash or via handheld contactless POS card terminal when our private courier delivers your bespoke package to your doorstep.
-                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', color: 'var(--text-light-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', backgroundColor: '#0b0c0f', padding: '1.3rem', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div>Beneficiary Name: <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>P C Jayaweera</strong></div>
+                        <div>Bank Name: <strong style={{ color: '#ffffff' }}>Hatton National Bank PLC (HNB)</strong></div>
+                        <div>Branch: <strong style={{ color: '#ffffff' }}>Kurunegala Main Branch</strong></div>
+                        <div>Branch Code: <strong style={{ color: '#ffffff' }}>019</strong></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          <span>Account Number:</span>
+                          <strong style={{ color: 'var(--gold-bright)', fontSize: '1.15rem', letterSpacing: '0.04em' }}>019020601780</strong>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyAccount('019020601780')}
+                            style={{
+                              backgroundColor: copiedAccount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255,255,255,0.08)',
+                              border: copiedAccount ? '1px solid #4ade80' : '1px solid var(--border-dark)',
+                              color: copiedAccount ? '#4ade80' : 'var(--text-light-secondary)',
+                              padding: '3px 9px',
+                              borderRadius: '2px',
+                              fontSize: '0.72rem',
+                              cursor: 'pointer',
+                              fontWeight: 600
+                            }}
+                          >
+                            {copiedAccount ? 'COPIED!' : 'COPY'}
+                          </button>
+                        </div>
+                        <div style={{ marginTop: '4px' }}>Reference: <strong style={{ color: 'var(--gold-bright)' }}>Your Name / Mobile Number</strong></div>
+                      </div>
+
+                      {/* Slip Uploader */}
+                      <div id="payment-slip-upload-section">
+                        <label className="form-label" style={{ marginBottom: '0.6rem' }}>UPLOAD BANK DEPOSIT / TRANSFER SLIP (IMAGE) *</label>
+                        
+                        {!paymentSlipPreview ? (
+                          <label style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.6rem',
+                            border: slipUploadError ? '1px dashed #ef4444' : '1px dashed var(--gold-border)',
+                            borderRadius: '2px',
+                            padding: '1.8rem 1.2rem',
+                            backgroundColor: slipUploadError ? 'rgba(239, 68, 68, 0.05)' : '#0d0e12',
+                            cursor: 'pointer',
+                            transition: 'border-color 0.2s ease'
+                          }}>
+                            <UploadCloud size={28} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
+                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Drag & Drop Payment Slip</span>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Supported formats: JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                            <input 
+                              type="file" 
+                              accept="image/*,application/pdf" 
+                              onChange={handleSlipUpload}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                        ) : (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: '1px solid var(--gold-bright)',
+                            backgroundColor: '#0d0e12',
+                            padding: '0.8rem 1.2rem',
+                            borderRadius: '2px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                              <img 
+                                src={paymentSlipPreview} 
+                                alt="Slip preview" 
+                                style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
+                              />
+                              <div>
+                                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for concierge verification</div>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleRemoveSlip}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-light-muted)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                              title="Remove slip"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+                        )}
+
+                        {slipUploadError && !paymentSlipFile && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            border: '1px solid #ef4444',
+                            padding: '0.8rem 1rem',
+                            borderRadius: '2px',
+                            color: '#f87171',
+                            fontSize: '0.78rem',
+                            marginTop: '0.8rem',
+                            fontWeight: 600
+                          }}>
+                            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
+                            <span>MANDATORY: Please upload your payment transfer receipt or deposit slip to place order.</span>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   )}
 
                 </div>
 
-                {/* Action Buttons Row: Properly aligned BACK and CONFIRM buttons */}
-                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+
+                {/* Action Buttons Row: Perfectly aligned BACK and CONFIRM buttons */}
+                <div className="checkout-actions-row">
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(1)}
-                    className="btn-outline-gold"
-                    style={{
-                      padding: '1.15rem 1.8rem',
-                      fontSize: '0.86rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      flexShrink: 0
+                    onClick={() => {
+                      setCurrentStep(1);
+                      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                     }}
+                    className="btn-outline-gold checkout-back-action-btn"
                   >
                     <ArrowLeft size={16} />
                     <span>BACK</span>
                   </button>
 
+
                   <button
                     type="submit"
-                    disabled={isSubmitting || (paymentMethod === 'bank' && !loggedInUser)}
-                    className="btn-primary-gold"
+                    disabled={isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || !paymentSlipFile}
+                    className="btn-primary-gold checkout-confirm-action-btn"
                     style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      padding: '1.15rem 1.8rem',
-                      fontSize: '0.88rem',
-                      letterSpacing: '0.14em',
-                      fontWeight: 800,
-                      opacity: (paymentMethod === 'bank' && !loggedInUser) ? 0.5 : 1,
-                      cursor: (paymentMethod === 'bank' && !loggedInUser) ? 'not-allowed' : 'pointer'
+                      opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || !paymentSlipFile) ? 0.6 : 1,
+                      cursor: (!paymentSlipFile || (paymentMethod === 'bank' && !loggedInUser)) ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {isSubmitting ? (
@@ -1199,14 +1514,21 @@ export const CheckoutPage = ({
                         <Lock size={16} />
                         <span>LOG IN REQUIRED FOR BANK TRANSFER</span>
                       </>
+                    ) : !paymentSlipFile ? (
+                      <>
+                        <UploadCloud size={16} />
+                        <span>ATTACH PAYMENT SLIP TO CONFIRM</span>
+                      </>
                     ) : (
                       <>
                         <Lock size={16} />
-                        <span>CONFIRM & SECURE ACQUISITION — {formatLKR(subtotal)}</span>
+                        <span>CONFIRM & PLACE ORDER • {formatLKR(grandTotal)}</span>
                       </>
                     )}
                   </button>
                 </div>
+
+
 
               </form>
             )}
@@ -1276,7 +1598,7 @@ export const CheckoutPage = ({
               <div style={{ borderTop: '1px solid var(--border-dark)', paddingTop: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.7rem', fontSize: '0.84rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
                   <span>Garment Subtotal:</span>
-                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{formatLKR(totalOriginal)}</span>
+                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{formatLKR(subtotal)}</span>
                 </div>
 
                 {totalSavings > 0 && (
@@ -1287,8 +1609,10 @@ export const CheckoutPage = ({
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
-                  <span>White-Glove Courier:</span>
-                  <span style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>COMPLIMENTARY</span>
+                  <span>Island-Wide Courier Delivery:</span>
+                  <span style={{ color: deliveryFee === 0 ? 'var(--gold-bright)' : '#ffffff', fontWeight: 700 }}>
+                    {deliveryFee === 0 ? 'COMPLIMENTARY' : formatLKR(deliveryFee)}
+                  </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
@@ -1299,10 +1623,11 @@ export const CheckoutPage = ({
                 <div style={{ borderTop: '1px solid var(--border-dark)', marginTop: '0.5rem', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold-bright)', fontWeight: 800 }}>
-                    {formatLKR(subtotal)}
+                    {formatLKR(grandTotal)}
                   </span>
                 </div>
               </div>
+
 
               {/* Trust Assurances */}
               <div style={{ marginTop: '1.8rem', paddingTop: '1.2rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>

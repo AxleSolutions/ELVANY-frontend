@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Shirt, ShoppingBag, Star, Users, Settings, ExternalLink, ShieldCheck, ChevronRight, Gift, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Shirt, ShoppingBag, Star, Users, Settings, ExternalLink, ShieldCheck, ChevronRight, Gift, Megaphone, Bell } from 'lucide-react';
 
 export const AdminSidebar = ({ 
   activeTab, 
@@ -11,7 +11,8 @@ export const AdminSidebar = ({
   ordersCount = 5,
   pendingReviewsCount = 1,
   offersCount = 2,
-  isPopupAdActive = true
+  isPopupAdActive = true,
+  restockRequestsCount = 0
 }) => {
   const navItems = [
     { id: 'dashboard', label: 'Executive Overview', icon: LayoutDashboard, badge: null },
@@ -19,10 +20,12 @@ export const AdminSidebar = ({
     { id: 'popupAd', label: 'Entrance Popup Ad', icon: Megaphone, badge: isPopupAdActive ? 'Active' : 'Off' },
     { id: 'products', label: 'Garments & Stock', icon: Shirt, badge: `${productsCount} Styles` },
     { id: 'orders', label: 'Orders & Dispatch', icon: ShoppingBag, badge: `${ordersCount} Active` },
+    { id: 'restockRequests', label: 'Demand & Re-Issues', icon: Bell, badge: restockRequestsCount > 0 ? `${restockRequestsCount} Demands` : null },
     { id: 'reviews', label: 'Client Evaluations', icon: Star, badge: `${pendingReviewsCount} Pending` },
     { id: 'customers', label: 'Client Registry', icon: Users, badge: null },
     { id: 'settings', label: 'Maison Settings', icon: Settings, badge: null }
   ];
+
 
 
   return (

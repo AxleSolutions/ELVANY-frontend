@@ -4405,6 +4405,58 @@ img {
   }
 }
 
+/* =========================================================================
+   CHECKOUT ACTION BUTTONS (MOBILE & DESKTOP ALIGNMENT)
+   ========================================================================= */
+.checkout-actions-row {
+  display: flex;
+  gap: 1.2rem;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.checkout-back-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.15rem 1.8rem;
+  font-size: 0.86rem;
+  min-height: 52px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.checkout-confirm-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.15rem 1.8rem;
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  min-height: 52px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .checkout-actions-row {
+    flex-direction: column-reverse;
+    gap: 0.85rem;
+  }
+  .checkout-back-action-btn,
+  .checkout-confirm-action-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+
 
 
 
