@@ -49,13 +49,13 @@ export const Hero = ({ onExploreClick }) => {
       style={{
         position: 'relative',
         overflow: 'hidden',
-        minHeight: '85vh',
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         backgroundColor: '#0b0b0c'
       }}
     >
-      {/* Background Images: Optical Focus & Camera Zoom */}
+      {/* Background Images: Enhanced High-Clarity Optical Focus & Zoom */}
       {HERO_SLIDES.map((slide, idx) => {
         const isActive = idx === currentSlide;
 
@@ -67,7 +67,7 @@ export const Hero = ({ onExploreClick }) => {
               inset: 0,
               opacity: isActive ? 1 : 0,
               transform: isActive ? 'scale(1.0)' : 'scale(1.08)',
-              filter: isActive ? 'blur(0px) brightness(1)' : 'blur(8px) brightness(0.6)',
+              filter: isActive ? 'blur(0px) brightness(1.08) contrast(1.04)' : 'blur(6px) brightness(0.6)',
               transition: 'opacity 1.6s cubic-bezier(0.22, 1, 0.36, 1), transform 6.5s cubic-bezier(0.25, 1, 0.5, 1), filter 1.6s ease-out',
               zIndex: isActive ? 2 : 1,
               pointerEvents: 'none'
@@ -80,20 +80,20 @@ export const Hero = ({ onExploreClick }) => {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                objectPosition: 'center top'
+                objectPosition: 'center 15%'
               }}
             />
           </div>
         );
       })}
 
-      {/* Cinematic Gradient Overlays */}
+      {/* High-Clarity Cinematic Gradient Overlays */}
       <div 
         className="hero-gradient-overlay" 
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(90deg, #0b0b0c 40%, rgba(11, 11, 12, 0.84) 66%, rgba(11, 11, 12, 0.22) 100%)',
+          background: 'linear-gradient(90deg, rgba(11, 11, 12, 0.88) 0%, rgba(11, 11, 12, 0.62) 42%, rgba(11, 11, 12, 0.18) 72%, rgba(11, 11, 12, 0.02) 100%)',
           zIndex: 3
         }} 
       />
@@ -104,8 +104,8 @@ export const Hero = ({ onExploreClick }) => {
           bottom: 0,
           left: 0,
           width: '100%',
-          height: '150px',
-          background: 'linear-gradient(to top, #0b0b0c 0%, transparent 100%)',
+          height: '100px',
+          background: 'linear-gradient(to top, #0b0b0c 0%, rgba(11, 11, 12, 0.4) 60%, transparent 100%)',
           zIndex: 4
         }}
       />

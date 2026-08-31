@@ -498,7 +498,7 @@ img {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #0b0b0c 35%, rgba(11, 11, 12, 0.82) 60%, rgba(11, 11, 12, 0.16) 100%);
+  background: linear-gradient(90deg, rgba(11, 11, 12, 0.88) 0%, rgba(11, 11, 12, 0.62) 42%, rgba(11, 11, 12, 0.18) 72%, rgba(11, 11, 12, 0.02) 100%);
   z-index: 2;
 }
 
@@ -507,8 +507,8 @@ img {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 140px;
-  background: linear-gradient(to top, #0b0b0c 0%, transparent 100%);
+  height: 100px;
+  background: linear-gradient(to top, #0b0b0c 0%, rgba(11, 11, 12, 0.4) 60%, transparent 100%);
   z-index: 3;
 }
 
@@ -521,7 +521,7 @@ img {
   position: relative;
   z-index: 4;
   width: 100%;
-  padding: 3.5rem 0;
+  padding: 6.5rem 0 4.5rem 0;
 }
 
 .hero-content {
@@ -534,11 +534,11 @@ img {
   align-items: center;
   gap: 8px;
   color: var(--gold-bright);
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  font-weight: 700;
   text-transform: uppercase;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
 }
 
 .hero-eyebrow-line {
@@ -692,16 +692,16 @@ img {
 
 @media (max-width: 900px) {
   .hero-gradient-overlay {
-    background: linear-gradient(180deg, rgba(11, 11, 12, 0.92) 0%, rgba(11, 11, 12, 0.85) 60%, #0b0b0c 100%) !important;
+    background: linear-gradient(180deg, rgba(11, 11, 12, 0.82) 0%, rgba(11, 11, 12, 0.55) 45%, rgba(11, 11, 12, 0.88) 100%) !important;
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
-    min-height: 82vh;
+    min-height: 85vh;
   }
   .hero-container {
-    padding: 2.5rem 1.2rem !important;
+    padding: 5rem 1.2rem 3rem 1.2rem !important;
   }
   .hero-text-stage {
     min-height: 230px !important;
