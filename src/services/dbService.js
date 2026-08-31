@@ -778,6 +778,7 @@ export async function getOffers() {
       const { data: promotions, error: promoError } = await supabase
         .from('promotions')
         .select('*')
+        .neq('code', 'MAISON_RESTOCK_REGISTRY')
         .order('created_at', { ascending: false });
 
       if (!promoError && Array.isArray(promotions) && promotions.length > 0) {
