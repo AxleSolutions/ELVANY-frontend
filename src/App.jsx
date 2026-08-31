@@ -102,31 +102,28 @@ export function App() {
     return initial;
   });
 
-  // Sync Supabase backend data on mount
+  // Sync backend data smoothly in background on mount (Non-blocking instant render)
   useEffect(() => {
     async function syncBackendData() {
-      setIsLoadingCatalog(true);
       try {
-        const [dbProducts, dbOrders, dbOffers, dbReviews, dbPopupAd] = await Promise.all([
+        const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes] = await Promise.allSettled([
           getProducts(),
-          getOrders(),
           getOffers(),
           getReviews(),
           getPopupAdSettings()
         ]);
-        if (dbProducts) {
-          setProductsList(dbProducts);
+
+        if (dbProductsRes.status === 'fulfilled' && Array.isArray(dbProductsRes.value) && dbProductsRes.value.length > 0) {
+          setProductsList(dbProductsRes.value);
         }
-        if (dbOrders) {
-          setOrdersList(dbOrders);
+        if (dbOffersRes.status === 'fulfilled' && Array.isArray(dbOffersRes.value)) {
+          setOffers(dbOffersRes.value);
         }
-        setOffers(dbOffers || []);
-        if (dbPopupAd) {
-          setPopupAdSettings(dbPopupAd);
+        if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
+          setPopupAdSettings(dbPopupAdRes.value);
         }
 
-        // Hydrate and merge database reviews into allReviewsMap across all product keys
-        if (Array.isArray(dbReviews) && dbReviews.length > 0) {
+        const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
           setAllReviewsMap((prev) => {
             const revMap = { ...prev };
             dbReviews.forEach((r) => {

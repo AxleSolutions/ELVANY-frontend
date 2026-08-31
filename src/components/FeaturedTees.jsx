@@ -103,6 +103,8 @@ export const FeaturedTees = ({
                       src={product.image || '/images/hero_tshirt.jpg'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
                     />
 

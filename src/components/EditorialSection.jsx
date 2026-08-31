@@ -53,6 +53,8 @@ export const EditorialSection = ({ onReadEditorial }) => {
           src="/images/tshirt_oversized.jpg" 
           alt="ELVANY Luxury T-Shirt Editorial" 
           className="editorial-hero-img"
+          loading="lazy"
+          decoding="async"
         />
         <div className="editorial-watermark-stamp">
           FLORENCE ATELIER • 2025

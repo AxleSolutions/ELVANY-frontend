@@ -32,7 +32,9 @@ export const CuratedPillars = ({ onSelectCategory }) => {
               <img 
                 src={cat.image} 
                 alt={cat.title} 
-                className="category-card-bg" 
+                className="category-card-bg"
+                loading="lazy"
+                decoding="async"
               />
               <div className="category-card-overlay">
                 <div className="category-card-top">

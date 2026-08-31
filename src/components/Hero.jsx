@@ -76,6 +76,9 @@ export const Hero = ({ onExploreClick }) => {
             <img 
               src={slide.image} 
               alt={slide.title}
+              fetchPriority={idx === 0 ? 'high' : 'auto'}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              decoding={idx === 0 ? 'sync' : 'async'}
               style={{
                 width: '100%',
                 height: '100%',

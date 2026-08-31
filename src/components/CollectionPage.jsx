@@ -123,6 +123,8 @@ export const CollectionPage = ({
                 <img
                   src={cat.image}
                   alt={cat.title}
+                  loading="lazy"
+                  decoding="async"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div style={{
@@ -244,6 +246,8 @@ export const CollectionPage = ({
                       src={product.image || '/images/hero_tshirt.jpg'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
                     />
 

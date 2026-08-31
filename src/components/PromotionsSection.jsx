@@ -185,6 +185,8 @@ export const PromotionsSection = ({
                       <img 
                         src={offer.productImage} 
                         alt={offer.productName}
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           width: '100%',
                           height: '100%',

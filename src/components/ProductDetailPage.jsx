@@ -148,6 +148,9 @@ export const ProductDetailPage = ({
                 src={images[activeImageIndex]} 
                 alt={product.name} 
                 className="pdp-main-img" 
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
               <span className="pdp-badge-overlay">{product.provenanceTag}</span>
 
@@ -183,7 +186,7 @@ export const ProductDetailPage = ({
                     className={`pdp-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
                     onClick={() => setActiveImageIndex(idx)}
                   >
-                    <img src={img} alt={`View ${idx + 1}`} />
+                    <img src={img} alt={`View ${idx + 1}`} loading="lazy" decoding="async" />
                   </button>
                 ))}
               </div>
@@ -730,6 +733,8 @@ export const ProductDetailPage = ({
                   <img 
                     src={rp.image} 
                     alt={rp.name} 
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       width: '100%',
                       height: '100%',

@@ -17,6 +17,8 @@ export const ArchitecturalDetails = () => {
             <img 
               src="/images/pillar_heavyweight.jpg" 
               alt="Heavyweight Cotton Structure" 
+              loading="lazy"
+              decoding="async"
             />
             <div className="craft-card-large-overlay">
               <div className="craft-card-tag" style={{ color: 'var(--gold-bright)' }}>
