@@ -72,40 +72,28 @@ export const Navbar = ({
       <div className="container">
         <div className="navbar-inner">
           {/* Left Navigation Links */}
-          <div className="nav-left-group" style={{ display: 'flex', alignItems: 'center', gap: '1.4rem', justifySelf: 'start' }}>
-            <nav className="nav-links-left">
+          <nav className="nav-links-left">
+            <button 
+              className={`nav-link ${currentView === 'home' ? 'active-nav' : ''}`}
+              onClick={handleHomeClick}
+            >
+              <span>HOME</span>
+            </button>
 
-              <button 
-                className={`nav-link ${currentView === 'home' ? 'active-nav' : ''}`}
-                onClick={handleHomeClick}
-              >
-                <span>HOME</span>
-              </button>
+            <button 
+              className={`nav-link ${currentView === 'collection' ? 'active-nav' : ''}`}
+              onClick={() => onNavigateToCollection('all')}
+            >
+              COLLECTION
+            </button>
 
-              <button 
-                className={`nav-link ${currentView === 'collection' ? 'active-nav' : ''}`}
-                onClick={() => onNavigateToCollection('all')}
-              >
-                COLLECTION
-              </button>
-
-              <button 
-                className="nav-link"
-                onClick={handleArchiveClick}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                ARCHIVE
-              </button>
-
-              <button 
-                className={`nav-link ${currentView === 'concierge' ? 'active-nav' : ''}`}
-                onClick={handleContactClick}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                CONCIERGE
-              </button>
-            </nav>
-          </div>
+            <button 
+              className={`nav-link ${currentView === 'concierge' ? 'active-nav' : ''}`}
+              onClick={handleContactClick}
+            >
+              CONCIERGE
+            </button>
+          </nav>
 
           {/* Center Brand Identity */}
           <a 

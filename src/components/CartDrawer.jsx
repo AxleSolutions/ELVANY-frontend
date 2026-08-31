@@ -8,12 +8,22 @@ export const CartDrawer = ({
   cartItems = [],
   onUpdateQty,
   onRemoveItem,
-  onCheckout
+  onCheckout,
+  onNavigateToCollection
 }) => {
   const navigate = useNavigate();
   const [orderConfirmedData, setOrderConfirmedData] = useState(null);
 
   if (!isOpen) return null;
+
+  const handleExploreCapsule = () => {
+    onClose();
+    if (onNavigateToCollection) {
+      onNavigateToCollection('all');
+    } else {
+      navigate('/collection');
+    }
+  };
 
   const getPrice = (item) => {
     return item.priceLKR || item.price || 18500;
@@ -163,7 +173,7 @@ export const CartDrawer = ({
                   <button 
                     type="button"
                     className="btn-primary-gold"
-                    onClick={onClose}
+                    onClick={handleExploreCapsule}
                     style={{ padding: '0.85rem 1.8rem' }}
                   >
                     EXPLORE T-SHIRT CAPSULE

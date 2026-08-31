@@ -158,6 +158,32 @@ img {
   align-items: center;
 }
 
+.nav-left-group {
+  display: flex;
+  align-items: center;
+  gap: 1.8rem;
+  justify-self: start;
+}
+
+.nav-left-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.nav-left-logo:hover {
+  transform: scale(1.06);
+  opacity: 0.95;
+}
+
+.nav-left-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(197, 160, 89, 0.3));
+}
+
 .nav-links-left {
   display: flex;
   align-items: center;
@@ -3418,6 +3444,10 @@ img {
     display: none !important;
   }
 
+  .show-mobile-only {
+    display: inline !important;
+  }
+
   /* Container Padding */
   .container {
     padding-left: 1.2rem;
@@ -3428,6 +3458,10 @@ img {
   .navbar-inner {
     height: 60px;
     padding: 0 1rem;
+  }
+
+  .nav-left-logo-img {
+    height: 26px;
   }
 
   .brand-logo-text {
@@ -3456,6 +3490,12 @@ img {
 
   .hero-content {
     padding: 0.5rem 0;
+  }
+
+  /* Extra space directly before FLORENCE ATELIER • NOBLE COTTON (mobile view only) */
+  .hero-eyebrow-tag {
+    margin-top: 5rem !important;
+    margin-bottom: 1.2rem !important;
   }
 
   .hero-text-stage {
@@ -4521,136 +4561,467 @@ img {
 }
 
 /* =========================================================================
-   HAUTE LUXURY CHECKOUT PAGE STYLING
+   HAUTE LUXURY CHECKOUT PAGE STYLING (MODERN & DECLUTTERED)
    ========================================================================= */
 .checkout-page {
-  background-color: #090a0c !important;
+  background-color: #08090b !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(197, 160, 89, 0.05) 0%, transparent 60%);
   color: #ffffff;
   min-height: 100vh;
+  padding-bottom: 5rem;
 }
 
-@media (max-width: 960px) {
-  .checkout-grid {
-    grid-template-columns: 1fr !important;
-    gap: 2.5rem !important;
-  }
+.checkout-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
 }
 
-/* =========================================================================
-   ENTRANCE POPUP ADVERTISEMENT (PURE IMAGE LUXURY MODAL)
-   ========================================================================= */
-.popup-ad-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background-color: rgba(5, 6, 8, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.show-mobile-only {
+  display: none;
+}
+
+/* Stepper Modern */
+.checkout-stepper-modern {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-  animation: popupAdFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
-@keyframes popupAdFadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+.checkout-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: transparent;
+  border: none;
+  color: var(--text-light-muted);
+  cursor: default;
+  transition: all 0.3s ease;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 
-.popup-ad-dialog {
-  position: relative;
-  width: max-content;
-  max-width: min(92vw, 560px);
-  max-height: 88vh;
+.checkout-step-pill.clickable {
+  cursor: pointer;
+}
+
+.checkout-step-pill.clickable:hover {
+  color: #ffffff;
+}
+
+.checkout-step-pill.active {
+  color: #ffffff;
+}
+
+.checkout-step-number {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-light-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  animation: popupAdScaleIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.95));
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: all 0.3s ease;
 }
 
-@keyframes popupAdScaleIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.92) translateY(14px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.checkout-step-pill.active .checkout-step-number {
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: #000000;
+  box-shadow: 0 0 16px rgba(197, 160, 89, 0.35);
 }
 
-.popup-ad-close-btn {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #0b0b0c;
-  border: 1px solid var(--gold-border);
+.checkout-step-pill.completed .checkout-step-number {
+  background-color: rgba(197, 160, 89, 0.15);
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+.checkout-step-text {
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.checkout-step-divider {
+  width: 40px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Mobile Order Summary Bar (Accordion) */
+.checkout-mobile-summary-toggle {
+  display: none;
+  background: #0f1015;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 100%;
   color: #ffffff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.checkout-mobile-summary-toggle:hover {
+  background: #14161d;
+  border-color: var(--gold-border);
+}
+
+.checkout-mobile-summary-content {
+  display: none;
+  background: #0b0c10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  padding: 1.25rem;
+  margin-top: -1.75rem;
+  margin-bottom: 1.75rem;
+  animation: fadeIn 0.25s ease;
+}
+
+.checkout-mobile-summary-content.open {
+  display: block;
+}
+
+/* Grid Layout */
+.checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* Luxury Cards */
+.checkout-card {
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2.2rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.checkout-card-header {
+  margin-bottom: 1.75rem;
+}
+
+.checkout-step-tag {
+  color: var(--gold-bright);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.checkout-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* Responsive Form Rows */
+.checkout-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.checkout-form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.checkout-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Saved Default Address Selection Card */
+.checkout-address-card-toggle {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.85rem 1.15rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 1rem;
   cursor: pointer;
-  z-index: 100;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  transition: all 0.2s ease;
+  margin-bottom: 1.5rem;
 }
 
-.popup-ad-close-btn:hover {
+.checkout-address-card-toggle.selected {
+  background-color: rgba(197, 160, 89, 0.08);
+  border-color: var(--gold-bright);
+}
+
+.checkout-address-card-toggle:hover {
+  border-color: var(--gold-bright);
+}
+
+/* Payment Method Tabs */
+.checkout-payment-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.checkout-payment-tab-btn {
+  background-color: #07080b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 1.25rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  transition: all 0.25s ease;
+  position: relative;
+  text-align: center;
+}
+
+.checkout-payment-tab-btn:hover {
+  border-color: rgba(197, 160, 89, 0.6);
+  background-color: #0d0f14;
+}
+
+.checkout-payment-tab-btn.active {
   background-color: var(--gold-bright);
   color: #000000;
   border-color: var(--gold-bright);
-  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 20px rgba(197, 160, 89, 0.25);
 }
 
-.popup-ad-image-wrap {
+.checkout-tab-badge {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  background-color: #000000;
+  color: var(--gold-bright);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--gold-bright);
+}
+
+.checkout-payment-tab-btn.active .checkout-tab-badge {
+  background-color: #000000;
+  color: var(--gold-bright);
+}
+
+/* Modern LankaQR Card */
+.checkout-qr-card {
+  background-color: #07080b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-qr-hero {
   display: flex;
-  width: auto;
-  max-width: 100%;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  background-color: #0a0b0f;
+  border: 1px solid rgba(197, 160, 89, 0.25);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-qr-img-box {
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkout-qr-img {
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+  display: block;
+}
+
+.checkout-qr-info {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkout-amount-badge {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold-bright);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.checkout-qr-steps {
+  background: #0b0c10;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 1.15rem 1.35rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-qr-steps-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-light-secondary);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.checkout-qr-steps-list li {
+  margin-bottom: 0.35rem;
+}
+
+.checkout-qr-steps-list strong {
+  color: #ffffff;
+}
+
+/* Bank Account Card */
+.checkout-bank-details {
+  background-color: #07080b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-bank-card-inner {
+  background: linear-gradient(135deg, #0e1017 0%, #07080a 100%);
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-bank-card-inner::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 160, 89, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Upload Dropzone */
+.checkout-dropzone {
+  border: 1.5px dashed rgba(197, 160, 89, 0.4);
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 1.6rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.checkout-dropzone:hover {
+  border-color: var(--gold-bright);
+  background-color: rgba(197, 160, 89, 0.05);
+}
+
+.checkout-dropzone.has-error {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.checkout-uploaded-file-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--gold-bright);
+  background-color: #0b0c10;
+  padding: 0.85rem 1.15rem;
+  border-radius: 4px;
+}
+
+/* Sticky Right Order Summary */
+.checkout-summary-card {
+  position: sticky;
+  top: 90px;
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.checkout-summary-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.checkout-summary-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.checkout-summary-item-img {
+  position: relative;
+  width: 52px;
+  height: 64px;
   border-radius: 3px;
   overflow: hidden;
-  border: 1.5px solid var(--gold-border);
-  background-color: transparent;
-  position: relative;
-  transition: transform 0.3s ease, border-color 0.3s ease;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
-  line-height: 0;
-}
-
-.popup-ad-image-wrap:hover {
-  border-color: var(--gold-bright);
-}
-
-.popup-ad-img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: min(90vw, 540px);
-  max-height: 82vh;
-  object-fit: contain;
-  user-select: none;
-  margin: 0;
-  padding: 0;
-}
-
-@media (max-width: 600px) {
-  .popup-ad-dialog {
-    max-width: 90vw;
-  }
-  .popup-ad-close-btn {
-    top: -12px;
-    right: -12px;
-    width: 32px;
-    height: 32px;
-  }
-  .popup-ad-img {
-    max-width: 88vw;
-    max-height: 75vh;
-  }
+  background-color: #07080a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 /* =========================================================================
@@ -4658,10 +5029,10 @@ img {
    ========================================================================= */
 .checkout-actions-row {
   display: flex;
-  gap: 1.2rem;
+  gap: 1rem;
   align-items: stretch;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .checkout-back-action-btn {
@@ -4669,8 +5040,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1.15rem 1.8rem;
-  font-size: 0.86rem;
+  padding: 1.1rem 1.6rem;
+  font-size: 0.84rem;
   min-height: 52px;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -4682,7 +5053,7 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  padding: 1.15rem 1.8rem;
+  padding: 1.1rem 1.6rem;
   font-size: 0.88rem;
   letter-spacing: 0.12em;
   font-weight: 800;
@@ -4691,16 +5062,288 @@ img {
   text-align: center;
 }
 
+/* Responsive Media Queries */
+@media (max-width: 960px) {
+  .checkout-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .checkout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.75rem !important;
+  }
+
+  .checkout-mobile-summary-toggle {
+    display: flex;
+  }
+
+  .checkout-summary-card {
+    position: static;
+    display: none; /* In mobile, order summary is in the collapsible toggle */
+  }
+
+  .checkout-card {
+    padding: 1.5rem 1.15rem;
+  }
+
+  .checkout-stepper-modern {
+    margin-bottom: 1.5rem;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .checkout-step-pill {
+    gap: 0.45rem;
+    padding: 0.25rem 0.35rem;
+  }
+
+  .checkout-step-text {
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .checkout-step-divider {
+    width: 20px;
+    min-width: 12px;
+    flex-shrink: 1;
+  }
+}
+
 @media (max-width: 640px) {
+  .checkout-form-grid-2,
+  .checkout-form-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-payment-tabs {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .checkout-qr-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .checkout-qr-info {
+    align-items: center;
+  }
+
   .checkout-actions-row {
     flex-direction: column-reverse;
-    gap: 0.85rem;
+    gap: 0.75rem;
   }
+
   .checkout-back-action-btn,
   .checkout-confirm-action-btn {
     width: 100% !important;
     justify-content: center !important;
     text-align: center !important;
+  }
+}
+
+/* =========================================================================
+   HAUTE LUXURY CONCIERGE PAGE STYLING (MODERN & DECLUTTERED)
+   ========================================================================= */
+.concierge-page {
+  background-color: #08090b !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(197, 160, 89, 0.06) 0%, transparent 65%);
+  color: #ffffff;
+  min-height: 100vh;
+  padding-bottom: 6rem;
+}
+
+.concierge-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.concierge-hero {
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2.5rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.concierge-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+}
+
+.concierge-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: rgba(197, 160, 89, 0.12);
+  border: 1.5px solid var(--gold-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
+}
+
+.concierge-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  color: var(--text-light-secondary);
+  letter-spacing: 0.04em;
+}
+
+.concierge-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+  display: inline-block;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.concierge-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.concierge-channel-card {
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2rem;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.concierge-channel-card:hover {
+  border-color: rgba(197, 160, 89, 0.4);
+  transform: translateY(-2px);
+}
+
+.concierge-advisor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.95rem 1.15rem;
+  background-color: #07080b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.concierge-advisor-row:hover {
+  border-color: rgba(197, 160, 89, 0.3);
+}
+
+.concierge-privileges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.concierge-privilege-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem;
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.25s ease;
+}
+
+.concierge-privilege-item:hover {
+  border-color: rgba(197, 160, 89, 0.35);
+}
+
+.concierge-faq-card {
+  background-color: #0c0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2.2rem;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.concierge-faq-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 500;
+  padding: 0.85rem 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.concierge-faq-btn:hover {
+  color: var(--gold-bright);
+}
+
+.concierge-faq-btn.active {
+  color: var(--gold-bright);
+}
+
+@media (max-width: 768px) {
+  .concierge-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .concierge-hero {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .concierge-channel-card,
+  .concierge-faq-card {
+    padding: 1.5rem 1.15rem;
+  }
+
+  .concierge-channels-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .concierge-privileges-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
 }
 

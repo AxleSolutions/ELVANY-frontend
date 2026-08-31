@@ -25,7 +25,9 @@ import {
   Copy,
   Sparkles,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 
@@ -102,6 +104,7 @@ export const CheckoutPage = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   // Auto-scroll to top when switching checkout steps or confirming order
   useEffect(() => {
@@ -591,13 +594,14 @@ export const CheckoutPage = ({
   }
 
   return (
-    <div className="checkout-page" style={{ minHeight: '100vh', backgroundColor: '#090a0c', color: '#ffffff', padding: '3rem 0 6rem 0' }}>
-      <div className="container" style={{ maxWidth: '1180px' }}>
+    <div className="checkout-page">
+      <div className="checkout-container">
         
         {/* Top Breadcrumb & Return Link */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.8rem' }}>
             <button 
+              type="button"
               className="search-back-btn"
               onClick={() => navigate('/')}
               style={{ marginBottom: 0 }}
@@ -606,7 +610,7 @@ export const CheckoutPage = ({
               <span>HOME</span>
             </button>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               SECURE CLIENT CHECKOUT
             </span>
           </div>
@@ -622,92 +626,107 @@ export const CheckoutPage = ({
           </button>
         </div>
 
-        {/* Step Progress Tracker */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.5rem',
-          marginBottom: '3rem',
-          backgroundColor: '#0d0e12',
-          border: '1px solid var(--border-dark)',
-          borderRadius: '2px',
-          padding: '1.2rem 2rem'
-        }}>
-          {/* Step 1 Pill */}
+        {/* Modern Stepper Progress Bar */}
+        <div className="checkout-stepper-modern">
           <div 
-            onClick={() => setCurrentStep(1)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              cursor: currentStep === 2 ? 'pointer' : 'default',
-              opacity: currentStep === 1 ? 1 : 0.7
-            }}
+            className={`checkout-step-pill ${currentStep === 1 ? 'active' : 'completed'} ${currentStep === 2 ? 'clickable' : ''}`}
+            onClick={() => currentStep === 2 && setCurrentStep(1)}
           >
-            <span style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: currentStep === 1 ? 'var(--gold-bright)' : '#1a1c22',
-              color: currentStep === 1 ? '#000000' : 'var(--gold-bright)',
-              border: currentStep === 1 ? 'none' : '1px solid var(--gold-border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.78rem',
-              fontWeight: 800
-            }}>
-              {currentStep > 1 ? '✓' : '1'}
+            <span className="checkout-step-number">
+              {currentStep > 1 ? <Check size={14} strokeWidth={3} /> : '1'}
             </span>
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: currentStep === 1 ? 700 : 500,
-              color: currentStep === 1 ? '#ffffff' : 'var(--text-light-muted)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase'
-            }}>
-              1. Delivery & Destination
+            <span className="checkout-step-text">
+              <span className="hide-mobile">Delivery Destination</span>
+              <span className="show-mobile-only">Delivery</span>
             </span>
           </div>
 
-          <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--border-dark)' }} />
+          <div className="checkout-step-divider" />
 
-          {/* Step 2 Pill */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            opacity: currentStep === 2 ? 1 : 0.5
-          }}>
-            <span style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: currentStep === 2 ? 'var(--gold-bright)' : '#1a1c22',
-              color: currentStep === 2 ? '#000000' : 'var(--text-light-muted)',
-              border: currentStep === 2 ? 'none' : '1px solid var(--border-dark)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.78rem',
-              fontWeight: 800
-            }}>
+          <div className={`checkout-step-pill ${currentStep === 2 ? 'active' : ''}`}>
+            <span className="checkout-step-number">
               2
             </span>
-            <span style={{
-              fontSize: '0.82rem',
-              fontWeight: currentStep === 2 ? 700 : 500,
-              color: currentStep === 2 ? '#ffffff' : 'var(--text-light-muted)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase'
-            }}>
-              2. Payment & Confirmation
+            <span className="checkout-step-text">
+              <span className="hide-mobile">Payment & Confirmation</span>
+              <span className="show-mobile-only">Payment</span>
             </span>
           </div>
         </div>
 
-        <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.4fr) minmax(300px, 1fr)', gap: '3.5rem', alignItems: 'start' }}>
+        {/* Mobile-Only Collapsible Order Summary Accordion Bar */}
+        <button 
+          type="button"
+          className="checkout-mobile-summary-toggle"
+          onClick={() => setMobileSummaryOpen(!mobileSummaryOpen)}
+          aria-expanded={mobileSummaryOpen}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <ShoppingBag size={18} color="var(--gold-bright)" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.04em' }}>
+              {mobileSummaryOpen ? 'Hide order summary' : `Show order summary (${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'items'})`}
+            </span>
+            {mobileSummaryOpen ? <ChevronUp size={15} color="var(--gold-bright)" /> : <ChevronDown size={15} color="var(--gold-bright)" />}
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+            {formatLKR(grandTotal)}
+          </span>
+        </button>
+
+        {/* Mobile Summary Drawer */}
+        <div className={`checkout-mobile-summary-content ${mobileSummaryOpen ? 'open' : ''}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.2rem' }}>
+            {cart.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '46px', height: '56px', borderRadius: '3px', overflow: 'hidden', backgroundColor: '#07080a', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
+                    {item.qty || 1}
+                  </span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.88rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.name}
+                  </h4>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                    {item.selectedSize || item.size} • {item.color}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                    {formatLKR(getPrice(item) * (item.qty || 1))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+              <span>Subtotal:</span>
+              <span style={{ color: '#ffffff' }}>{formatLKR(subtotal)}</span>
+            </div>
+            {totalSavings > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                <span>Privilege Savings:</span>
+                <span>-LKR {totalSavings.toLocaleString()}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+              <span>Delivery Fee:</span>
+              <span style={{ color: deliveryFee === 0 ? 'var(--gold-bright)' : '#ffffff' }}>
+                {deliveryFee === 0 ? 'COMPLIMENTARY' : formatLKR(deliveryFee)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ffffff', fontWeight: 700, fontSize: '0.92rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <span>Total:</span>
+              <span style={{ color: 'var(--gold-bright)' }}>{formatLKR(grandTotal)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Grid: Form (Left) & Ledger (Right) */}
+        <div className="checkout-grid">
           
           {/* =========================================================================
               LEFT COLUMN: STEP 1 (DELIVERY) OR STEP 2 (PAYMENT)
@@ -717,44 +736,20 @@ export const CheckoutPage = ({
             {/* STEP 1: DELIVERY & CONTACT FORM */}
             {currentStep === 1 && (
               <form onSubmit={handleProceedToPayment}>
-                <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', borderRadius: '2px', padding: '2.5rem 2rem', marginBottom: '2rem' }}>
+                <div className="checkout-card">
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.8rem' }}>
+                  <div className="checkout-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                      <div style={{ color: 'var(--gold-bright)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                      <div className="checkout-step-tag">
                         STEP 1 OF 2
                       </div>
-                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
+                      <h3 className="checkout-card-title">
                         Courier Delivery Destination
                       </h3>
                     </div>
 
-                    {/* Profile Address Toggle for Logged in Client / Sign In Button for Guests */}
-                    {isLoggedIn ? (
-                      <div style={{
-                        backgroundColor: useDefaultAddress ? 'rgba(197, 160, 89, 0.12)' : '#07080a',
-                        border: useDefaultAddress ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                        padding: '0.6rem 1rem',
-                        borderRadius: '2px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        cursor: 'pointer',
-                        userSelect: 'none'
-                      }}
-                      onClick={() => handleToggleDefaultAddress(!useDefaultAddress)}
-                      >
-                        <input 
-                          type="checkbox"
-                          checked={useDefaultAddress}
-                          onChange={(e) => handleToggleDefaultAddress(e.target.checked)}
-                          style={{ accentColor: 'var(--gold-bright)', width: '15px', height: '15px', cursor: 'pointer' }}
-                        />
-                        <span style={{ fontSize: '0.76rem', color: useDefaultAddress ? 'var(--gold-bright)' : 'var(--text-light-secondary)', fontWeight: 600, letterSpacing: '0.04em' }}>
-                          Use Default Profile Address
-                        </span>
-                      </div>
-                    ) : (
+                    {/* Guest Sign In Link */}
+                    {!isLoggedIn && (
                       <button
                         type="button"
                         onClick={onOpenAuthModal}
@@ -762,8 +757,8 @@ export const CheckoutPage = ({
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '6px',
-                          padding: '0.5rem 0.9rem',
-                          borderRadius: '2px',
+                          padding: '0.5rem 0.85rem',
+                          borderRadius: '3px',
                           border: '1px solid rgba(197, 160, 89, 0.4)',
                           backgroundColor: 'rgba(197, 160, 89, 0.08)',
                           color: 'var(--gold-bright)',
@@ -774,14 +769,42 @@ export const CheckoutPage = ({
                         }}
                       >
                         <UserCheck size={13} />
-                        <span>Sign In to Auto-Fill Delivery</span>
+                        <span>Sign In to Auto-Fill</span>
                       </button>
                     )}
                   </div>
 
+                  {/* Saved Profile Address Selector for Logged In User */}
+                  {isLoggedIn && savedDefault?.hasAddress && (
+                    <div 
+                      className={`checkout-address-card-toggle ${useDefaultAddress ? 'selected' : ''}`}
+                      onClick={() => handleToggleDefaultAddress(!useDefaultAddress)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <input 
+                          type="checkbox"
+                          checked={useDefaultAddress}
+                          onChange={(e) => handleToggleDefaultAddress(e.target.checked)}
+                          style={{ accentColor: 'var(--gold-bright)', width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        <div>
+                          <div style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600 }}>
+                            Use Default Profile Address
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
+                            {savedDefault.address}, {savedDefault.city}
+                          </div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 600, letterSpacing: '0.04em' }}>
+                        {useDefaultAddress ? 'ACTIVE' : 'SELECT'}
+                      </span>
+                    </div>
+                  )}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', marginBottom: '1.2rem' }}>
-                    <div>
+                  {/* Form Input Groups */}
+                  <div className="checkout-form-grid-2">
+                    <div className="checkout-form-group">
                       <label className="form-label">FIRST NAME *</label>
                       <input 
                         type="text" 
@@ -795,7 +818,7 @@ export const CheckoutPage = ({
                         placeholder="Julian"
                       />
                     </div>
-                    <div>
+                    <div className="checkout-form-group">
                       <label className="form-label">LAST NAME *</label>
                       <input 
                         type="text" 
@@ -811,8 +834,8 @@ export const CheckoutPage = ({
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', marginBottom: '1.2rem' }}>
-                    <div>
+                  <div className="checkout-form-grid-2">
+                    <div className="checkout-form-group">
                       <label className="form-label">EMAIL ADDRESS *</label>
                       <input 
                         type="email" 
@@ -823,10 +846,10 @@ export const CheckoutPage = ({
                           setUseDefaultAddress(false);
                         }} 
                         className="form-input" 
-                        placeholder="client@clientele.elvany.com"
+                        placeholder="client@elvany.com"
                       />
                     </div>
-                    <div>
+                    <div className="checkout-form-group">
                       <label className="form-label">MOBILE PHONE (COURIER CONTACT) *</label>
                       <input 
                         type="tel" 
@@ -842,7 +865,7 @@ export const CheckoutPage = ({
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: '1.2rem' }}>
+                  <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
                     <label className="form-label">STREET ADDRESS *</label>
                     <input 
                       type="text" 
@@ -857,8 +880,8 @@ export const CheckoutPage = ({
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.2rem', marginBottom: '1.2rem' }}>
-                    <div>
+                  <div className="checkout-form-grid-3">
+                    <div className="checkout-form-group">
                       <label className="form-label">SUITE / APARTMENT</label>
                       <input 
                         type="text" 
@@ -871,7 +894,7 @@ export const CheckoutPage = ({
                         placeholder="Penthouse A"
                       />
                     </div>
-                    <div>
+                    <div className="checkout-form-group">
                       <label className="form-label">CITY *</label>
                       <select 
                         value={city} 
@@ -886,7 +909,7 @@ export const CheckoutPage = ({
                         ))}
                       </select>
                     </div>
-                    <div>
+                    <div className="checkout-form-group">
                       <label className="form-label">POSTAL CODE *</label>
                       <input 
                         type="text" 
@@ -903,7 +926,7 @@ export const CheckoutPage = ({
                   </div>
 
                   {/* Save as Default Profile Address Option */}
-                  <div style={{ marginBottom: '1.2rem', padding: '0.4rem 0' }}>
+                  <div style={{ marginBottom: '1.2rem', padding: '0.2rem 0' }}>
                     <label style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -923,22 +946,21 @@ export const CheckoutPage = ({
                     </label>
                   </div>
 
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <label className="form-label">COURIER DISPATCH INSTRUCTIONS</label>
-
+                  <div className="checkout-form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label className="form-label">COURIER DISPATCH INSTRUCTIONS (OPTIONAL)</label>
                     <input 
                       type="text" 
                       value={deliveryNotes} 
                       onChange={(e) => setDeliveryNotes(e.target.value)} 
                       className="form-input" 
-                      placeholder="e.g. Leave with private concierge / Call upon gate arrival"
+                      placeholder="e.g. Leave with concierge / Call upon arrival"
                     />
                   </div>
 
-                  {/* Courier Guarantee */}
-                  <div style={{ padding: '1rem 1.2rem', backgroundColor: '#07080a', border: '1px solid var(--border-dark)', borderRadius: '2px', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                    <Truck size={20} color="var(--gold-bright)" />
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)' }}>
+                  {/* Courier Dispatch Guarantee */}
+                  <div style={{ padding: '0.9rem 1.15rem', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Truck size={18} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)', lineHeight: 1.5 }}>
                       <strong style={{ color: '#ffffff' }}>White-Glove Island-Wide Delivery:</strong> Complimentary next business day dispatch with live signature tracking.
                     </div>
                   </div>
@@ -950,9 +972,9 @@ export const CheckoutPage = ({
                   style={{
                     width: '100%',
                     justifyContent: 'center',
-                    padding: '1.2rem',
+                    padding: '1.15rem',
                     fontSize: '0.88rem',
-                    letterSpacing: '0.14em',
+                    letterSpacing: '0.12em',
                     fontWeight: 800
                   }}
                 >
@@ -968,44 +990,48 @@ export const CheckoutPage = ({
                 
                 {/* Destination Review Box */}
                 <div style={{
-                  backgroundColor: '#07080a',
-                  border: '1px solid var(--border-dark)',
-                  borderRadius: '2px',
-                  padding: '1.2rem 1.5rem',
-                  marginBottom: '1.8rem',
+                  backgroundColor: '#0c0d12',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '4px',
+                  padding: '1.1rem 1.35rem',
+                  marginBottom: '1.5rem',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: '1rem'
+                  gap: '0.85rem'
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '2px' }}>
-                      DELIVERING TO:
+                    <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '2px', fontWeight: 700 }}>
+                      DELIVERING TO
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 600 }}>
+                    <div style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 600 }}>
                       {firstName} {lastName} • {address}, {city}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)' }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)' }}>
                       {email} • {phone}
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(1)}
+                    onClick={() => {
+                      setCurrentStep(1);
+                      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    }}
                     style={{
                       background: 'none',
                       border: '1px solid var(--gold-border)',
                       color: 'var(--gold-bright)',
-                      padding: '6px 12px',
-                      borderRadius: '2px',
+                      padding: '5px 11px',
+                      borderRadius: '3px',
                       cursor: 'pointer',
                       fontSize: '0.74rem',
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '5px',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     <Edit2 size={12} />
@@ -1013,56 +1039,28 @@ export const CheckoutPage = ({
                   </button>
                 </div>
 
-                {/* Payment Selection Box */}
-                <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', borderRadius: '2px', padding: '2.5rem 2rem', marginBottom: '2rem' }}>
-                  <div style={{ marginBottom: '1.8rem' }}>
-                    <div style={{ color: 'var(--gold-bright)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                {/* Payment Selection Card */}
+                <div className="checkout-card">
+                  <div className="checkout-card-header">
+                    <div className="checkout-step-tag">
                       STEP 2 OF 2
                     </div>
-                    <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
+                    <h3 className="checkout-card-title">
                       Select Payment Method
                     </h3>
                   </div>
 
                   {/* Payment Tabs: LankaQR and Bank Transfer */}
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.8rem' }}>
-                    
+                  <div className="checkout-payment-tabs">
                     {/* LankaQR / Direct QR Option */}
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('qr')}
-                      style={{
-                        backgroundColor: paymentMethod === 'qr' ? 'var(--gold-bright)' : '#07080a',
-                        color: paymentMethod === 'qr' ? '#000000' : '#ffffff',
-                        border: paymentMethod === 'qr' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                        padding: '1.2rem 0.8rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        transition: 'var(--transition-fast)',
-                        position: 'relative'
-                      }}
+                      className={`checkout-payment-tab-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
                     >
-                      <span style={{
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '8px',
-                        backgroundColor: paymentMethod === 'qr' ? '#000000' : 'var(--gold-bright)',
-                        color: paymentMethod === 'qr' ? 'var(--gold-bright)' : '#000000',
-                        fontSize: '0.62rem',
-                        fontWeight: 800,
-                        padding: '2px 6px',
-                        borderRadius: '2px',
-                        letterSpacing: '0.08em'
-                      }}>
-                        FAST & INSTANT
-                      </span>
-                      <QrCode size={24} />
-                      <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textAlign: 'center' }}>
+                      <span className="checkout-tab-badge">FAST & INSTANT</span>
+                      <QrCode size={22} />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.06em' }}>
                         LANKAQR / DIRECT QR
                       </span>
                     </button>
@@ -1071,130 +1069,79 @@ export const CheckoutPage = ({
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('bank')}
-                      style={{
-                        backgroundColor: paymentMethod === 'bank' ? 'var(--gold-bright)' : '#07080a',
-                        color: paymentMethod === 'bank' ? '#000000' : '#ffffff',
-                        border: paymentMethod === 'bank' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                        padding: '1.2rem 0.8rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        transition: 'var(--transition-fast)'
-                      }}
+                      className={`checkout-payment-tab-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
                     >
-                      <Building2 size={24} />
-                      <span style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textAlign: 'center' }}>
+                      <Building2 size={22} />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.06em' }}>
                         DIRECT BANK TRANSFER
                       </span>
                     </button>
                   </div>
 
-                  {/* 1. LankaQR / Direct QR Payment Method Details */}
+                  {/* 1. LankaQR Payment Method Details */}
                   {paymentMethod === 'qr' && (
-                    <div style={{ backgroundColor: '#07080a', border: '1px solid var(--border-dark)', padding: '1.8rem', borderRadius: '2px', fontSize: '0.85rem' }}>
+                    <div className="checkout-qr-card">
                       
-                      {/* Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem', marginBottom: '1.2rem', paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <QrCode size={18} />
-                          <span>LankaQR Instant Atelier Settlement</span>
-                        </div>
-                      </div>
-
-                      {/* QR Display Card & Amount Panel */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                        gap: '1.6rem',
-                        alignItems: 'center',
-                        backgroundColor: '#0b0c0f',
-                        padding: '1.5rem',
-                        borderRadius: '2px',
-                        border: '1px solid var(--gold-border)',
-                        marginBottom: '1.6rem'
-                      }}>
-                        
-                        {/* QR Code Presentation Box */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                          <div style={{
-                            padding: '12px',
-                            backgroundColor: '#ffffff',
-                            borderRadius: '4px',
-                            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
-                            border: '2px solid var(--gold-bright)',
-                            display: 'inline-block',
-                            marginBottom: '1rem'
-                          }}>
+                      {/* QR Hero: Presentation & Total Due */}
+                      <div className="checkout-qr-hero">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
+                          <div className="checkout-qr-img-box">
                             <img 
                               src="/QR/elvany_qr.jpeg" 
                               alt="ELVANY Business LankaQR Code"
-                              style={{
-                                width: '190px',
-                                height: '190px',
-                                objectFit: 'contain',
-                                display: 'block'
-                              }}
+                              className="checkout-qr-img"
                               onError={(e) => {
                                 e.target.src = '/QR/WhatsApp Image 2026-08-31 at 13.16.57.jpeg';
                               }}
                             />
                           </div>
 
-                          {/* Quick Download QR CTA */}
                           <a
                             href="/QR/elvany_qr.jpeg"
-                            download="ELVANY_Atelier_Payment_QR.jpeg"
+                            download="ELVANY_Payment_QR.jpeg"
                             className="btn-outline-gold"
                             style={{
-                              padding: '0.55rem 1rem',
-                              fontSize: '0.74rem',
+                              padding: '0.45rem 0.85rem',
+                              fontSize: '0.72rem',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '5px',
                               textDecoration: 'none',
                               fontWeight: 700
                             }}
                           >
-                            <Download size={13} />
-                            <span>DOWNLOAD QR IMAGE</span>
+                            <Download size={12} />
+                            <span>SAVE QR CODE</span>
                           </a>
                         </div>
 
                         {/* Amount Due & Copy Helper */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        <div className="checkout-qr-info">
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                             TOTAL PAYABLE AMOUNT
                           </div>
                           
-                          <div style={{
-                            fontFamily: 'var(--font-display)',
-                            fontSize: '1.8rem',
-                            color: 'var(--gold-bright)',
-                            fontWeight: 800,
-                            letterSpacing: '0.04em'
-                          }}>
+                          <div className="checkout-amount-badge">
                             {formatLKR(grandTotal)}
                           </div>
 
-                          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                          <div>
                             <button
                               type="button"
                               onClick={handleCopyAmount}
                               style={{
                                 backgroundColor: copiedAmount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                                border: copiedAmount ? '1px solid #4ade80' : '1px solid var(--border-dark)',
+                                border: copiedAmount ? '1px solid #4ade80' : '1px solid rgba(255, 255, 255, 0.12)',
                                 color: copiedAmount ? '#4ade80' : '#ffffff',
                                 padding: '6px 12px',
-                                borderRadius: '2px',
+                                borderRadius: '3px',
                                 fontSize: '0.74rem',
                                 cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '5px',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                transition: 'all 0.2s ease'
                               }}
                             >
                               {copiedAmount ? <Check size={13} /> : <Copy size={13} />}
@@ -1202,111 +1149,55 @@ export const CheckoutPage = ({
                             </button>
                           </div>
 
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginTop: '0.4rem' }}>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', lineHeight: 1.45, marginTop: '0.2rem' }}>
                             Merchant: <strong style={{ color: '#ffffff' }}>ELVANY WEAR</strong><br />
-                            Accepted via any registered Sri Lankan banking or fintech application.
+                            Accepted via any Sri Lankan Banking or FinTech app (e.g. Commercial Flash, FriMi, Genie, Sampath Vishwa, etc).
                           </div>
                         </div>
                       </div>
 
-                      {/* Device-Specific Dual Guided Instructions */}
-                      <div style={{ marginBottom: '1.6rem' }}>
-                        <div style={{ fontSize: '0.76rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
-                          HOW TO COMPLETE YOUR PAYMENT:
+                      {/* Streamlined Step-by-Step Guide */}
+                      <div className="checkout-qr-steps">
+                        <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Sparkles size={13} />
+                          <span>QUICK PAYMENT STEPS</span>
                         </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-                          
-                          {/* Option A: Desktop / Laptop Instruction Card */}
-                          <div style={{
-                            backgroundColor: '#0c0d11',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            padding: '1.1rem',
-                            borderRadius: '2px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.6rem' }}>
-                              <Monitor size={15} color="var(--gold-bright)" />
-                              <span>If on Desktop / Laptop</span>
-                            </div>
-                            <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.6 }}>
-                              <li>Open your <strong>Banking App</strong> or QR Wallet on your mobile phone.</li>
-                              <li>Select <strong>"Scan QR"</strong> and point your camera at the QR code above.</li>
-                              <li>Enter the exact amount <strong>{formatLKR(grandTotal)}</strong> & confirm transfer.</li>
-                              <li>Take a screenshot of the payment receipt and upload below.</li>
-                            </ol>
-                          </div>
-
-                          {/* Option B: Mobile Phone Shopper Instruction Card */}
-                          <div style={{
-                            backgroundColor: '#0c0d11',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            padding: '1.1rem',
-                            borderRadius: '2px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.6rem' }}>
-                              <Smartphone size={15} color="var(--gold-bright)" />
-                              <span>If on Mobile Phone</span>
-                            </div>
-                            <ol style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.6 }}>
-                              <li>Tap <strong>"DOWNLOAD QR IMAGE"</strong> above or take a quick screenshot of the QR.</li>
-                              <li>Open your Bank App & select <strong>"Scan / Upload QR from Gallery"</strong>.</li>
-                              <li>Enter <strong>{formatLKR(grandTotal)}</strong> and complete the transaction.</li>
-                              <li>Take a screenshot of the confirmation screen and upload below.</li>
-                            </ol>
-                          </div>
-                        </div>
+                        <ol className="checkout-qr-steps-list">
+                          <li>Open your <strong>Banking / QR Wallet App</strong> and scan the QR code above (or upload saved QR image).</li>
+                          <li>Enter the exact amount <strong>{formatLKR(grandTotal)}</strong> and confirm the transfer.</li>
+                          <li>Take a screenshot of the completed transfer and upload it below.</li>
+                        </ol>
                       </div>
 
-
-                      {/* Upload Payment Screenshot Box */}
+                      {/* Modern Dropzone for Payment Screenshot */}
                       <div id="payment-slip-upload-section">
-                        <label className="form-label" style={{ marginBottom: '0.6rem' }}>
-                          UPLOAD QR PAYMENT SCREENSHOT / RECEIPT (IMAGE) *
+                        <label className="form-label" style={{ marginBottom: '0.5rem' }}>
+                          UPLOAD QR PAYMENT SCREENSHOT / RECEIPT *
                         </label>
                         
                         {!paymentSlipPreview ? (
-                          <label style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.6rem',
-                            border: slipUploadError ? '1px dashed #ef4444' : '1px dashed var(--gold-border)',
-                            borderRadius: '2px',
-                            padding: '1.8rem 1.2rem',
-                            backgroundColor: slipUploadError ? 'rgba(239, 68, 68, 0.05)' : '#0d0e12',
-                            cursor: 'pointer',
-                            transition: 'border-color 0.2s ease'
-                          }}>
-                            <UploadCloud size={28} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
+                          <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
+                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
                             <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Screenshot</span>
-                            <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Supported formats: JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>JPG, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
-                              onChange={handleSlipUpload}
+                              onChange={handleSlipUpload} 
                               style={{ display: 'none' }}
                             />
                           </label>
                         ) : (
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            border: '1px solid var(--gold-bright)',
-                            backgroundColor: '#0d0e12',
-                            padding: '0.8rem 1.2rem',
-                            borderRadius: '2px'
-                          }}>
+                          <div className="checkout-uploaded-file-card">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                               <img 
                                 src={paymentSlipPreview} 
                                 alt="Payment receipt screenshot" 
-                                style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
+                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }} 
                               />
                               <div>
-                                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'QR_Payment_Receipt.png'}</div>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ QR transaction receipt attached for immediate concierge dispatch</div>
+                                <div style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'QR_Payment_Receipt.png'}</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for immediate concierge dispatch</div>
                               </div>
                             </div>
 
@@ -1334,17 +1225,17 @@ export const CheckoutPage = ({
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid #ef4444',
-                            padding: '0.8rem 1rem',
-                            borderRadius: '2px',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '3px',
                             color: '#f87171',
-                            fontSize: '0.78rem',
-                            marginTop: '0.8rem',
+                            fontSize: '0.76rem',
+                            marginTop: '0.75rem',
                             fontWeight: 600
                           }}>
-                            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
-                            <span>MANDATORY: Please upload your payment transfer receipt or transaction screenshot to place order.</span>
+                            <AlertCircle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+                            <span>MANDATORY: Please upload your payment screenshot or transfer receipt to place order.</span>
                           </div>
                         )}
                       </div>
@@ -1354,86 +1245,85 @@ export const CheckoutPage = ({
 
                   {/* 2. Direct Bank Transfer Option Details */}
                   {paymentMethod === 'bank' && (
-                    <div style={{ backgroundColor: '#07080a', border: '1px solid var(--border-dark)', padding: '1.8rem', borderRadius: '2px', fontSize: '0.85rem' }}>
-                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '1rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="checkout-bank-details">
+                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '0.9rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Building2 size={16} />
                         <span>Maison ELVANY Official Bank Account</span>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', color: 'var(--text-light-secondary)', lineHeight: 1.6, marginBottom: '1.5rem', backgroundColor: '#0b0c0f', padding: '1.3rem', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div>Beneficiary Name: <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>P C Jayaweera</strong></div>
-                        <div>Bank Name: <strong style={{ color: '#ffffff' }}>Hatton National Bank PLC (HNB)</strong></div>
-                        <div>Branch: <strong style={{ color: '#ffffff' }}>Kurunegala Main Branch</strong></div>
-                        <div>Branch Code: <strong style={{ color: '#ffffff' }}>019</strong></div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
-                          <span>Account Number:</span>
-                          <strong style={{ color: 'var(--gold-bright)', fontSize: '1.15rem', letterSpacing: '0.04em' }}>019020601780</strong>
+                      {/* Luxury Bank Card Slip */}
+                      <div className="checkout-bank-card-inner">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1rem', marginBottom: '1rem', fontSize: '0.82rem' }}>
+                          <div>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BENEFICIARY</span>
+                            <strong style={{ color: '#ffffff', fontSize: '0.92rem' }}>P C Jayaweera</strong>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BANK & BRANCH</span>
+                            <strong style={{ color: '#ffffff' }}>Hatton National Bank (HNB)</strong>
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Kurunegala Branch (019)</div>
+                          </div>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                          <div>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ACCOUNT NUMBER</span>
+                            <strong style={{ color: '#ffffff', fontSize: '1.15rem', letterSpacing: '0.06em', fontFamily: 'var(--font-display)' }}>019020601780</strong>
+                          </div>
+
                           <button
                             type="button"
                             onClick={() => handleCopyAccount('019020601780')}
                             style={{
                               backgroundColor: copiedAccount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255,255,255,0.08)',
-                              border: copiedAccount ? '1px solid #4ade80' : '1px solid var(--border-dark)',
-                              color: copiedAccount ? '#4ade80' : 'var(--text-light-secondary)',
-                              padding: '3px 9px',
-                              borderRadius: '2px',
+                              border: copiedAccount ? '1px solid #4ade80' : '1px solid rgba(255,255,255,0.12)',
+                              color: copiedAccount ? '#4ade80' : '#ffffff',
+                              padding: '5px 11px',
+                              borderRadius: '3px',
                               fontSize: '0.72rem',
                               cursor: 'pointer',
-                              fontWeight: 600
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}
                           >
-                            {copiedAccount ? 'COPIED!' : 'COPY'}
+                            {copiedAccount ? <Check size={12} /> : <Copy size={12} />}
+                            <span>{copiedAccount ? 'COPIED!' : 'COPY ACCOUNT'}</span>
                           </button>
                         </div>
-                        <div style={{ marginTop: '4px' }}>Reference: <strong style={{ color: 'var(--gold-bright)' }}>Your Name / Mobile Number</strong></div>
+
+                        <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-light-muted)' }}>
+                          Payment Reference: <strong style={{ color: 'var(--gold-bright)' }}>Your Name / Mobile Number</strong>
+                        </div>
                       </div>
 
                       {/* Slip Uploader */}
                       <div id="payment-slip-upload-section">
-                        <label className="form-label" style={{ marginBottom: '0.6rem' }}>UPLOAD BANK DEPOSIT / TRANSFER SLIP (IMAGE) *</label>
+                        <label className="form-label" style={{ marginBottom: '0.5rem' }}>UPLOAD BANK DEPOSIT / TRANSFER SLIP *</label>
                         
                         {!paymentSlipPreview ? (
-                          <label style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.6rem',
-                            border: slipUploadError ? '1px dashed #ef4444' : '1px dashed var(--gold-border)',
-                            borderRadius: '2px',
-                            padding: '1.8rem 1.2rem',
-                            backgroundColor: slipUploadError ? 'rgba(239, 68, 68, 0.05)' : '#0d0e12',
-                            cursor: 'pointer',
-                            transition: 'border-color 0.2s ease'
-                          }}>
-                            <UploadCloud size={28} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
-                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Drag & Drop Payment Slip</span>
-                            <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Supported formats: JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                          <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
+                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
+                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Slip</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>JPG, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
-                              onChange={handleSlipUpload}
+                              onChange={handleSlipUpload} 
                               style={{ display: 'none' }}
                             />
                           </label>
                         ) : (
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            border: '1px solid var(--gold-bright)',
-                            backgroundColor: '#0d0e12',
-                            padding: '0.8rem 1.2rem',
-                            borderRadius: '2px'
-                          }}>
+                          <div className="checkout-uploaded-file-card">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                               <img 
                                 src={paymentSlipPreview} 
                                 alt="Slip preview" 
-                                style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
+                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }} 
                               />
                               <div>
-                                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
+                                <div style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for concierge verification</div>
                               </div>
                             </div>
@@ -1462,17 +1352,17 @@ export const CheckoutPage = ({
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid #ef4444',
-                            padding: '0.8rem 1rem',
-                            borderRadius: '2px',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '3px',
                             color: '#f87171',
-                            fontSize: '0.78rem',
-                            marginTop: '0.8rem',
+                            fontSize: '0.76rem',
+                            marginTop: '0.75rem',
                             fontWeight: 600
                           }}>
-                            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
-                            <span>MANDATORY: Please upload your payment transfer receipt or deposit slip to place order.</span>
+                            <AlertCircle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+                            <span>MANDATORY: Please upload your payment deposit slip or screenshot to place order.</span>
                           </div>
                         )}
                       </div>
@@ -1482,8 +1372,7 @@ export const CheckoutPage = ({
 
                 </div>
 
-
-                {/* Action Buttons Row: Perfectly aligned BACK and CONFIRM buttons */}
+                {/* Action Buttons Row */}
                 <div className="checkout-actions-row">
                   <button
                     type="button"
@@ -1496,7 +1385,6 @@ export const CheckoutPage = ({
                     <ArrowLeft size={16} />
                     <span>BACK</span>
                   </button>
-
 
                   <button
                     type="submit"
@@ -1528,64 +1416,57 @@ export const CheckoutPage = ({
                   </button>
                 </div>
 
-
-
               </form>
             )}
 
           </div>
 
           {/* =========================================================================
-              RIGHT COLUMN: ORDER LEDGER & SUMMARY
+              RIGHT COLUMN: ORDER LEDGER & SUMMARY (DESKTOP STICKY)
               ========================================================================= */}
-          <div style={{ position: 'sticky', top: '90px' }}>
-            <div style={{
-              backgroundColor: '#0d0e12',
-              border: '1px solid var(--border-dark)',
-              borderRadius: '2px',
-              padding: '2.2rem 1.8rem'
-            }}>
+          <div>
+            <div className="checkout-summary-card">
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-dark)', paddingBottom: '1rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.85rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
                   Acquisition Ledger
                 </h3>
-                <span style={{ fontSize: '0.76rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
                   {totalItemsCount} {totalItemsCount === 1 ? 'PIECE' : 'PIECES'}
                 </span>
               </div>
 
               {/* Garment Items List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '1.8rem', maxHeight: '340px', overflowY: 'auto' }}>
+              <div className="checkout-summary-item-list">
                 {cart.map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', width: '52px', height: '64px', borderRadius: '2px', overflow: 'hidden', backgroundColor: '#07080a', border: '1px solid var(--border-dark)', flexShrink: 0 }}>
+                  <div key={idx} className="checkout-summary-item">
+                    <div className="checkout-summary-item-img">
                       <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.65rem', fontWeight: 800, padding: '1px 5px', borderRadius: '0 0 0 2px' }}>
+                      <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
                         {item.qty || 1}
                       </span>
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.92rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.name}
                       </h4>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
                         {item.selectedSize || item.size} • {item.color}
                       </div>
                       {item.isOfferApplied && (
-                        <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--gold-bright)', color: '#000000', fontWeight: 800, padding: '1px 5px', borderRadius: '1px', display: 'inline-block', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.62rem', backgroundColor: 'var(--gold-bright)', color: '#000000', fontWeight: 800, padding: '1px 4px', borderRadius: '1px', display: 'inline-block', marginTop: '2px' }}>
                           ⚡ PRIVILEGE APPLIED
                         </span>
                       )}
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
                         {formatLKR(getPrice(item) * (item.qty || 1))}
                       </div>
                       {item.isOfferApplied && item.originalPriceLKR && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
                           {formatLKR(item.originalPriceLKR * (item.qty || 1))}
                         </div>
                       )}
@@ -1595,7 +1476,7 @@ export const CheckoutPage = ({
               </div>
 
               {/* Ledger Totals */}
-              <div style={{ borderTop: '1px solid var(--border-dark)', paddingTop: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.7rem', fontSize: '0.84rem' }}>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
                   <span>Garment Subtotal:</span>
                   <span style={{ color: '#ffffff', fontWeight: 600 }}>{formatLKR(subtotal)}</span>
@@ -1620,17 +1501,16 @@ export const CheckoutPage = ({
                   <span style={{ color: '#ffffff' }}>INCLUDED</span>
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--border-dark)', marginTop: '0.5rem', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold-bright)', fontWeight: 800 }}>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '0.4rem', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--gold-bright)', fontWeight: 800 }}>
                     {formatLKR(grandTotal)}
                   </span>
                 </div>
               </div>
 
-
               {/* Trust Assurances */}
-              <div style={{ marginTop: '1.8rem', paddingTop: '1.2rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <ShieldCheck size={14} color="var(--gold-bright)" />
                   <span>256-Bit Encrypted</span>

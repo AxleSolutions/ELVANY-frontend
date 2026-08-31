@@ -1065,6 +1065,7 @@ export function App() {
         onUpdateQty={handleUpdateQty}
         onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
+        onNavigateToCollection={navigateToCollection}
       />
 
       <SearchModal
