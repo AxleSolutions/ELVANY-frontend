@@ -5,6 +5,15 @@
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || '';
 
+const getApiUrl = () => {
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 export const isCloudinaryConfigured = Boolean(cloudName && uploadPreset);
 
 /**
@@ -72,7 +81,7 @@ export async function uploadGarmentImageToCloudinary(file) {
 
   // 1. Try Backend Cloudinary Upload Route (Server-side signed & authenticated)
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const formData = new FormData();
     formData.append('image', file);
 
@@ -149,7 +158,7 @@ export async function uploadPopupAdImageToCloudinary(file) {
 
   // 1. Try Backend Cloudinary Upload Route
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const formData = new FormData();
     formData.append('image', file);
 

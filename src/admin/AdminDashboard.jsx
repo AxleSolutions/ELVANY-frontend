@@ -1,6 +1,7 @@
 import React from 'react';
 import { StatCard } from './components/StatCard';
 import { DollarSign, ShoppingBag, Shirt, Star, ArrowUpRight, AlertTriangle, PackageCheck, Clock, ExternalLink, Plus, Mail, Download } from 'lucide-react';
+import { getApiUrl } from '../services/dbService';
 
 export const AdminDashboard = ({ 
   products = [], 
@@ -34,7 +35,7 @@ export const AdminDashboard = ({
 
   const handleExportSubscribers = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = getApiUrl();
 
       const response = await fetch(`${apiUrl}/newsletter/export`);
       if (response.ok) {

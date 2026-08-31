@@ -5,6 +5,15 @@ import { INITIAL_ORDERS } from '../data/orders';
 import { INITIAL_OFFERS } from '../data/offers';
 import { DEFAULT_POPUP_AD } from '../data/popupAd';
 
+export const getApiUrl = () => {
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 
 
 /**
@@ -92,7 +101,7 @@ export async function getProducts() {
 
   // 1. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/products`);
     if (res.ok) {
       const json = await res.json();
@@ -126,7 +135,7 @@ export async function getProducts() {
 
 
 export async function getNewsletterSubscribers() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API (has service access to Supabase database)
   try {
@@ -179,7 +188,7 @@ export async function getNewsletterSubscribers() {
  * =========================================================================
  */
 export async function createOrder(orderPayload, paymentSlipFile = null) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
   let slipData = null;
 
   // 1. Upload payment slip to Cloudinary if provided
@@ -358,7 +367,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
 
 
 export async function getOrders() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -455,7 +464,7 @@ export async function getOrders() {
 }
 
 export async function updateOrderStatus(orderCode, newStatus) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -500,7 +509,7 @@ const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-
 
 export async function saveProduct(productData) {
   const isNew = !productData.id || !isUuid(productData.id);
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API (Full Service-Role Supabase Access)
   try {
@@ -617,7 +626,7 @@ export async function saveProduct(productData) {
 }
 
 export async function toggleProductStatus(productId, nextActiveState) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -650,7 +659,7 @@ export async function toggleProductStatus(productId, nextActiveState) {
 
 export async function deleteProduct(productId) {
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -803,7 +812,7 @@ export async function getOffers() {
 
   // 2. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/offers`);
     if (res.ok) {
       const json = await res.json();
@@ -878,7 +887,7 @@ export async function saveOffer(offerData) {
 
   // Fallback to Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? `${apiUrl}/offers` : `${apiUrl}/offers/${offerData.id}`;
     const res = await fetch(url, {
@@ -911,7 +920,7 @@ export async function toggleOfferStatus(offerId, nextActiveState) {
 
   // Also sync to backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     await fetch(`${apiUrl}/offers/${offerId}/toggle`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -933,7 +942,7 @@ export async function deleteOffer(offerId) {
 
   // Also sync to backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     await fetch(`${apiUrl}/offers/${offerId}`, {
       method: 'DELETE'
     });
@@ -950,7 +959,7 @@ export async function deleteOffer(offerId) {
 export async function getReviews() {
   // 1. Try Backend API
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const res = await fetch(`${apiUrl}/reviews`);
     if (res.ok) {
       const json = await res.json();
@@ -1023,7 +1032,7 @@ export async function getReviews() {
 
 
 export async function addReview(reviewData) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -1103,7 +1112,7 @@ export async function toggleReviewFeatured(reviewId, nextFeaturedState) {
 }
 
 export async function deleteReview(reviewId) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
   try {
     const res = await fetch(`${apiUrl}/reviews/${reviewId}`, {
       method: 'DELETE'
@@ -1133,7 +1142,7 @@ export async function deleteReview(reviewId) {
  */
 export async function getDatabaseCart(email) {
   if (!email) return [];
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -1171,7 +1180,7 @@ export async function getDatabaseCart(email) {
 
 export async function saveDatabaseCart(email, cart) {
   if (!email) return [];
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
   const cleanCart = Array.isArray(cart) ? cart : [];
 
   // Always keep user-specific local copy
@@ -1210,7 +1219,7 @@ export async function saveDatabaseCart(email, cart) {
  * Get current popup ad settings from backend / Supabase with local fallback
  */
 export async function getPopupAdSettings() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API (which checks Supabase promotions & local JSON)
   try {
@@ -1274,7 +1283,7 @@ export async function getPopupAdSettings() {
  * Save popup ad settings to Backend API, Supabase Database, and localStorage
  */
 export async function savePopupAdSettings(settings) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
   const cleanSettings = {
     enabled: settings.enabled !== false,
     imageUrl: settings.imageUrl || '/images/editorial_brutalist.jpg',
@@ -1357,7 +1366,7 @@ export async function uploadPopupAdImage(file) {
 
   // 1. Try Backend Cloudinary Upload Route
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getApiUrl();
     const formData = new FormData();
     formData.append('image', file);
 
@@ -1404,7 +1413,7 @@ const LOCAL_RESTOCK_KEY = 'elvany_restock_requests';
  * Submit a new restock / re-issue request
  */
 export async function createRestockRequest(payload) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   const normalizedReq = {
     id: `req-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
@@ -1459,7 +1468,7 @@ export async function createRestockRequest(payload) {
  * Fetch all restock requests for admin review
  */
 export async function getRestockRequests() {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. Try Backend API
   try {
@@ -1494,7 +1503,7 @@ export async function getRestockRequests() {
  * Update request status (e.g. Restocked / Handled)
  */
 export async function updateRestockRequestStatus(id, status) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. LocalStorage update
   try {
@@ -1525,7 +1534,7 @@ export async function updateRestockRequestStatus(id, status) {
  * Delete a restock request
  */
 export async function deleteRestockRequest(id) {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiUrl();
 
   // 1. LocalStorage update
   try {

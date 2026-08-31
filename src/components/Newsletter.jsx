@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { getApiUrl } from '../services/dbService';
 
 export const Newsletter = ({ onSubscribeSuccess }) => {
   const [email, setEmail] = useState('');
@@ -30,7 +31,7 @@ export const Newsletter = ({ onSubscribeSuccess }) => {
 
     // 2. Send to Backend API (which writes to Excel/CSV spreadsheet)
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = getApiUrl();
 
       await fetch(`${apiUrl}/newsletter/subscribe`, {
         method: 'POST',
