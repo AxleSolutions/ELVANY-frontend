@@ -107,10 +107,10 @@ export const PromotionsSection = ({
       <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         
         {/* Promotional Top Callout Bar (Clean Transparent Outline) */}
-        <div className="promotions-callout-bar">
+          <div className="promotions-callout-bar">
           <div className="promotions-callout-left">
             <div className="promotions-callout-badge">
-              <Zap size={13} fill="#000000" color="#000000" />
+              <Zap size={13} fill="#ffffff" color="#ffffff" />
               <span>SPECIAL ATELIER PRIVILEGE OFFER</span>
             </div>
             
@@ -121,7 +121,7 @@ export const PromotionsSection = ({
 
           {/* Live Urgency Countdown Ticker */}
           <div className="promotions-countdown-ticker">
-            <Clock size={15} color="var(--gold-bright)" />
+            <Clock size={15} color="#ef4444" />
             <span className="promotions-countdown-label">
               OFFER EXPIRES IN:
             </span>
@@ -174,9 +174,9 @@ export const PromotionsSection = ({
                     className="featured-offer-card"
                     onClick={() => handleInspectOffer(offer)}
                   >
-                    {/* Top-Right Inverted Gold Discount Tag */}
+                    {/* Top-Right Red Discount Tag */}
                     <div className="offer-discount-tag">
-                      <Percent size={13} fill="#000000" color="#000000" />
+                      <Percent size={13} fill="#ffffff" color="#ffffff" />
                       <span>SAVE LKR {savingsAmount.toLocaleString()} ({percentOff}% OFF)</span>
                     </div>
 
@@ -195,48 +195,17 @@ export const PromotionsSection = ({
                         }}
                       />
 
-                      {/* Privilege Badge Overlay */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '16px',
-                        left: '16px',
-                        backgroundColor: '#000000',
-                        border: '1px solid var(--gold-bright)',
-                        color: 'var(--gold-bright)',
-                        fontSize: '0.68rem',
-                        letterSpacing: '0.18em',
-                        fontWeight: 700,
-                        padding: '6px 12px',
-                        borderRadius: '1px',
-                        textTransform: 'uppercase',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        zIndex: 4
-                      }}>
+                      {/* Privilege Badge Overlay (Hidden on Mobile) */}
+                      <div className="offer-badge-overlay">
                         <Sparkles size={13} />
                         <span>{offer.badge || 'ATELIER PRIVILEGE'}</span>
                       </div>
 
                       {/* Bottom Scarcity Banner */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '16px',
-                        left: '16px',
-                        right: '16px',
-                        backgroundColor: '#000000',
-                        border: '1px solid var(--border-dark)',
-                        padding: '8px 12px',
-                        borderRadius: '1px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        fontSize: '0.74rem',
-                        zIndex: 4
-                      }}>
+                      <div className="offer-scarcity-pill">
                         <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Flame size={14} color="var(--gold-bright)" />
-                          <span>Only {remaining} pieces left in allocation</span>
+                          <Flame size={13} color="var(--gold-bright)" />
+                          <span>{remaining} left</span>
                         </span>
                         <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
                           {claimedPercent}% claimed
@@ -249,93 +218,53 @@ export const PromotionsSection = ({
 
                       <div>
                         {/* Product Category & Provenance */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600 }}>
+                        <div className="offer-eyebrow-row">
+                          <span className="offer-product-name-tag">
                             {offer.productName}
                           </span>
-                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
-                            EXCLUSIVE OFFER APPLIED
+                          <span className="offer-eyebrow-dot">•</span>
+                          <span className="offer-applied-tag">
+                            EXCLUSIVE OFFER
                           </span>
                         </div>
 
-                        <h3 style={{
-                          fontFamily: 'var(--font-serif)',
-                          fontSize: 'clamp(1.5rem, 2.4vw, 2rem)',
-                          color: '#ffffff',
-                          fontWeight: 400,
-                          lineHeight: 1.2,
-                          margin: '0 0 0.8rem 0'
-                        }}>
+                        <h3 className="offer-card-title">
                           {offer.title}
                         </h3>
 
-                        <p style={{
-                          color: 'var(--text-light-secondary)',
-                          fontSize: '0.9rem',
-                          lineHeight: 1.6,
-                          fontWeight: 300,
-                          margin: '0 0 1.6rem 0'
-                        }}>
+                        <p className="offer-card-desc">
                           {offer.subtitle}
                         </p>
 
                         {/* Clean Outline Price Comparison Box */}
-                        <div style={{
-                          backgroundColor: 'transparent',
-                          border: '1px solid var(--border-dark)',
-                          borderRadius: '2px',
-                          padding: '1.2rem 1.6rem',
-                          marginBottom: '1.6rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap',
-                          gap: '1.2rem'
-                        }}>
-                          <div>
-                            <div style={{ fontSize: '0.68rem', letterSpacing: '0.14em', color: 'var(--text-light-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>
-                              SPECIAL PRIVILEGE OFFER PRICE
+                        <div className="offer-price-comparison-box">
+                          <div className="offer-price-main-group">
+                            <div className="offer-price-sublabel">
+                              SPECIAL PRIVILEGE PRICE
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.8rem' }}>
-                              <span style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '1.85rem',
-                                fontWeight: 800,
-                                color: 'var(--gold-bright)'
-                              }}>
+                            <div className="offer-price-numbers">
+                              <span className="offer-price-current">
                                 LKR {offerPrice.toLocaleString()}
                               </span>
-                              <span style={{
-                                fontSize: '1.05rem',
-                                color: 'var(--text-light-muted)',
-                                textDecoration: 'line-through',
-                                opacity: 0.6
-                              }}>
+                              <span className="offer-price-orig">
                                 LKR {origPrice.toLocaleString()}
                               </span>
                             </div>
                           </div>
 
                           {/* Instant Savings Callout */}
-                          <div style={{
-                            textAlign: 'right',
-                            backgroundColor: 'transparent',
-                            border: '1px solid var(--gold-bright)',
-                            padding: '6px 12px',
-                            borderRadius: '1px'
-                          }}>
-                            <div style={{ fontSize: '0.64rem', color: 'var(--gold-bright)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
-                              YOU SAVE TODAY
+                          <div className="offer-savings-badge">
+                            <div className="offer-savings-sublabel">
+                              YOU SAVE
                             </div>
-                            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--gold-bright)', fontFamily: 'var(--font-display)' }}>
+                            <div className="offer-savings-amount">
                               LKR {savingsAmount.toLocaleString()}
                             </div>
                           </div>
                         </div>
 
-                        {/* Value Highlights */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem', color: 'var(--text-light-secondary)' }}>
+                        {/* Value Highlights (Desktop only) */}
+                        <div className="offer-value-highlights">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <ShieldCheck size={14} color="var(--gold-bright)" />
                             <span>Complimentary express island-wide courier & gift box included</span>
@@ -348,15 +277,7 @@ export const PromotionsSection = ({
                       </div>
 
                       {/* Bottom Action: Direct Product Page Redirect Button */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '1.2rem',
-                        paddingTop: '1.4rem',
-                        borderTop: '1px solid var(--border-dark)'
-                      }}>
+                      <div className="offer-bottom-action">
                         <button
                           type="button"
                           className="btn-primary-gold"
@@ -367,7 +288,7 @@ export const PromotionsSection = ({
                           style={{
                             width: '100%',
                             justifyContent: 'center',
-                            padding: '1.05rem 2rem',
+                            padding: '1rem 1.8rem',
                             fontSize: '0.82rem',
                             letterSpacing: '0.16em',
                             fontWeight: 800
