@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { RestockRequestModal } from './RestockRequestModal';
+import { MobileStickyBuyBar } from './MobileStickyBuyBar';
 
 export const ProductDetailPage = ({
   products = PRODUCTS,
@@ -91,15 +92,16 @@ export const ProductDetailPage = ({
 
   const relatedProducts = (products.length > 0 ? products : PRODUCTS)
     .filter((p) => p.id !== product.id && p.status !== 'Draft' && p.status !== 'Archived')
-    .slice(0, 3);
+    .slice(0, 4);
 
   const averageRating = localReviews.length > 0
     ? (localReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / localReviews.length).toFixed(1)
     : null;
   const totalReviewsCount = localReviews.length;
 
-
-
+  const selectedSizeStock = (product?.inventory && product?.inventory[selectedSize] !== undefined)
+    ? Number(product.inventory[selectedSize])
+    : (product?.totalStock || 10);
 
   return (
     <div className="product-detail-page">
@@ -703,91 +705,38 @@ export const ProductDetailPage = ({
             </h3>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '2rem'
-          }}>
+          <div className="pdp-related-grid">
             {relatedProducts.map((rp) => (
               <article 
                 key={rp.id}
                 onClick={() => onSelectProduct(rp)}
-                style={{
-                  backgroundColor: '#0d0e12',
-                  border: '1px solid var(--border-dark)',
-                  borderRadius: '2px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.25s ease, transform 0.25s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--gold-bright)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-dark)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
+                className="pdp-related-card"
               >
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 4', backgroundColor: '#07080a', overflow: 'hidden' }}>
+                <div className="pdp-related-img-wrap">
                   <img 
                     src={rp.image} 
                     alt={rp.name} 
                     loading="lazy"
                     decoding="async"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: 'center top'
-                    }}
+                    className="pdp-related-img"
                   />
                   {rp.provenanceTag && (
-                    <span style={{
-                      position: 'absolute',
-                      bottom: '12px',
-                      right: '12px',
-                      backgroundColor: 'rgba(7, 8, 10, 0.9)',
-                      border: '1px solid var(--border-dark)',
-                      color: 'var(--gold-bright)',
-                      fontSize: '0.65rem',
-                      fontWeight: 600,
-                      letterSpacing: '0.14em',
-                      padding: '4px 8px',
-                      borderRadius: '1px',
-                      textTransform: 'uppercase'
-                    }}>
+                    <span className="pdp-related-badge">
                       {rp.provenanceTag}
                     </span>
                   )}
                 </div>
 
-                <div style={{ padding: '1.4rem 1.2rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.8rem', marginBottom: '0.4rem' }}>
-                    <h4 style={{
-                      fontFamily: 'var(--font-serif)',
-                      fontSize: '1.05rem',
-                      fontWeight: 500,
-                      color: '#ffffff',
-                      margin: 0
-                    }}>
+                <div className="pdp-related-body">
+                  <div className="pdp-related-header">
+                    <h4 className="pdp-related-title">
                       {rp.name}
                     </h4>
-                    <span style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      color: 'var(--gold-bright)'
-                    }}>
+                    <span className="pdp-related-price">
                       {formatLKR(rp.priceLKR)}
                     </span>
                   </div>
-                  <p style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--text-light-muted)',
-                    margin: 0,
-                    lineHeight: 1.4
-                  }}>
+                  <p className="pdp-related-tagline">
                     {rp.tagline}
                   </p>
                 </div>
@@ -807,6 +756,24 @@ export const ProductDetailPage = ({
         selectedSize={selectedSize}
         loggedInUser={loggedInUser}
         userProfile={userProfile}
+      />
+
+      {/* Sticky Mobile Add To Shopping Bag Bar (Pinned to bottom on mobile only) */}
+      <MobileStickyBuyBar
+        product={product}
+        selectedSize={selectedSize}
+        setSelectedSize={setSelectedSize}
+        selectedColor={selectedColor}
+        qty={qty}
+        setQty={setQty}
+        effectivePrice={effectivePrice}
+        originalPrice={originalPrice}
+        isOfferActive={isOfferActive}
+        savings={savings}
+        isJustAdded={isJustAdded}
+        onAddToCart={onAddToCart}
+        onOpenRestockModal={() => setIsRestockModalOpen(true)}
+        selectedSizeStock={selectedSizeStock}
       />
     </div>
   );

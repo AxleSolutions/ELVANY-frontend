@@ -225,4 +225,37 @@ export async function uploadPopupAdImageToCloudinary(file) {
   });
 }
 
+/**
+ * Optimizes an image URL for fast loading using Cloudinary auto-format & quality transformations.
+ * If the URL is not from Cloudinary, it is returned untouched.
+ * 
+ * @param {string} url - The image source URL
+ * @param {object} options - { width: number, quality: string, format: string }
+ * @returns {string} - The optimized image URL
+ */
+export function optimizeImageUrl(url, options = {}) {
+  if (!url || typeof url !== 'string') return url || '';
+
+  // Only apply transformations to Cloudinary URLs
+  if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
+    const { width, quality = 'auto:good', format = 'auto' } = options;
+    const parts = [];
+    if (format) parts.push(`f_${format}`);
+    if (quality) parts.push(`q_${quality}`);
+    if (width) parts.push(`w_${width},c_limit`);
+
+    const transformStr = parts.join(',');
+    
+    // Avoid double-applying transforms
+    if (url.includes('/image/upload/f_auto') || url.includes('/image/upload/q_auto')) {
+      return url;
+    }
+
+    return url.replace('/image/upload/', `/image/upload/${transformStr}/`);
+  }
+
+  return url;
+}
+
+
 

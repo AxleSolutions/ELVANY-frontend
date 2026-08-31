@@ -10,25 +10,27 @@ import { FeaturedTees } from './components/FeaturedTees';
 import { Philosophy } from './components/Philosophy';
 import { CollectionPage } from './components/CollectionPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
-import { OrderReviewPortalPage } from './components/OrderReviewPortalPage';
-import { AccountPage } from './components/AccountPage';
 import { EditorialSection } from './components/EditorialSection';
 import { ArchitecturalDetails } from './components/ArchitecturalDetails';
 import { Testimonial } from './components/Testimonial';
-import { ConciergePage } from './components/ConciergePage';
 import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 
-import { SearchPage } from './components/SearchPage';
 import { CartDrawer } from './components/CartDrawer';
 import { SearchModal } from './components/SearchModal';
 import { EditorialModal } from './components/EditorialModal';
 import { AuthModal } from './components/AuthModal';
 import { LuxuryLoader } from './components/LuxuryLoader';
 import { PopupAdModal } from './components/PopupAdModal';
-import { AdminApp } from './admin/AdminApp';
 import { PromotionsSection } from './components/PromotionsSection';
-import { CheckoutPage } from './components/CheckoutPage';
+
+// Code-split heavy routes for maximum performance & lightning-fast initial load
+const AdminApp = React.lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
+const CheckoutPage = React.lazy(() => import('./components/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
+const AccountPage = React.lazy(() => import('./components/AccountPage').then(m => ({ default: m.AccountPage })));
+const OrderReviewPortalPage = React.lazy(() => import('./components/OrderReviewPortalPage').then(m => ({ default: m.OrderReviewPortalPage })));
+const ConciergePage = React.lazy(() => import('./components/ConciergePage').then(m => ({ default: m.ConciergePage })));
+const SearchPage = React.lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 
 import { PRODUCTS } from './data/products';
 import { INITIAL_ORDERS } from './data/orders';
@@ -54,12 +56,30 @@ export function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Dynamic Catalog State (syncs with Supabase database - no dummy fallbacks)
-  const [productsList, setProductsList] = useState([]);
-  const [isLoadingCatalog, setIsLoadingCatalog] = useState(true);
+  // Dynamic Catalog State (Stale-While-Revalidate caching for 0ms instant cold render)
+  const [productsList, setProductsList] = useState(() => {
+    try {
+      const cached = localStorage.getItem('elvany_catalog_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return PRODUCTS;
+  });
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
 
-  // Offers State (managed via Admin Dashboard & Supabase - empty by default)
-  const [offers, setOffers] = useState([]);
+  // Offers State (cached for instant render, refreshed in background)
+  const [offers, setOffers] = useState(() => {
+    try {
+      const cached = localStorage.getItem('elvany_offers_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return INITIAL_OFFERS || [];
+  });
 
   // Orders Store (syncs with Supabase)
   const [ordersList, setOrdersList] = useState([]);
@@ -115,9 +135,15 @@ export function App() {
 
         if (dbProductsRes.status === 'fulfilled' && Array.isArray(dbProductsRes.value) && dbProductsRes.value.length > 0) {
           setProductsList(dbProductsRes.value);
+          try {
+            localStorage.setItem('elvany_catalog_cache', JSON.stringify(dbProductsRes.value));
+          } catch {}
         }
         if (dbOffersRes.status === 'fulfilled' && Array.isArray(dbOffersRes.value)) {
           setOffers(dbOffersRes.value);
+          try {
+            localStorage.setItem('elvany_offers_cache', JSON.stringify(dbOffersRes.value));
+          } catch {}
         }
         if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
           setPopupAdSettings(dbPopupAdRes.value);
@@ -648,24 +674,31 @@ export function App() {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  // Transition helper with 4s luxury loader
+  const pageTransitionTimerRef = useRef(null);
+
+  // Transition helper: Instantly covers screen with solid luxury loader, then switches route behind it
   const triggerPageTransition = (targetPath, onAfter) => {
     if (location.pathname === targetPath) {
       handleSmoothScrollTo(0);
       return;
     }
 
+    // 1. Instantly cover screen with solid opaque luxury loader
     setIsPageLoading(true);
-    lenisRef.current?.scrollTo(0, { immediate: true });
-    window.scrollTo(0, 0);
 
+    // 2. Switch route and scroll behind the solid screen on next frame (after screen is 100% covered)
     setTimeout(() => {
+      lenisRef.current?.scrollTo(0, { immediate: true });
+      window.scrollTo(0, 0);
       navigate(targetPath);
       if (onAfter) onAfter();
-      setTimeout(() => {
-        setIsPageLoading(false);
-      }, 500);
-    }, 3500);
+    }, 40);
+
+    // 3. Smoothly dismiss loader when unveiling animation completes
+    if (pageTransitionTimerRef.current) clearTimeout(pageTransitionTimerRef.current);
+    pageTransitionTimerRef.current = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1800);
   };
 
   const navigateToProduct = (product) => {
@@ -735,266 +768,287 @@ export function App() {
         />
       )}
 
-      {/* React Router URL Endpoints */}
-      <Routes>
-        {/* Dedicated Atelier Executive Admin Route (/elvanyadmin) */}
-        <Route 
-          path="/elvanyadmin/*" 
-          element={
-            <AdminApp
-              offers={offers}
-              onUpdateOffers={setOffers}
-              products={productsList}
-              onUpdateProducts={setProductsList}
-              orders={ordersList}
-              onUpdateOrders={setOrdersList}
-              popupAdSettings={popupAdSettings}
-              onUpdatePopupAdSettings={handleUpdatePopupAd}
-              userProfile={userProfile}
-              loggedInUser={loggedInUser}
-              onLoginSuccess={handleLoginSuccess}
-              onLogout={handleLogoutClick}
-              onNavigateHome={navigateToHome}
-            />
-          } 
-        />
-        <Route 
-          path="/elvanyadmin" 
-          element={
-            <AdminApp
-              offers={offers}
-              onUpdateOffers={setOffers}
-              products={productsList}
-              onUpdateProducts={setProductsList}
-              orders={ordersList}
-              onUpdateOrders={setOrdersList}
-              popupAdSettings={popupAdSettings}
-              onUpdatePopupAdSettings={handleUpdatePopupAd}
-              userProfile={userProfile}
-              loggedInUser={loggedInUser}
-              onLoginSuccess={handleLoginSuccess}
-              onLogout={handleLogoutClick}
-              onNavigateHome={navigateToHome}
-            />
-          } 
-        />
-        <Route 
-          path="/admin" 
-          element={
-            <AdminApp
-              offers={offers}
-              onUpdateOffers={setOffers}
-              products={productsList}
-              onUpdateProducts={setProductsList}
-              orders={ordersList}
-              onUpdateOrders={setOrdersList}
-              popupAdSettings={popupAdSettings}
-              onUpdatePopupAdSettings={handleUpdatePopupAd}
-              userProfile={userProfile}
-              loggedInUser={loggedInUser}
-              onLoginSuccess={handleLoginSuccess}
-              onLogout={handleLogoutClick}
-              onNavigateHome={navigateToHome}
-            />
-          } 
-        />
-
-
-
-        {/* Home Route */}
-        <Route 
-          path="/" 
-          element={
-            <>
-              {/* 1. Hero Section */}
-              <Hero
-                onExploreClick={() => navigateToCollection('all')}
-              />
-
-              {/* 1.5. Atelier Private Client Promotions & Offers (Per-Item Interactive Slideshow below Hero) */}
-              <PromotionsSection 
+      {/* React Router URL Endpoints with Luxury Suspense Fallback */}
+      <React.Suspense fallback={<LuxuryLoader />}>
+        <Routes>
+          {/* Dedicated Atelier Executive Admin Route (/elvanyadmin) */}
+          <Route 
+            path="/elvanyadmin/*" 
+            element={
+              <AdminApp
                 offers={offers}
-                onAddToCart={handleAddToCart}
-                onSelectProduct={navigateToProduct}
+                onUpdateOffers={setOffers}
+                products={productsList}
+                onUpdateProducts={setProductsList}
+                orders={ordersList}
+                onUpdateOrders={setOrdersList}
+                popupAdSettings={popupAdSettings}
+                onUpdatePopupAdSettings={handleUpdatePopupAd}
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogoutClick}
+                onNavigateHome={navigateToHome}
               />
-
-              {/* 2. Signature Categories / Curated Pillars */}
-              <CuratedPillars
-                onSelectCategory={navigateToCollection}
+            } 
+          />
+          <Route 
+            path="/elvanyadmin" 
+            element={
+              <AdminApp
+                offers={offers}
+                onUpdateOffers={setOffers}
+                products={productsList}
+                onUpdateProducts={setProductsList}
+                orders={ordersList}
+                onUpdateOrders={setOrdersList}
+                popupAdSettings={popupAdSettings}
+                onUpdatePopupAdSettings={handleUpdatePopupAd}
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogoutClick}
+                onNavigateHome={navigateToHome}
               />
+            } 
+          />
+          <Route 
+            path="/admin/*" 
+            element={
+              <AdminApp
+                offers={offers}
+                onUpdateOffers={setOffers}
+                products={productsList}
+                onUpdateProducts={setProductsList}
+                orders={ordersList}
+                onUpdateOrders={setOrdersList}
+                popupAdSettings={popupAdSettings}
+                onUpdatePopupAdSettings={handleUpdatePopupAd}
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogoutClick}
+                onNavigateHome={navigateToHome}
+              />
+            } 
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <AdminApp
+                offers={offers}
+                onUpdateOffers={setOffers}
+                products={productsList}
+                onUpdateProducts={setProductsList}
+                orders={ordersList}
+                onUpdateOrders={setOrdersList}
+                popupAdSettings={popupAdSettings}
+                onUpdatePopupAdSettings={handleUpdatePopupAd}
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogoutClick}
+                onNavigateHome={navigateToHome}
+              />
+            } 
+          />
 
-              {/* 3. Direct Signature T-Shirt Showcase */}
-              <FeaturedTees
+
+
+          {/* Home Route */}
+          <Route 
+            path="/" 
+            element={
+              <>
+                {/* 1. Hero Section */}
+                <Hero
+                  onExploreClick={() => navigateToCollection('all')}
+                />
+
+                {/* 1.5. Atelier Private Client Promotions & Offers (Per-Item Interactive Slideshow below Hero) */}
+                <PromotionsSection 
+                  offers={offers}
+                  onAddToCart={handleAddToCart}
+                  onSelectProduct={navigateToProduct}
+                />
+
+                {/* 2. Signature Categories / Curated Pillars */}
+                <CuratedPillars
+                  onSelectCategory={navigateToCollection}
+                />
+
+                {/* 3. Direct Signature T-Shirt Showcase */}
+                <FeaturedTees
+                  products={activeStorefrontProducts}
+                  isLoading={isLoadingCatalog}
+                  loggedInUser={loggedInUser}
+                  userProfile={userProfile}
+                  onSelectProduct={navigateToProduct}
+                  onAddToCart={handleAddToCart}
+                  addedItemId={addedItemId}
+                  onExploreCollection={() => navigateToCollection('all')}
+                />
+
+                {/* 4. Craft Philosophy */}
+                <Philosophy />
+
+                {/* 5. Campaign Editorial Split Section */}
+                <EditorialSection
+                  onReadEditorial={() => setIsEditorialOpen(true)}
+                />
+
+                {/* 6. Architectural Details (Engineering Study) */}
+                <ArchitecturalDetails />
+
+                {/* 7. Architectural Press Testimonial */}
+                <Testimonial />
+
+                {/* 8. Private Circle Newsletter */}
+                <Newsletter
+                  onSubscribeSuccess={handleSubscribeSuccess}
+                />
+              </>
+            } 
+          />
+
+          {/* Dedicated Standalone Concierge Route */}
+          <Route 
+            path="/concierge" 
+            element={<ConciergePage />} 
+          />
+          <Route 
+            path="/contact" 
+            element={<ConciergePage />} 
+          />
+
+          {/* Collection Route */}
+          <Route 
+            path="/collection" 
+            element={
+              <CollectionPage
                 products={activeStorefrontProducts}
                 isLoading={isLoadingCatalog}
                 loggedInUser={loggedInUser}
                 userProfile={userProfile}
+                initialCategory={activeCollectionCategory}
+                onBackToHome={() => navigateToHome()}
                 onSelectProduct={navigateToProduct}
                 onAddToCart={handleAddToCart}
                 addedItemId={addedItemId}
-                onExploreCollection={() => navigateToCollection('all')}
               />
+            } 
+          />
 
-              {/* 4. Craft Philosophy */}
-              <Philosophy />
 
-              {/* 5. Campaign Editorial Split Section */}
-              <EditorialSection
-                onReadEditorial={() => setIsEditorialOpen(true)}
+
+
+          {/* Dedicated Product Detail Page Route */}
+          <Route 
+            path="/product/:id" 
+            element={
+              <ProductDetailPage
+                products={productsList}
+                offers={offers}
+                allReviewsMap={allReviewsMap}
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                onAddNewReview={handleAddNewReview}
+                onBackToCollection={() => navigateToCollection(activeCollectionCategory)}
+                onBackToHome={() => navigateToHome()}
+                onSelectProduct={navigateToProduct}
+                onAddToCart={handleAddToCart}
+                addedItemId={addedItemId}
               />
+            } 
+          />
 
-              {/* 6. Architectural Details (Engineering Study) */}
-              <ArchitecturalDetails />
 
-              {/* 7. Architectural Press Testimonial */}
-              <Testimonial />
-
-              {/* 8. Private Circle Newsletter */}
-              <Newsletter
-                onSubscribeSuccess={handleSubscribeSuccess}
+          {/* Dedicated Search Route */}
+          <Route 
+            path="/search" 
+            element={
+              <SearchPage
+                products={productsList}
+                initialQuery={searchQuery}
+                onBackToHome={() => navigateToHome()}
+                onSelectProduct={navigateToProduct}
+                onAddToCart={handleAddToCart}
+                addedItemId={addedItemId}
               />
-            </>
-          } 
-        />
+            } 
+          />
 
-        {/* Dedicated Standalone Concierge Route */}
-        <Route 
-          path="/concierge" 
-          element={<ConciergePage />} 
-        />
-        <Route 
-          path="/contact" 
-          element={<ConciergePage />} 
-        />
+          {/* Dedicated Full Standalone Account & Settings Page Route */}
+          <Route 
+            path="/account" 
+            element={
+              <AccountPage
+                userProfile={userProfile}
+                loggedInUser={loggedInUser}
+                authProvider={authProvider}
+                onUpdateUser={handleUpdateUserProfile}
+                onLogout={handleLogoutClick}
+                onOpenAuthModal={() => setIsAuthOpen(true)}
+                ordersList={ordersList}
+                allReviewsMap={allReviewsMap}
+              />
+            } 
+          />
 
-        {/* Collection Route */}
-        <Route 
-          path="/collection" 
-          element={
-            <CollectionPage
-              products={activeStorefrontProducts}
-              isLoading={isLoadingCatalog}
-              loggedInUser={loggedInUser}
-              userProfile={userProfile}
-              initialCategory={activeCollectionCategory}
-              onBackToHome={() => navigateToHome()}
-              onSelectProduct={navigateToProduct}
-              onAddToCart={handleAddToCart}
-              addedItemId={addedItemId}
-            />
-          } 
-        />
-
-
-
-
-        {/* Dedicated Product Detail Page Route */}
-        <Route 
-          path="/product/:id" 
-          element={
-            <ProductDetailPage
-              products={productsList}
-              offers={offers}
-              allReviewsMap={allReviewsMap}
-              userProfile={userProfile}
-              loggedInUser={loggedInUser}
-              onAddNewReview={handleAddNewReview}
-              onBackToCollection={() => navigateToCollection(activeCollectionCategory)}
-              onBackToHome={() => navigateToHome()}
-              onSelectProduct={navigateToProduct}
-              onAddToCart={handleAddToCart}
-              addedItemId={addedItemId}
-            />
-          } 
-        />
+          {/* Dedicated QR Code Scanned Order Review Portal Route */}
+          <Route 
+            path="/order-review" 
+            element={
+              <OrderReviewPortalPage 
+                ordersList={ordersList}
+                onAddNewReview={handleAddNewReview}
+                allReviewsMap={allReviewsMap}
+              />
+            } 
+          />
+          <Route 
+            path="/order-review/:orderId" 
+            element={
+              <OrderReviewPortalPage 
+                ordersList={ordersList}
+                onAddNewReview={handleAddNewReview}
+                allReviewsMap={allReviewsMap}
+              />
+            } 
+          />
 
 
-        {/* Dedicated Search Route */}
-        <Route 
-          path="/search" 
-          element={
-            <SearchPage
-              products={productsList}
-              initialQuery={searchQuery}
-              onBackToHome={() => navigateToHome()}
-              onSelectProduct={navigateToProduct}
-              onAddToCart={handleAddToCart}
-              addedItemId={addedItemId}
-            />
-          } 
-        />
+          {/* Dedicated Standalone Checkout Route */}
+          <Route 
+            path="/checkout" 
+            element={
+              <CheckoutPage 
+                cart={cart}
+                onClearCart={() => setCart([])}
+                onConfirmOrder={handleCheckout}
+                loggedInUser={loggedInUser}
+                userProfile={userProfile}
+                onOpenAuthModal={() => setIsAuthOpen(true)}
+                onBackToStore={() => navigateToHome()}
+              />
+            } 
+          />
 
-        {/* Dedicated Full Standalone Account & Settings Page Route */}
-        <Route 
-          path="/account" 
-          element={
-            <AccountPage
-              userProfile={userProfile}
-              loggedInUser={loggedInUser}
-              authProvider={authProvider}
-              onUpdateUser={handleUpdateUserProfile}
-              onLogout={handleLogoutClick}
-              onOpenAuthModal={() => setIsAuthOpen(true)}
-              ordersList={ordersList}
-              allReviewsMap={allReviewsMap}
-            />
-          } 
-        />
-
-        {/* Dedicated QR Code Scanned Order Review Portal Route */}
-        <Route 
-          path="/order-review" 
-          element={
-            <OrderReviewPortalPage 
-              ordersList={ordersList}
-              onAddNewReview={handleAddNewReview}
-              allReviewsMap={allReviewsMap}
-            />
-          } 
-        />
-        <Route 
-          path="/order-review/:orderId" 
-          element={
-            <OrderReviewPortalPage 
-              ordersList={ordersList}
-              onAddNewReview={handleAddNewReview}
-              allReviewsMap={allReviewsMap}
-            />
-          } 
-        />
-
-
-        {/* Dedicated Standalone Checkout Route */}
-        <Route 
-          path="/checkout" 
-          element={
-            <CheckoutPage 
-              cart={cart}
-              onClearCart={() => setCart([])}
-              onConfirmOrder={handleCheckout}
-              loggedInUser={loggedInUser}
-              userProfile={userProfile}
-              onOpenAuthModal={() => setIsAuthOpen(true)}
-              onBackToStore={() => navigateToHome()}
-            />
-
-          } 
-        />
-
-        {/* Fallback to Home */}
-        <Route 
-          path="*" 
-          element={
-            <CollectionPage
-              initialCategory="all"
-              onBackToHome={() => navigateToHome()}
-              onSelectProduct={navigateToProduct}
-              onAddToCart={handleAddToCart}
-              addedItemId={addedItemId}
-            />
-          } 
-        />
-      </Routes>
+          {/* Fallback to Home */}
+          <Route 
+            path="*" 
+            element={
+              <CollectionPage
+                initialCategory="all"
+                onBackToHome={() => navigateToHome()}
+                onSelectProduct={navigateToProduct}
+                onAddToCart={handleAddToCart}
+                addedItemId={addedItemId}
+              />
+            } 
+          />
+        </Routes>
+      </React.Suspense>
 
       {/* Maison Footer */}
       {!isAdminView && (
