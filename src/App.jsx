@@ -124,12 +124,14 @@ export function App() {
         }
 
         const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
+        if (Array.isArray(dbReviews) && dbReviews.length > 0) {
+          const currentProducts = (dbProductsRes.status === 'fulfilled' && dbProductsRes.value) || PRODUCTS;
           setAllReviewsMap((prev) => {
             const revMap = { ...prev };
             dbReviews.forEach((r) => {
               const pid = r.productId || r.product_id;
               const prodTitle = r.productTitle || r.title;
-              const matched = (dbProducts || PRODUCTS).find(
+              const matched = currentProducts.find(
                 (p) => (pid && (p.id === pid || p.slug === pid)) || (prodTitle && p.title === prodTitle)
               );
 
@@ -149,9 +151,8 @@ export function App() {
             return revMap;
           });
         }
-
       } catch (err) {
-        console.warn('Supabase sync notice:', err);
+        console.warn('Backend sync notice:', err);
       } finally {
         setIsLoadingCatalog(false);
       }
