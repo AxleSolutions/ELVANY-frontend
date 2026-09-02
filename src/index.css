@@ -101,11 +101,147 @@ body {
   overflow-x: hidden;
 }
 
+/* =========================================================================
+   UNIVERSAL LOADING & SPINNER ANIMATIONS
+   ========================================================================= */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+}
+
+.spin-animation,
+.animate-spin,
+.lucide-spin,
+.spinning {
+  animation: spin 0.85s linear infinite !important;
+  -webkit-animation: spin 0.85s linear infinite !important;
+  transform-origin: center center;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.pulse-animation,
+.animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite !important;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
   background: none;
+}
+
+/* =========================================================================
+   UNIVERSAL LUXURY BUTTON SYSTEM
+   ========================================================================= */
+.btn-primary-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background-color: var(--gold-bright);
+  color: #000000 !important;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.8rem;
+  border-radius: 2px;
+  border: 1px solid var(--gold-bright);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
+  text-decoration: none;
+}
+
+.btn-primary-gold:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #000000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(197, 160, 89, 0.4);
+}
+
+.btn-outline-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background-color: rgba(18, 19, 22, 0.85);
+  color: var(--gold-bright) !important;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.8rem;
+  border-radius: 2px;
+  border: 1px solid var(--gold-bright);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-outline-gold:hover {
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: #000000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(197, 160, 89, 0.3);
+}
+
+.btn-secondary-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff !important;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.8rem;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  text-decoration: none;
+}
+
+.btn-secondary-dark:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--gold-bright);
+  color: var(--gold-bright) !important;
+  transform: translateY(-2px);
 }
 
 a {
@@ -1433,12 +1569,14 @@ img {
 @media (max-width: 1100px) {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
   }
 }
 
 @media (max-width: 600px) {
   .products-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem 0.65rem;
   }
 }
 
@@ -3592,10 +3730,10 @@ img {
     letter-spacing: 0.06em !important;
   }
 
-  /* Products Grids */
+  /* Products Grids - 2 Items Per Row on Mobile */
   .products-grid {
-    grid-template-columns: 1fr !important;
-    gap: 1.8rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem 0.65rem !important;
   }
 
   .collection-layout-grid {
@@ -6013,7 +6151,8 @@ img {
 /* Extra small mobile phones (< 420px) */
 @media (max-width: 420px) {
   .products-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem 0.5rem !important;
   }
 
   .hero-title {
@@ -6021,7 +6160,20 @@ img {
   }
 
   .product-image-wrap {
-    aspect-ratio: 4 / 5 !important;
+    aspect-ratio: 3 / 4 !important;
+  }
+
+  .product-info {
+    padding: 0.75rem 0.6rem !important;
+  }
+
+  .product-name {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .product-price {
+    font-size: 0.8rem !important;
   }
 }
 

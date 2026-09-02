@@ -563,7 +563,7 @@ export const CheckoutPage = ({
                   `);
                   printWin.document.close();
                 }}
-                style={{ padding: '1rem 1.8rem', gap: '0.6rem' }}
+                style={{ padding: '1rem 1.8rem' }}
               >
                 <Download size={16} />
                 <span>DOWNLOAD ORDER PASSPORT</span>

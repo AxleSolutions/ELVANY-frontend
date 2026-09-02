@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { getApiUrl } from '../services/dbService';
 
@@ -101,8 +101,20 @@ export const Newsletter = ({ onSubscribeSuccess }) => {
                 required
                 className="newsletter-input"
               />
-              <button type="submit" className="newsletter-submit-btn">
-                <span>JOIN</span>
+              <button 
+                type="submit" 
+                className="newsletter-submit-btn"
+                disabled={isLoading}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={13} className="spin-animation" />
+                    <span>JOINING...</span>
+                  </>
+                ) : (
+                  <span>JOIN</span>
+                )}
               </button>
             </form>
           )}

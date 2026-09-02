@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { X, Mail, ArrowRight, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { initFacebookSdk, loginWithFacebookDirect } from '../lib/facebookAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
@@ -535,9 +535,13 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   marginTop: '1rem', 
                   padding: '1rem',
                   opacity: isLoading ? 0.7 : 1,
-                  cursor: isLoading ? 'not-allowed' : 'pointer'
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
+                {isLoading && <Loader2 size={16} className="spin-animation" />}
                 <span>
                   {isLoading 
                     ? 'AUTHENTICATING CLIENT...' 

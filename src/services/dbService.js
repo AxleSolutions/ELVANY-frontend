@@ -218,25 +218,57 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
     }
   }
 
-  // 2. Upload any bespoke custom T-shirt mockup images AND customer uploaded artworks to Cloudinary
+  // 2. Upload any bespoke custom T-shirt mockup images (ALL angles: front, back, left, right, collage) AND customer uploaded artworks to Cloudinary
   const processedItems = await Promise.all((orderPayload.items || []).map(async (item) => {
     if (item.isBespokeCustom) {
-      let finalMockupUrl = item.image || item.product_image_url || null;
+      let finalViews = { ...(item.views || {}) };
       let finalArtworks = { ...(item.artworks || {}) };
 
-      // 2a. Upload high-res collage mockup to Cloudinary if it's base64
-      if (item.image && typeof item.image === 'string' && item.image.startsWith('data:')) {
+      // 2a. Upload each angle (front, back, left, right, collage) to Cloudinary if it's base64 dataUrl
+      if (item.views && typeof item.views === 'object') {
+        for (const [viewKey, viewImg] of Object.entries(item.views)) {
+          if (viewImg && typeof viewImg === 'string' && viewImg.startsWith('data:')) {
+            try {
+              const cloudView = await uploadBespokeMockupToCloudinary(viewImg, `mockup_${item.designCode || orderPayload.orderId}_${viewKey}`);
+              if (cloudView?.secure_url) {
+                finalViews[viewKey] = cloudView.secure_url;
+              }
+            } catch (vErr) {
+              console.warn(`Bespoke view [${viewKey}] Cloudinary upload notice:`, vErr);
+            }
+          }
+        }
+      }
+
+      // 2b. Upload blueprintImage / collage if separate
+      let finalBlueprint = item.blueprintImage || finalViews.collage || item.previewThumbnail || null;
+      if (finalBlueprint && typeof finalBlueprint === 'string' && finalBlueprint.startsWith('data:')) {
         try {
-          const cloudUpload = await uploadBespokeMockupToCloudinary(item.image, `mockup_${item.designCode || orderPayload.orderId}`);
+          const cloudBlueprint = await uploadBespokeMockupToCloudinary(finalBlueprint, `blueprint_${item.designCode || orderPayload.orderId}`);
+          if (cloudBlueprint?.secure_url) {
+            finalBlueprint = cloudBlueprint.secure_url;
+            finalViews.collage = cloudBlueprint.secure_url;
+          }
+        } catch (bpErr) {
+          console.warn('Bespoke blueprint upload notice:', bpErr);
+        }
+      }
+
+      // 2c. Upload primary front image if base64
+      let finalMockupUrl = finalViews.front || item.image || item.product_image_url || finalBlueprint;
+      if (finalMockupUrl && typeof finalMockupUrl === 'string' && finalMockupUrl.startsWith('data:')) {
+        try {
+          const cloudUpload = await uploadBespokeMockupToCloudinary(finalMockupUrl, `mockup_${item.designCode || orderPayload.orderId}_front`);
           if (cloudUpload?.secure_url) {
             finalMockupUrl = cloudUpload.secure_url;
+            finalViews.front = cloudUpload.secure_url;
           }
         } catch (mockUpErr) {
           console.warn('Bespoke mockup Cloudinary upload notice:', mockUpErr);
         }
       }
 
-      // 2b. Upload each customer uploaded graphic artwork to Cloudinary
+      // 2d. Upload each customer uploaded graphic artwork to Cloudinary
       if (item.artworks && typeof item.artworks === 'object') {
         for (const [spotKey, art] of Object.entries(item.artworks)) {
           if (art && art.dataUrl && typeof art.dataUrl === 'string' && art.dataUrl.startsWith('data:')) {
@@ -256,7 +288,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
         }
       }
 
-      // 2c. Asynchronously update bespoke_designs table/registry with permanent Cloudinary URLs
+      // 2e. Asynchronously update bespoke_designs table/registry with permanent Cloudinary URLs for ALL angles
       try {
         if (item.designCode) {
           fetch(`${apiUrl}/bespoke/${item.designCode}`, {
@@ -265,8 +297,10 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
             body: JSON.stringify({
               orderId: orderPayload.orderId,
               order_id: orderPayload.orderId,
-              previewThumbnail: finalMockupUrl,
-              preview_thumbnail: finalMockupUrl,
+              previewThumbnail: finalBlueprint || finalMockupUrl,
+              preview_thumbnail: finalBlueprint || finalMockupUrl,
+              blueprintImage: finalBlueprint || finalMockupUrl,
+              views: finalViews,
               artworks: finalArtworks,
               customerName: orderPayload.customerName,
               customerEmail: orderPayload.customerEmail,
@@ -281,8 +315,10 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
         ...item,
         image: finalMockupUrl,
         product_image_url: finalMockupUrl,
-        previewThumbnail: finalMockupUrl,
-        customArtworkThumb: finalMockupUrl,
+        previewThumbnail: finalBlueprint || finalMockupUrl,
+        customArtworkThumb: finalBlueprint || finalMockupUrl,
+        blueprintImage: finalBlueprint || finalMockupUrl,
+        views: finalViews,
         artworks: finalArtworks
       };
     }
@@ -1741,6 +1777,8 @@ export async function saveBespokeDesign(designData) {
     customerEmail: designData.customerEmail || '',
     customerPhone: designData.customerPhone || '',
     previewThumbnail: designData.previewThumbnail || null,
+    blueprintImage: designData.blueprintImage || designData.previewThumbnail || null,
+    views: designData.views || (designData.previewThumbnail ? { front: designData.previewThumbnail, back: null, left: null, right: null, collage: designData.previewThumbnail } : null),
     status: 'Saved / In Design',
     createdAt: timestamp
   };
@@ -1831,6 +1869,8 @@ export async function getBespokeDesigns() {
             customerEmail: d.customer_email || d.customerEmail || '',
             customerPhone: d.customer_phone || d.customerPhone || '',
             status: d.status || 'Saved / Ready to Order',
+            views: d.views || { front: d.preview_thumbnail || d.previewThumbnail, back: null, left: null, right: null, collage: d.preview_thumbnail || d.previewThumbnail },
+            blueprintImage: d.blueprint_image || d.blueprintImage || d.preview_thumbnail || d.previewThumbnail || null,
             previewThumbnail: d.preview_thumbnail || d.previewThumbnail || null,
             createdAt: d.created_at || d.createdAt || new Date().toISOString(),
             updatedAt: d.updated_at || d.updatedAt || new Date().toISOString()

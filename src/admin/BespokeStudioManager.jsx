@@ -34,6 +34,7 @@ export const BespokeStudioManager = ({ onToast }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDesign, setSelectedDesign] = useState(null);
+  const [modalAngle, setModalAngle] = useState('collage');
   const [copiedCode, setCopiedCode] = useState(null);
 
   // Load bespoke designs from API / local storage
@@ -295,7 +296,10 @@ export const BespokeStudioManager = ({ onToast }) => {
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
-                  onClick={() => setSelectedDesign(design)}
+                  onClick={() => {
+                    setSelectedDesign(design);
+                    setModalAngle('collage');
+                  }}
                 >
                   <img
                     src={previewImg}
@@ -557,41 +561,118 @@ export const BespokeStudioManager = ({ onToast }) => {
 
             {/* Modal Body */}
             <div style={{ padding: '1.5rem' }}>
-              
-              {/* Full Dual-Angle Mockup Presentation */}
-              <div style={{ marginBottom: '1.5rem', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#07080a', textAlign: 'center', position: 'relative' }}>
-                <img
-                  src={selectedDesign.previewThumbnail || selectedDesign.image || '/images/hero_tshirt.jpg'}
-                  alt={`Bespoke #${selectedDesign.designCode}`}
-                  style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', display: 'block' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const img = selectedDesign.previewThumbnail || selectedDesign.image;
-                    downloadImageFile(img, `bespoke_custom_tshirt_${selectedDesign.designCode}.png`);
-                  }}
-                  style={{
-                    position: 'absolute',
-                    bottom: '12px',
-                    right: '12px',
-                    background: 'rgba(0,0,0,0.85)',
-                    border: '1px solid var(--gold-bright)',
-                    color: 'var(--gold-bright)',
-                    padding: '6px 12px',
-                    borderRadius: '3px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px'
-                  }}
-                >
-                  <Download size={12} />
-                  <span>Download T-Shirt Photo</span>
-                </button>
-              </div>
+              {(() => {
+                const modalViews = selectedDesign?.views || {};
+                const modalCollage = selectedDesign?.blueprintImage || modalViews.collage || selectedDesign?.previewThumbnail || selectedDesign?.image || null;
+                const modalFront = modalViews.front || selectedDesign?.image || modalCollage;
+                const modalBack = modalViews.back || null;
+                const modalLeft = modalViews.left || null;
+                const modalRight = modalViews.right || null;
+
+                const modalAvailableAngles = [
+                  { id: 'collage', label: '★ 4-Angle Blueprint (Collage)', url: modalCollage },
+                  { id: 'front', label: 'Front Angle', url: modalFront },
+                  ...(modalBack ? [{ id: 'back', label: 'Back Angle', url: modalBack }] : []),
+                  ...(modalLeft ? [{ id: 'left', label: 'Left Sleeve', url: modalLeft }] : []),
+                  ...(modalRight ? [{ id: 'right', label: 'Right Sleeve', url: modalRight }] : [])
+                ].filter(a => !!a.url && typeof a.url === 'string');
+
+                const currentAngleObj = modalAvailableAngles.find(a => a.id === modalAngle) || modalAvailableAngles[0];
+                const activeMockupUrl = currentAngleObj?.url || modalFront || '/images/hero_tshirt.jpg';
+
+                return (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    {/* Angle Selector Tabs Bar */}
+                    {modalAvailableAngles.length > 1 && (
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginRight: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Select Garment Angle:
+                        </span>
+                        {modalAvailableAngles.map((ang) => (
+                          <button
+                            key={ang.id}
+                            type="button"
+                            onClick={() => setModalAngle(ang.id)}
+                            style={{
+                              background: modalAngle === ang.id ? 'var(--gold-bright)' : 'rgba(255,255,255,0.06)',
+                              color: modalAngle === ang.id ? '#000000' : 'var(--text-light-primary)',
+                              border: modalAngle === ang.id ? '1px solid var(--gold-bright)' : '1px solid rgba(255,255,255,0.12)',
+                              borderRadius: '3px',
+                              padding: '5px 12px',
+                              fontSize: '0.72rem',
+                              fontWeight: modalAngle === ang.id ? 700 : 500,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {ang.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Active Mockup Angle Presentation Box */}
+                    <div style={{ borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#07080a', textAlign: 'center', position: 'relative', minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img
+                        src={activeMockupUrl}
+                        alt={`Bespoke #${selectedDesign.designCode} - ${currentAngleObj?.label}`}
+                        style={{ width: '100%', maxHeight: '440px', objectFit: 'contain', display: 'block' }}
+                      />
+                      
+                      <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            downloadImageFile(activeMockupUrl, `bespoke_${selectedDesign.designCode}_${currentAngleObj?.id || 'angle'}.png`);
+                          }}
+                          style={{
+                            background: 'rgba(0,0,0,0.85)',
+                            border: '1px solid var(--gold-bright)',
+                            color: 'var(--gold-bright)',
+                            padding: '6px 12px',
+                            borderRadius: '3px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                          }}
+                        >
+                          <Download size={12} />
+                          <span>Download {currentAngleObj?.label?.replace('★ ', '') || 'Photo'}</span>
+                        </button>
+
+                        {modalCollage && modalCollage !== activeMockupUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              downloadImageFile(modalCollage, `bespoke_${selectedDesign.designCode}_blueprint.png`);
+                            }}
+                            style={{
+                              background: 'rgba(197, 160, 89, 0.25)',
+                              border: '1px solid var(--gold-bright)',
+                              color: 'var(--gold-bright)',
+                              padding: '6px 12px',
+                              borderRadius: '3px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px'
+                            }}
+                          >
+                            <Download size={12} />
+                            <span>Download 4-Angle Blueprint</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Grid: Garment Specs vs Raw Graphics Assets */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>

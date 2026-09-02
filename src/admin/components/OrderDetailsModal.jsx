@@ -3,6 +3,93 @@ import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, 
 import { getBespokeDesigns, getBespokeDesignById } from '../../services/dbService';
 import { downloadImageFile } from '../../lib/bespokeMockupGenerator';
 
+const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }) => {
+  const views = customItem?.views || linkedBespoke?.views || {};
+  const collageImg = customItem?.blueprintImage || views?.collage || customItem?.customArtworkThumb || customItem?.previewThumbnail || linkedBespoke?.blueprintImage || linkedBespoke?.previewThumbnail || null;
+  const frontImg = views?.front || customItem?.image || customItem?.product_image_url || linkedBespoke?.previewThumbnail || collageImg;
+  const backImg = views?.back || null;
+  const leftImg = views?.left || null;
+  const rightImg = views?.right || null;
+
+  const availableAngles = [
+    { id: 'collage', label: '★ 4-Angle Blueprint', url: collageImg },
+    { id: 'front', label: 'Front View', url: frontImg },
+    ...(backImg ? [{ id: 'back', label: 'Back View', url: backImg }] : []),
+    ...(leftImg ? [{ id: 'left', label: 'Left Sleeve', url: leftImg }] : []),
+    ...(rightImg ? [{ id: 'right', label: 'Right Sleeve', url: rightImg }] : [])
+  ].filter(a => !!a.url && typeof a.url === 'string');
+
+  const [activeAngleId, setActiveAngleId] = useState(availableAngles[0]?.id || 'collage');
+  const currentAngle = availableAngles.find(a => a.id === activeAngleId) || availableAngles[0];
+  const activeUrl = currentAngle?.url || frontImg || '/images/hero_tshirt.jpg';
+
+  return (
+    <div style={{ textAlign: 'center', background: '#07080a', borderRadius: '4px', padding: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+      {/* Angle Selector Tabs */}
+      {availableAngles.length > 1 && (
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px', justifyContent: 'center' }}>
+          {availableAngles.map((ang) => (
+            <button
+              key={ang.id}
+              type="button"
+              onClick={() => setActiveAngleId(ang.id)}
+              style={{
+                background: activeAngleId === ang.id ? 'var(--gold-bright)' : 'rgba(255,255,255,0.06)',
+                color: activeAngleId === ang.id ? '#000000' : 'var(--text-light-secondary)',
+                border: activeAngleId === ang.id ? '1px solid var(--gold-bright)' : '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '2px',
+                padding: '3px 7px',
+                fontSize: '0.62rem',
+                fontWeight: activeAngleId === ang.id ? 700 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {ang.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Angle Image View */}
+      <div style={{ position: 'relative', width: '100%', minHeight: '160px', maxHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0c0d10', borderRadius: '3px', overflow: 'hidden' }}>
+        <img
+          src={activeUrl}
+          alt={`Bespoke #${itemCode} - ${currentAngle?.label}`}
+          style={{ width: '100%', height: '100%', maxHeight: '210px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', gap: '4px' }}>
+        <span style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+          CODE: #{itemCode} <span style={{ opacity: 0.65, fontWeight: 400 }}>({currentAngle?.label})</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => downloadImageFile(activeUrl, `bespoke_order_${orderId || 'work'}_${itemCode}_${activeAngleId}.png`)}
+          style={{
+            background: 'rgba(197, 160, 89, 0.2)',
+            border: '1px solid var(--gold-bright)',
+            color: 'var(--gold-bright)',
+            padding: '3px 7px',
+            borderRadius: '2px',
+            fontSize: '0.66rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px'
+          }}
+          title="Download Customized T-Shirt Angle Image"
+        >
+          <Download size={11} />
+          <span>Download {currentAngle?.label?.replace('★ ', '') || 'Angle'}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(order?.status || 'Pending Slip Verification');
@@ -324,40 +411,13 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                     <div key={cIdx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px', padding: '1.1rem' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', alignItems: 'center' }}>
                         
-                        {/* Rendered Mockup Collage Image */}
-                        <div style={{ textAlign: 'center', background: '#07080a', borderRadius: '3px', padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                          <img
-                            src={previewImg}
-                            alt={`Bespoke #${itemCode}`}
-                            style={{ width: '100%', maxHeight: '190px', objectFit: 'contain', display: 'block', margin: '0 auto 6px auto' }}
-                          />
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', gap: '4px' }}>
-                            <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
-                              CODE: #{itemCode}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => downloadImageFile(previewImg, `bespoke_order_${order.orderId}_${itemCode}.png`)}
-                              style={{
-                                background: 'rgba(197, 160, 89, 0.2)',
-                                border: '1px solid var(--gold-bright)',
-                                color: 'var(--gold-bright)',
-                                padding: '3px 7px',
-                                borderRadius: '2px',
-                                fontSize: '0.68rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px'
-                              }}
-                              title="Download Customized T-Shirt Mockup Image"
-                            >
-                              <Download size={11} />
-                              <span>Download Photo</span>
-                            </button>
-                          </div>
-                        </div>
+                        {/* Rendered Multi-Angle Mockup Presentation Gallery */}
+                        <BespokeItemAngleViewer
+                          customItem={customItem}
+                          linkedBespoke={linkedBespoke}
+                          itemCode={itemCode}
+                          orderId={order.orderId}
+                        />
 
                         {/* Garment Specifications */}
                         <div>

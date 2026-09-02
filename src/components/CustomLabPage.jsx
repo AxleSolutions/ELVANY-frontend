@@ -324,6 +324,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
       notes: customNotes,
       tailorTuning: isTailorTuningOn,
       previewThumbnail: finalCollage,
+      blueprintImage: finalCollage,
       views,
       status: 'Saved / In Shopping Bag'
     };
