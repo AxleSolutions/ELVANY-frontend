@@ -79,6 +79,7 @@ export const Hero = ({ onExploreClick }) => {
               fetchPriority={idx === 0 ? 'high' : 'auto'}
               loading={idx === 0 ? 'eager' : 'lazy'}
               decoding={idx === 0 ? 'sync' : 'async'}
+              className="hero-slide-bg-img"
               style={{
                 width: '100%',
                 height: '100%',
