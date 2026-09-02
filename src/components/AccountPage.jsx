@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck } from 'lucide-react';
+import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { getOrders } from '../services/dbService';
+import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 
 import { INITIAL_ORDERS } from '../data/orders';
 
@@ -48,6 +50,7 @@ export const AccountPage = ({
   const tabFromUrl = searchParams.get('tab');
 
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'orders');
+  const [inspectedBespokeItem, setInspectedBespokeItem] = useState(null);
 
   const isItemReviewed = (order, item) => {
     if (!allReviewsMap) return false;
@@ -140,6 +143,119 @@ export const AccountPage = ({
       }
     }
   }, [userProfile, loggedInUser]);
+
+  // Live Database Orders State for Client Account
+  const [fetchedOrders, setFetchedOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
+  const fetchClientOrders = async () => {
+    setIsLoadingOrders(true);
+    try {
+      const all = await getOrders();
+      if (Array.isArray(all)) {
+        setFetchedOrders(all);
+      }
+    } catch (err) {
+      console.warn('AccountPage getOrders notice:', err);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClientOrders();
+
+    const handleOrderPlaced = () => {
+      fetchClientOrders();
+    };
+    window.addEventListener('elvany_order_placed', handleOrderPlaced);
+    window.addEventListener('elvany_order_updated', handleOrderPlaced);
+    return () => {
+      window.removeEventListener('elvany_order_placed', handleOrderPlaced);
+      window.removeEventListener('elvany_order_updated', handleOrderPlaced);
+    };
+  }, [clientEmail, clientPhone, clientName]);
+
+  // Determine effective orders belonging to this client
+  const effectiveOrders = useMemo(() => {
+    const source = fetchedOrders.length > 0 ? fetchedOrders : (Array.isArray(ordersList) && ordersList.length > 0 ? ordersList : []);
+    
+    const targetEmail = (clientEmail || userProfile?.email || storedUser?.email || '').toLowerCase().trim();
+    const targetPhone = (clientPhone || userProfile?.phone || storedUser?.phone || '').replace(/[^0-9]/g, '');
+    const targetName = (clientName || userProfile?.name || storedUser?.name || '').toLowerCase().trim();
+
+    let mySessionOrderIds = [];
+    try {
+      mySessionOrderIds = JSON.parse(localStorage.getItem('elvany_my_order_ids') || '[]');
+    } catch {}
+
+    if (targetEmail || targetPhone || targetName || mySessionOrderIds.length > 0) {
+      const matched = source.filter((o) => {
+        const oEmail = (o.customerEmail || o.deliveryAddress?.email || '').toLowerCase().trim();
+        const oPhone = (o.customerPhone || o.deliveryAddress?.phone || '').replace(/[^0-9]/g, '');
+        const oName = (o.customerName || o.deliveryAddress?.recipientName || '').toLowerCase().trim();
+        const oId = (o.orderId || o.order_code || o.id || '').toUpperCase();
+
+        const emailMatches = Boolean(targetEmail && oEmail && oEmail === targetEmail);
+        const phoneMatches = Boolean(targetPhone && oPhone && (oPhone.includes(targetPhone) || targetPhone.includes(oPhone)));
+        const nameMatches = Boolean(targetName && oName && (oName === targetName || oName.includes(targetName) || targetName.includes(oName)));
+        const sessionMatches = Boolean(mySessionOrderIds.some((sid) => sid.toUpperCase() === oId));
+
+        return emailMatches || phoneMatches || nameMatches || sessionMatches;
+      });
+
+      if (matched.length > 0) return matched;
+    }
+
+    if (mySessionOrderIds.length > 0) {
+      const sessionOnly = source.filter((o) => mySessionOrderIds.includes(o.orderId || o.order_code || o.id));
+      if (sessionOnly.length > 0) return sessionOnly;
+    }
+
+    // Fallback: Return all source orders if guest or demo
+    return source;
+  }, [fetchedOrders, ordersList, clientEmail, clientPhone, clientName, userProfile, storedUser]);
+
+  // 1-Click Reorder Action for Rejected Slips or Past Orders
+  const handleReorderItems = (order) => {
+    if (!order || !order.items || order.items.length === 0) return;
+
+    try {
+      const newCartItems = order.items.map((item) => ({
+        id: item.productId || item.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        name: item.name || item.title || 'Haute Atelier T-Shirt',
+        title: item.title || item.name || 'Haute Atelier T-Shirt',
+        price: item.priceLKR || 18500,
+        priceLKR: item.priceLKR || 18500,
+        originalPriceLKR: item.originalPriceLKR || item.priceLKR || 18500,
+        selectedSize: item.selectedSize || item.size || 'M (40)',
+        size: item.selectedSize || item.size || 'M (40)',
+        color: item.color || 'Pure Black',
+        qty: item.quantity || 1,
+        quantity: item.quantity || 1,
+        image: item.image || '/images/hero_tshirt.jpg',
+        isBespokeCustom: item.isBespokeCustom || false,
+        designCode: item.designCode || '',
+        fabric: item.fabric || '',
+        cut: item.cut || '',
+        customPlacements: item.customPlacements || [],
+        customNotes: item.customNotes || '',
+        artworks: item.artworks || {}
+      }));
+
+      localStorage.setItem('elvany_cart', JSON.stringify(newCartItems));
+      const activeEmail = (clientEmail || userProfile?.email || storedUser?.email || '').toLowerCase();
+      if (activeEmail) {
+        localStorage.setItem(`elvany_cart_${activeEmail}`, JSON.stringify(newCartItems));
+      }
+
+      window.dispatchEvent(new CustomEvent('elvany_cart_updated', { detail: newCartItems }));
+      navigate('/checkout');
+    } catch (err) {
+      console.warn('Reorder notice:', err);
+      navigate('/checkout');
+    }
+  };
 
   // Sizing State
   const [savedSize, setSavedSize] = useState('L (42)');
@@ -407,7 +523,7 @@ export const AccountPage = ({
             onClick={() => handleTabChange('orders')}
           >
             <Package size={15} />
-            <span>MY ORDERS ({ordersList.length})</span>
+            <span>MY ORDERS ({effectiveOrders.length})</span>
           </button>
           <button
             className={`account-tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
@@ -430,16 +546,44 @@ export const AccountPage = ({
             ========================================================================= */}
         {activeTab === 'orders' && (
           <div>
-            <div style={{ marginBottom: '1.8rem' }}>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#fff', marginBottom: '0.3rem' }}>
-                Your Orders & Evaluations
-              </h2>
-              <p style={{ color: 'var(--text-light-muted)', fontSize: '0.86rem' }}>
-                View your confirmed acquisitions and submit verified evaluations for each garment.
-              </p>
+            <div style={{ marginBottom: '1.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  Your Orders & Evaluations
+                </h2>
+                <p style={{ color: 'var(--text-light-muted)', fontSize: '0.86rem' }}>
+                  View your confirmed acquisitions and submit verified evaluations for each garment.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchClientOrders}
+                disabled={isLoadingOrders}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid var(--border-dark)',
+                  color: 'var(--gold-bright)',
+                  fontSize: '0.74rem',
+                  padding: '6px 12px',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <RefreshCw size={12} className={isLoadingOrders ? 'animate-spin' : ''} />
+                <span>{isLoadingOrders ? 'Syncing Orders...' : 'Refresh Orders'}</span>
+              </button>
             </div>
 
-            {ordersList.length === 0 ? (
+            {isLoadingOrders && effectiveOrders.length === 0 ? (
+              <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '3.5rem', textAlign: 'center', borderRadius: '2px' }}>
+                <RefreshCw size={28} color="var(--gold-bright)" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', display: 'inline-block' }} />
+                <p style={{ color: '#fff', fontSize: '0.9rem', margin: 0 }}>Syncing your order history from the atelier...</p>
+              </div>
+            ) : effectiveOrders.length === 0 ? (
               <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '3.5rem', textAlign: 'center', borderRadius: '2px' }}>
                 <p style={{ color: 'var(--text-light-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>You have no recorded client orders in this session.</p>
                 <button className="btn-primary-gold" onClick={() => navigate('/collection')}>
@@ -448,23 +592,26 @@ export const AccountPage = ({
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem' }}>
-                {ordersList.map((order) => {
+                {effectiveOrders.map((order) => {
                   const total = order.totalLKR || order.items.reduce((a, b) => a + (b.priceLKR || 18500) * (b.quantity || 1), 0);
-                  const isBankTransfer = (order.paymentMethod || '').toLowerCase().includes('bank');
+                  const isRejected = (order.status || '').toLowerCase().includes('reject');
+                  const isBankTransfer = (order.paymentMethod || '').toLowerCase().includes('bank') || Boolean(order.paymentSlipUrl);
                   const isCod = (order.paymentMethod || '').toLowerCase().includes('cod') || (order.paymentMethod || '').toLowerCase().includes('cash');
 
                   const isDelivered = order.status === 'Delivered' || (order.status || '').toLowerCase().includes('delivered');
 
-                  const displayBadgeStatus = isCod
-                    ? (isDelivered ? 'Delivered' : order.status === 'Cancelled' ? 'Cancelled' : 'Order Confirmed (COD)')
-                    : order.status;
+                  const displayBadgeStatus = isRejected
+                    ? 'Slip Rejected — Reorder Required'
+                    : isCod
+                      ? (isDelivered ? 'Delivered' : order.status === 'Cancelled' ? 'Cancelled' : 'Order Confirmed (COD)')
+                      : order.status;
 
                   return (
                     <div
                       key={order.orderId}
                       style={{
                         backgroundColor: '#121316',
-                        border: '1px solid var(--border-dark)',
+                        border: isRejected ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-dark)',
                         borderRadius: '2px',
                         overflow: 'hidden'
                       }}
@@ -472,8 +619,8 @@ export const AccountPage = ({
                       {/* Order Header */}
                       <div style={{
                         padding: '1.4rem 1.5rem',
-                        backgroundColor: '#17181c',
-                        borderBottom: '1px solid var(--border-dark)',
+                        backgroundColor: isRejected ? 'rgba(239, 68, 68, 0.05)' : '#17181c',
+                        borderBottom: isRejected ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid var(--border-dark)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -489,17 +636,17 @@ export const AccountPage = ({
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '0.35rem',
-                              backgroundColor: isCod ? 'rgba(197, 160, 89, 0.15)' : 'var(--gold-bright)',
-                              border: isCod ? '1px solid var(--gold-border)' : 'none',
-                              color: isCod ? 'var(--gold-bright)' : '#000000',
+                              backgroundColor: isRejected ? 'rgba(239, 68, 68, 0.15)' : isCod ? 'rgba(197, 160, 89, 0.15)' : 'var(--gold-bright)',
+                              border: isRejected ? '1px solid #ef4444' : isCod ? '1px solid var(--gold-border)' : 'none',
+                              color: isRejected ? '#ef4444' : isCod ? 'var(--gold-bright)' : '#000000',
                               fontSize: '0.7rem',
                               fontWeight: 800,
                               letterSpacing: '0.08em',
-                              padding: '2px 8px',
+                              padding: '3px 9px',
                               borderRadius: '2px',
                               textTransform: 'uppercase'
                             }}>
-                              ✓ {displayBadgeStatus}
+                              {isRejected ? '✕ ' : '✓ '}{displayBadgeStatus}
                             </span>
                           </div>
                           <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)' }}>
@@ -538,10 +685,52 @@ export const AccountPage = ({
                         )}
                       </div>
 
+                      {/* Rejected Slip Warning Box with Reorder CTA */}
+                      {isRejected && (
+                        <div style={{
+                          margin: '1rem 1.5rem 1rem 1.5rem',
+                          padding: '1.2rem 1.4rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid #ef4444',
+                          borderRadius: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '1.2rem',
+                          flexWrap: 'wrap'
+                        }}>
+                          <div style={{ flex: 1, minWidth: '240px' }}>
+                            <div style={{ fontSize: '0.86rem', color: '#ef4444', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <AlertTriangle size={16} color="#ef4444" />
+                              <span>Payment Slip Rejected by Atelier</span>
+                            </div>
+                            <p style={{ fontSize: '0.78rem', color: '#ffffff', margin: 0, lineHeight: 1.5 }}>
+                              The uploaded payment receipt was reviewed and rejected. This order cannot proceed and new receipts cannot be attached to this order. Please click <strong>Reorder Garments</strong> to place a fresh order with a valid payment slip.
+                            </p>
+                          </div>
 
+                          <button
+                            type="button"
+                            className="btn-primary-gold"
+                            onClick={() => handleReorderItems(order)}
+                            style={{
+                              padding: '0.7rem 1.4rem',
+                              fontSize: '0.76rem',
+                              gap: '6px',
+                              whiteSpace: 'nowrap',
+                              backgroundColor: 'var(--gold-bright)',
+                              color: '#000',
+                              fontWeight: 700
+                            }}
+                          >
+                            <ShoppingBag size={14} />
+                            <span>REORDER GARMENTS</span>
+                          </button>
+                        </div>
+                      )}
 
                       {/* Cash on Delivery Status Info for Client */}
-                      {isCod && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
+                      {isCod && !isRejected && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                         <div style={{
                           margin: '0 1.5rem 1rem 1.5rem',
                           padding: '0.8rem 1.2rem',
@@ -555,9 +744,8 @@ export const AccountPage = ({
                         </div>
                       )}
 
-
                       {/* Bank Transfer Slip Status Info for Client */}
-                      {isBankTransfer && order.status === 'Pending Slip Verification' && (
+                      {isBankTransfer && !isRejected && order.status === 'Pending Slip Verification' && (
                         <div style={{
                           margin: '0 1.5rem 1rem 1.5rem',
                           padding: '0.8rem 1.2rem',
@@ -586,7 +774,7 @@ export const AccountPage = ({
                         </div>
                       )}
 
-                      {isBankTransfer && order.status === 'Payment Verified — Processing Dispatch' && (
+                      {isBankTransfer && !isRejected && order.status === 'Payment Verified — Processing Dispatch' && (
                         <div style={{
                           margin: '0 1.5rem 1rem 1.5rem',
                           padding: '0.8rem 1.2rem',
@@ -616,26 +804,55 @@ export const AccountPage = ({
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{
-                              width: '44px',
-                              height: '56px',
-                              borderRadius: '2px',
-                              overflow: 'hidden',
-                              backgroundColor: '#090a0c',
-                              border: '1px solid var(--border-dark)',
-                              flexShrink: 0
-                            }}>
+                            <div 
+                              style={{
+                                width: '48px',
+                                height: '58px',
+                                borderRadius: '2px',
+                                overflow: 'hidden',
+                                backgroundColor: '#090a0c',
+                                border: '1px solid var(--border-dark)',
+                                flexShrink: 0,
+                                cursor: (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) ? 'pointer' : 'default'
+                              }}
+                              onClick={() => (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && setInspectedBespokeItem(item)}
+                              title="Click to view 4-sides blueprint"
+                            >
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                               />
                             </div>
 
                             <div>
-                              <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: '#ffffff', marginBottom: '0.2rem', fontWeight: 500 }}>
-                                {item.name}
-                              </h4>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+                                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: '#ffffff', margin: 0, fontWeight: 500 }}>
+                                  {item.name}
+                                </h4>
+                                {(item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setInspectedBespokeItem(item)}
+                                    style={{
+                                      background: 'rgba(197, 160, 89, 0.15)',
+                                      border: '1px solid var(--gold-border)',
+                                      color: 'var(--gold-bright)',
+                                      padding: '2px 7px',
+                                      borderRadius: '2px',
+                                      fontSize: '0.66rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px'
+                                    }}
+                                  >
+                                    <Sparkles size={10} />
+                                    <span>4-SIDES BLUEPRINT</span>
+                                  </button>
+                                )}
+                              </div>
                               <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                                 <span>Size: <strong style={{ color: '#fff' }}>{item.selectedSize}</strong></span>
                                 <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
@@ -1393,6 +1610,112 @@ export const AccountPage = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4-Sides Blueprint Inspection Modal */}
+      {inspectedBespokeItem && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setInspectedBespokeItem(null)}
+          style={{ zIndex: 11000, padding: '1.5rem', overflowY: 'auto' }}
+        >
+          <div 
+            className="fitting-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <Sparkles size={13} />
+                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                  {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
+                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                className="modal-close-icon" 
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ position: 'static' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 4-Panels Blueprint Grid: Front, Back, Left, Right */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '1.4rem' }}>
+              {[
+                { key: 'front', label: '1. FRONT VIEW', img: inspectedBespokeItem.views?.front || inspectedBespokeItem.image },
+                { key: 'back', label: '2. BACK VIEW', img: inspectedBespokeItem.views?.back || inspectedBespokeItem.image },
+                { key: 'left', label: '3. LEFT SLEEVE', img: inspectedBespokeItem.views?.left || inspectedBespokeItem.image },
+                { key: 'right', label: '4. RIGHT SLEEVE', img: inspectedBespokeItem.views?.right || inspectedBespokeItem.image }
+              ].map((panel) => (
+                <div 
+                  key={panel.key}
+                  style={{
+                    backgroundColor: '#07080a',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '3px',
+                    padding: '8px',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                    <img 
+                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      alt={panel.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                    {panel.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Placements & Notes */}
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
+                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Luxury Heavyweight Cotton'}</strong></span>
+              </div>
+              {inspectedBespokeItem.customNotes && (
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                  "{inspectedBespokeItem.customNotes}"
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-outline-gold"
+                onClick={() => downloadImageFile(inspectedBespokeItem.blueprintImage || inspectedBespokeItem.image, `bespoke_blueprint_${inspectedBespokeItem.designCode || 'garment'}.png`)}
+                style={{ padding: '0.7rem 1.2rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Download size={14} />
+                <span>SAVE 4-SIDES PHOTO</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-primary-gold"
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ padding: '0.7rem 1.4rem', fontSize: '0.76rem' }}
+              >
+                <span>CLOSE INSPECTION</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

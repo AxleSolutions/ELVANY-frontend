@@ -257,5 +257,95 @@ export function optimizeImageUrl(url, options = {}) {
   return url;
 }
 
+/**
+ * Upload a bespoke customized T-shirt mockup collage to Cloudinary
+ * @param {string|File|Blob} imageSource - Base64 Data URL or Blob
+ * @param {string} designCode - Bespoke design code (e.g. 'BL-NRJG8')
+ * @returns {Promise<{ secure_url: string, public_id: string }>}
+ */
+export async function uploadBespokeMockupToCloudinary(imageSource, designCode = '') {
+  if (!imageSource) return null;
+
+  // Convert Base64 data URL to Blob if string
+  let fileBlob = imageSource;
+  if (typeof imageSource === 'string' && imageSource.startsWith('data:')) {
+    try {
+      const arr = imageSource.split(',');
+      const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      fileBlob = new Blob([u8arr], { type: mime });
+    } catch (e) {
+      console.warn('Base64 blob conversion notice:', e);
+    }
+  }
+
+  // 1. Try Backend Upload Route
+  try {
+    const apiUrl = getApiUrl();
+    const formData = new FormData();
+    formData.append('image', fileBlob, `bespoke_${designCode || Date.now()}.png`);
+
+    const res = await fetch(`${apiUrl}/uploads/image`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.data?.url) {
+        return {
+          secure_url: data.data.url,
+          public_id: data.data.public_id || `bespoke_${Date.now()}`
+        };
+      }
+    }
+  } catch (apiErr) {
+    console.warn('Backend bespoke mockup upload notice:', apiErr);
+  }
+
+  // 2. Direct Cloudinary Client Upload fallback
+  if (isCloudinaryConfigured) {
+    try {
+      const formData = new FormData();
+      formData.append('file', fileBlob);
+      formData.append('upload_preset', uploadPreset);
+      formData.append('folder', 'elvany/bespoke_mockups');
+      if (designCode) {
+        formData.append('tags', `bespoke_${designCode},custom_tshirt`);
+      }
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          secure_url: data.secure_url,
+          public_id: data.public_id
+        };
+      }
+    } catch (directErr) {
+      console.warn('Direct Cloudinary bespoke upload notice:', directErr);
+    }
+  }
+
+  // 3. Return local Data URL
+  return {
+    secure_url: typeof imageSource === 'string' ? imageSource : URL.createObjectURL(fileBlob),
+    public_id: `local_bespoke_${Date.now()}`
+  };
+}
+
+
 
 

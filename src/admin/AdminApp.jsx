@@ -15,6 +15,7 @@ import { ConciergeSettings } from './ConciergeSettings';
 import { OffersManager } from './OffersManager';
 import { PopupAdManager } from './PopupAdManager';
 import { RestockRequestsManager } from './RestockRequestsManager';
+import { BespokeStudioManager } from './BespokeStudioManager';
 import { ProductEditModal } from './components/ProductEditModal';
 import { OrderDetailsModal } from './components/OrderDetailsModal';
 import { OfferEditModal } from './components/OfferEditModal';
@@ -41,7 +42,8 @@ import {
   getNewsletterSubscribers,
   getRestockRequests,
   updateRestockRequestStatus,
-  deleteRestockRequest
+  deleteRestockRequest,
+  getBespokeDesigns
 } from '../services/dbService';
 
 
@@ -245,6 +247,7 @@ export const AdminApp = ({
   const [customers, setCustomers] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
   const [restockRequests, setRestockRequests] = useState([]);
+  const [bespokeDesigns, setBespokeDesigns] = useState([]);
   const [settings, setSettings] = useState(INITIAL_STORE_SETTINGS);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
 
@@ -267,13 +270,14 @@ export const AdminApp = ({
     async function syncAdminDatabase() {
       setIsLoadingAdmin(true);
       try {
-        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers, dbRestock] = await Promise.allSettled([
+        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers, dbRestock, dbBespoke] = await Promise.allSettled([
           getProducts(),
           getOrders(),
           getOffers(),
           getReviews(),
           getNewsletterSubscribers(),
-          getRestockRequests()
+          getRestockRequests(),
+          getBespokeDesigns()
         ]);
 
         if (dbProducts.status === 'fulfilled' && Array.isArray(dbProducts.value)) {
@@ -312,6 +316,12 @@ export const AdminApp = ({
           setRestockRequests(dbRestock.value.requests);
         } else {
           setRestockRequests([]);
+        }
+
+        if (dbBespoke.status === 'fulfilled' && Array.isArray(dbBespoke.value)) {
+          setBespokeDesigns(dbBespoke.value);
+        } else {
+          setBespokeDesigns([]);
         }
 
 
@@ -756,6 +766,7 @@ export const AdminApp = ({
         offersCount={localOffers.filter(o => o.isActive).length}
         isPopupAdActive={localPopupAd?.enabled}
         restockRequestsCount={restockRequests.length}
+        bespokeCount={bespokeDesigns.length}
       />
 
 
@@ -817,6 +828,12 @@ export const AdminApp = ({
                   onNavigateTab={setActiveTab}
                   onOpenProductModal={handleOpenProductModal}
                   onViewOrder={handleViewOrder}
+                />
+              )}
+
+              {activeTab === 'bespoke' && (
+                <BespokeStudioManager
+                  onToast={showToast}
                 />
               )}
 

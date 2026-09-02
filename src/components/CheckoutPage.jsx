@@ -27,9 +27,12 @@ import {
   ExternalLink,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  RefreshCw,
+  Loader2,
+  Maximize2
 } from 'lucide-react';
-
+import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 
 import { CITIES_LIST } from './AccountPage';
 
@@ -105,6 +108,8 @@ export const CheckoutPage = ({
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [activeAngles, setActiveAngles] = useState({});
+  const [inspectedBespokeItem, setInspectedBespokeItem] = useState(null);
 
   // Auto-scroll to top when switching checkout steps or confirming order
   useEffect(() => {
@@ -285,13 +290,22 @@ export const CheckoutPage = ({
           name: c.name || c.title || 'Haute Atelier T-Shirt',
           title: c.name || c.title || 'Haute Atelier T-Shirt',
           color: c.color || 'Onyx Black',
+          colorHex: c.colorHex || '#0a0a0b',
           selectedSize: c.selectedSize || c.size || 'M (40)',
           size: c.selectedSize || c.size || 'M (40)',
           priceLKR: getPrice(c),
           originalPriceLKR: getOriginalPrice(c),
           isOfferApplied: c.isOfferApplied || false,
-          quantity: c.qty || 1,
-          image: c.image || '/images/hero_tshirt.jpg'
+          isBespokeCustom: c.isBespokeCustom || false,
+          designCode: c.designCode || '',
+          customPlacements: c.customPlacements || [],
+          customNotes: c.customNotes || '',
+          fabric: c.fabric || '',
+          cut: c.cut || '',
+          quantity: c.qty || c.quantity || 1,
+          image: c.image || '/images/hero_tshirt.jpg',
+          previewThumbnail: c.previewThumbnail || c.image || '/images/hero_tshirt.jpg',
+          artworks: c.artworks || {}
         }))
       };
 
@@ -317,12 +331,27 @@ export const CheckoutPage = ({
         }
       }
 
+      // Persist order ID to client's local session history
+      try {
+        const storedIds = JSON.parse(localStorage.getItem('elvany_my_order_ids') || '[]');
+        if (newOrder.orderId && !storedIds.includes(newOrder.orderId)) {
+          storedIds.unshift(newOrder.orderId);
+          localStorage.setItem('elvany_my_order_ids', JSON.stringify(storedIds));
+        }
+        localStorage.setItem('elvany_last_order_code', newOrder.orderId);
+      } catch {}
+
       if (onConfirmOrder) {
         await onConfirmOrder(newOrder, paymentSlipFile);
       }
       if (onClearCart) {
         onClearCart();
       }
+
+      // Notify entire app of newly placed order
+      try {
+        window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: newOrder }));
+      } catch {}
 
       setConfirmedOrder(newOrder);
     } catch (err) {
@@ -676,29 +705,71 @@ export const CheckoutPage = ({
         {/* Mobile Summary Drawer */}
         <div className={`checkout-mobile-summary-content ${mobileSummaryOpen ? 'open' : ''}`}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.2rem' }}>
-            {cart.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                <div style={{ position: 'relative', width: '46px', height: '56px', borderRadius: '3px', overflow: 'hidden', backgroundColor: '#07080a', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
-                    {item.qty || 1}
-                  </span>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.88rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {item.name}
-                  </h4>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                    {item.selectedSize || item.size} • {item.color}
+            {cart.map((item, idx) => {
+              const itemKey = `mobile-${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
+              const isBespoke = Boolean(item.isBespokeCustom || item.designCode || (item.title || item.name || '').includes('Bespoke') || (item.title || item.name || '').includes('Custom'));
+              const currentAngle = activeAngles[itemKey] || 'front';
+              let displayImg = item.image || '/images/hero_tshirt.jpg';
+              if (isBespoke && item.views) {
+                displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
+              }
+
+              return (
+                <div key={idx} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                  <div 
+                    style={{ position: 'relative', width: '52px', height: '62px', borderRadius: '3px', overflow: 'hidden', backgroundColor: '#07080a', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0, cursor: isBespoke ? 'pointer' : 'default' }}
+                    onClick={() => isBespoke && setInspectedBespokeItem(item)}
+                    title={isBespoke ? 'Click to inspect 4-sides blueprint' : ''}
+                  >
+                    <img src={displayImg} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
+                      {item.qty || 1}
+                    </span>
+                    {isBespoke && (
+                      <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: 'var(--gold-bright)', fontSize: '0.55rem', textAlign: 'center', fontWeight: 700 }}>
+                        {currentAngle.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.88rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.name}
+                    </h4>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                      {item.selectedSize || item.size} • {item.color}
+                    </div>
+                    {isBespoke && (
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                        {['front', 'back', 'left', 'right'].map((ang) => (
+                          <button
+                            key={ang}
+                            type="button"
+                            onClick={() => setActiveAngles(prev => ({ ...prev, [itemKey]: ang }))}
+                            style={{
+                              background: currentAngle === ang ? 'var(--gold-bright)' : 'rgba(255,255,255,0.08)',
+                              color: currentAngle === ang ? '#000' : '#fff',
+                              border: 'none',
+                              borderRadius: '2px',
+                              padding: '2px 5px',
+                              fontSize: '0.6rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {ang.slice(0, 1).toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                      {formatLKR(getPrice(item) * (item.qty || 1))}
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
-                    {formatLKR(getPrice(item) * (item.qty || 1))}
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
@@ -1392,11 +1463,14 @@ export const CheckoutPage = ({
                     className="btn-primary-gold checkout-confirm-action-btn"
                     style={{
                       opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || !paymentSlipFile) ? 0.6 : 1,
-                      cursor: (!paymentSlipFile || (paymentMethod === 'bank' && !loggedInUser)) ? 'not-allowed' : 'pointer'
+                      cursor: isSubmitting ? 'wait' : (!paymentSlipFile || (paymentMethod === 'bank' && !loggedInUser)) ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {isSubmitting ? (
-                      <span>AUTHENTICATING TRANSACTION...</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} />
+                        <span>AUTHENTICATING & PROCESSING ACQUISITION...</span>
+                      </span>
                     ) : (paymentMethod === 'bank' && !loggedInUser) ? (
                       <>
                         <Lock size={16} />
@@ -1438,41 +1512,108 @@ export const CheckoutPage = ({
 
               {/* Garment Items List */}
               <div className="checkout-summary-item-list">
-                {cart.map((item, idx) => (
-                  <div key={idx} className="checkout-summary-item">
-                    <div className="checkout-summary-item-img">
-                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
-                        {item.qty || 1}
-                      </span>
-                    </div>
+                {cart.map((item, idx) => {
+                  const itemKey = `desktop-${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
+                  const isBespoke = Boolean(item.isBespokeCustom || item.designCode || (item.title || item.name || '').includes('Bespoke') || (item.title || item.name || '').includes('Custom'));
+                  const currentAngle = activeAngles[itemKey] || 'front';
+                  let displayImg = item.image || '/images/hero_tshirt.jpg';
+                  if (isBespoke && item.views) {
+                    displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
+                  }
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {item.name}
-                      </h4>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                        {item.selectedSize || item.size} • {item.color}
-                      </div>
-                      {item.isOfferApplied && (
-                        <span style={{ fontSize: '0.62rem', backgroundColor: 'var(--gold-bright)', color: '#000000', fontWeight: 800, padding: '1px 4px', borderRadius: '1px', display: 'inline-block', marginTop: '2px' }}>
-                          ⚡ PRIVILEGE APPLIED
+                  return (
+                    <div key={idx} className="checkout-summary-item" style={{ alignItems: 'flex-start' }}>
+                      <div 
+                        className="checkout-summary-item-img"
+                        style={{ width: '56px', height: '68px', cursor: isBespoke ? 'pointer' : 'default' }}
+                        onClick={() => isBespoke && setInspectedBespokeItem(item)}
+                        title={isBespoke ? 'Click to inspect 4-sides blueprint' : ''}
+                      >
+                        <img src={displayImg} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
+                          {item.qty || 1}
                         </span>
-                      )}
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
-                        {formatLKR(getPrice(item) * (item.qty || 1))}
+                        {isBespoke && (
+                          <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: 'var(--gold-bright)', fontSize: '0.55rem', textAlign: 'center', fontWeight: 700 }}>
+                            {currentAngle.toUpperCase()}
+                          </span>
+                        )}
                       </div>
-                      {item.isOfferApplied && item.originalPriceLKR && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
-                          {formatLKR(item.originalPriceLKR * (item.qty || 1))}
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.name}
+                        </h4>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                          {item.selectedSize || item.size} • {item.color}
                         </div>
-                      )}
+                        {item.isOfferApplied && (
+                          <span style={{ fontSize: '0.62rem', backgroundColor: 'var(--gold-bright)', color: '#000000', fontWeight: 800, padding: '1px 4px', borderRadius: '1px', display: 'inline-block', marginTop: '2px' }}>
+                            ⚡ PRIVILEGE APPLIED
+                          </span>
+                        )}
+
+                        {/* 4-Angle Switcher for Bespoke Item */}
+                        {isBespoke && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}>
+                            {['front', 'back', 'left', 'right'].map((ang) => (
+                              <button
+                                key={ang}
+                                type="button"
+                                onClick={() => setActiveAngles(prev => ({ ...prev, [itemKey]: ang }))}
+                                style={{
+                                  background: currentAngle === ang ? 'var(--gold-bright)' : 'rgba(255,255,255,0.08)',
+                                  color: currentAngle === ang ? '#000' : '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '2px',
+                                  padding: '2px 6px',
+                                  fontSize: '0.62rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                                title={`View ${ang} side`}
+                              >
+                                {ang.toUpperCase()}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setInspectedBespokeItem(item)}
+                              style={{
+                                background: 'rgba(197, 160, 89, 0.15)',
+                                color: 'var(--gold-bright)',
+                                border: '1px solid rgba(197, 160, 89, 0.3)',
+                                borderRadius: '2px',
+                                padding: '2px 5px',
+                                fontSize: '0.6rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '2px'
+                              }}
+                              title="Open 4-sides blueprint inspection"
+                            >
+                              <Maximize2 size={9} />
+                              <span>4-SIDES</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                          {formatLKR(getPrice(item) * (item.qty || 1))}
+                        </div>
+                        {item.isOfferApplied && item.originalPriceLKR && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
+                            {formatLKR(item.originalPriceLKR * (item.qty || 1))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Ledger Totals */}
@@ -1527,6 +1668,112 @@ export const CheckoutPage = ({
         </div>
 
       </div>
+
+      {/* 4-Sides Blueprint Inspection Modal */}
+      {inspectedBespokeItem && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setInspectedBespokeItem(null)}
+          style={{ zIndex: 11000, padding: '1.5rem', overflowY: 'auto' }}
+        >
+          <div 
+            className="fitting-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <Sparkles size={13} />
+                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                  {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
+                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                className="modal-close-icon" 
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ position: 'static' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 4-Panels Blueprint Grid: Front, Back, Left, Right */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '1.4rem' }}>
+              {[
+                { key: 'front', label: '1. FRONT VIEW', img: inspectedBespokeItem.views?.front || inspectedBespokeItem.image },
+                { key: 'back', label: '2. BACK VIEW', img: inspectedBespokeItem.views?.back || inspectedBespokeItem.image },
+                { key: 'left', label: '3. LEFT SLEEVE', img: inspectedBespokeItem.views?.left || inspectedBespokeItem.image },
+                { key: 'right', label: '4. RIGHT SLEEVE', img: inspectedBespokeItem.views?.right || inspectedBespokeItem.image }
+              ].map((panel) => (
+                <div 
+                  key={panel.key}
+                  style={{
+                    backgroundColor: '#07080a',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '3px',
+                    padding: '8px',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                    <img 
+                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      alt={panel.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                    {panel.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Placements & Notes */}
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
+                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Luxury Heavyweight Cotton'}</strong></span>
+              </div>
+              {inspectedBespokeItem.customNotes && (
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                  "{inspectedBespokeItem.customNotes}"
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-outline-gold"
+                onClick={() => downloadImageFile(inspectedBespokeItem.blueprintImage || inspectedBespokeItem.image, `bespoke_blueprint_${inspectedBespokeItem.designCode || 'garment'}.png`)}
+                style={{ padding: '0.7rem 1.2rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Download size={14} />
+                <span>SAVE 4-SIDES PHOTO</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-primary-gold"
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ padding: '0.7rem 1.4rem', fontSize: '0.76rem' }}
+              >
+                <span>CLOSE INSPECTION</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Trash2, ArrowRight, ShieldCheck, Sparkles, Check, ShoppingBag, Plus, Minus, Tag, Gift } from 'lucide-react';
+import { X, Trash2, ArrowRight, ShieldCheck, Sparkles, Check, ShoppingBag, Plus, Minus, Tag, Gift, Eye, Download, Maximize2, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 
 export const CartDrawer = ({
   isOpen,
@@ -13,6 +14,8 @@ export const CartDrawer = ({
 }) => {
   const navigate = useNavigate();
   const [orderConfirmedData, setOrderConfirmedData] = useState(null);
+  const [activeAngles, setActiveAngles] = useState({}); // { [itemUniqueKey]: 'front' | 'back' | 'left' | 'right' }
+  const [inspectedBespokeItem, setInspectedBespokeItem] = useState(null);
 
   if (!isOpen) return null;
 
@@ -182,6 +185,7 @@ export const CartDrawer = ({
               ) : (
                 <div className="cart-items-list">
                   {cartItems.map((item, idx) => {
+                    const itemKey = `${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
                     const itemName = item.name || item.title || 'Luxury Atelier T-Shirt';
                     const itemSize = item.selectedSize || item.size || 'M (40)';
                     const itemPrice = getPrice(item);
@@ -190,18 +194,64 @@ export const CartDrawer = ({
                     const hasDiscount = origPrice > itemPrice;
                     const itemSavings = (origPrice - itemPrice) * itemQty;
 
+                    const isBespoke = Boolean(item.isBespokeCustom || item.designCode || (item.title || itemName || '').includes('Bespoke') || (item.title || itemName || '').includes('Custom'));
+                    const currentAngle = activeAngles[itemKey] || 'front';
+                    
+                    // Determine image to display based on selected angle
+                    let displayImg = item.image || '/images/hero_tshirt.jpg';
+                    if (isBespoke && item.views) {
+                      displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
+                    }
+
+                    // Check prints presence per angle
+                    const arts = item.artworks || {};
+                    const angleHasPrint = {
+                      front: Boolean(arts.front || arts.left_chest || arts.right_chest),
+                      back: Boolean(arts.back || arts.nape),
+                      left: Boolean(arts.left_sleeve),
+                      right: Boolean(arts.right_sleeve)
+                    };
+
                     return (
-                      <div key={`${item.id}-${itemSize}-${idx}`} className="cart-item-card">
-                        <img 
-                          src={item.image || '/images/hero_tshirt.jpg'} 
-                          alt={itemName} 
-                          className="cart-item-thumbnail" 
-                        />
+                      <div key={itemKey} className={`cart-item-card ${isBespoke ? 'is-bespoke-card' : ''}`}>
+                        
+                        {/* Thumbnail Wrap with Quick View & Angle Badge */}
+                        <div className="cart-item-thumb-wrapper">
+                          <img 
+                            src={displayImg} 
+                            alt={`${itemName} - ${currentAngle} view`} 
+                            className="cart-item-thumbnail" 
+                          />
+                          {isBespoke && (
+                            <button
+                              type="button"
+                              onClick={() => setInspectedBespokeItem(item)}
+                              className="cart-item-thumb-zoom-btn"
+                              title="Inspect All 4 Sides Blueprint"
+                            >
+                              <Maximize2 size={11} />
+                              <span>4 SIDES</span>
+                            </button>
+                          )}
+                        </div>
 
                         <div className="cart-item-details">
                           <div className="cart-item-header">
                             <div>
                               <h4 className="cart-item-name">{itemName}</h4>
+                              {isBespoke && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
+                                  <span className="cart-item-offer-pill" style={{ backgroundColor: 'rgba(197, 160, 89, 0.15)', color: 'var(--gold-bright)', borderColor: 'rgba(197, 160, 89, 0.4)' }}>
+                                    <Sparkles size={10} />
+                                    <span>BESPOKE ATELIER LAB</span>
+                                  </span>
+                                  {item.designCode && (
+                                    <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                                      #{item.designCode}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               {item.isOfferApplied && (
                                 <span className="cart-item-offer-pill">
                                   <Tag size={10} />
@@ -219,10 +269,44 @@ export const CartDrawer = ({
                             </button>
                           </div>
 
+                          {/* 4-Angle Switcher Tabs for Bespoke Custom Garments */}
+                          {isBespoke && (
+                            <div className="cl-cart-angles-row">
+                              <span className="cl-cart-angles-label">VIEW ANGLE:</span>
+                              <div className="cl-cart-angle-buttons">
+                                {['front', 'back', 'left', 'right'].map((ang) => {
+                                  const isActive = currentAngle === ang;
+                                  const hasArt = angleHasPrint[ang];
+                                  const labels = { front: 'FRONT', back: 'BACK', left: 'LEFT', right: 'RIGHT' };
+                                  return (
+                                    <button
+                                      key={ang}
+                                      type="button"
+                                      onClick={() => setActiveAngles(prev => ({ ...prev, [itemKey]: ang }))}
+                                      className={`cl-cart-angle-btn ${isActive ? 'active' : ''}`}
+                                      title={`View ${labels[ang]} side of customized t-shirt`}
+                                    >
+                                      <span>{labels[ang]}</span>
+                                      {hasArt && <span className="cl-angle-art-dot" title="Custom graphic present" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="cart-item-meta-tags">
                             <span className="cart-meta-pill">Size: <strong>{itemSize}</strong></span>
                             <span className="cart-meta-pill">Color: {item.color || 'Onyx Black'}</span>
+                            {item.fabric && <span className="cart-meta-pill">{item.fabric}</span>}
                           </div>
+
+                          {item.customPlacements && item.customPlacements.length > 0 && (
+                            <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>Prints ({item.customPlacements.length}):</span>
+                              <strong style={{ color: '#fff' }}>{item.customPlacements.join(' • ')}</strong>
+                            </div>
+                          )}
 
                           {/* Price & Quantity Row with Stock Limits */}
                           {(() => {
@@ -335,6 +419,112 @@ export const CartDrawer = ({
           </>
         )}
       </aside>
+
+      {/* 4-Sides Blueprint Inspection Modal */}
+      {inspectedBespokeItem && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setInspectedBespokeItem(null)}
+          style={{ zIndex: 11000, padding: '1.5rem', overflowY: 'auto' }}
+        >
+          <div 
+            className="fitting-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <Sparkles size={13} />
+                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                  {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
+                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                className="modal-close-icon" 
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ position: 'static' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 4-Panels Blueprint Grid: Front, Back, Left, Right */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '1.4rem' }}>
+              {[
+                { key: 'front', label: '1. FRONT VIEW', img: inspectedBespokeItem.views?.front || inspectedBespokeItem.image },
+                { key: 'back', label: '2. BACK VIEW', img: inspectedBespokeItem.views?.back || inspectedBespokeItem.image },
+                { key: 'left', label: '3. LEFT SLEEVE', img: inspectedBespokeItem.views?.left || inspectedBespokeItem.image },
+                { key: 'right', label: '4. RIGHT SLEEVE', img: inspectedBespokeItem.views?.right || inspectedBespokeItem.image }
+              ].map((panel) => (
+                <div 
+                  key={panel.key}
+                  style={{
+                    backgroundColor: '#07080a',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '3px',
+                    padding: '8px',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                    <img 
+                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      alt={panel.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                    {panel.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Placements & Notes */}
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
+                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Luxury Heavyweight Cotton'}</strong></span>
+              </div>
+              {inspectedBespokeItem.customNotes && (
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                  "{inspectedBespokeItem.customNotes}"
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-outline-gold"
+                onClick={() => downloadImageFile(inspectedBespokeItem.blueprintImage || inspectedBespokeItem.image, `bespoke_blueprint_${inspectedBespokeItem.designCode || 'garment'}.png`)}
+                style={{ padding: '0.7rem 1.2rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Download size={14} />
+                <span>SAVE 4-SIDES PHOTO</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-primary-gold"
+                onClick={() => setInspectedBespokeItem(null)}
+                style={{ padding: '0.7rem 1.4rem', fontSize: '0.76rem' }}
+              >
+                <span>CLOSE INSPECTION</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

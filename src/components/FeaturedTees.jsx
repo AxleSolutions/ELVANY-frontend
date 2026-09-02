@@ -11,6 +11,11 @@ export const FeaturedTees = ({
   addedItemId, 
   onExploreCollection 
 }) => {
+  // If products are not available in catalog, completely hide the entire section (no mock data)
+  if (!isLoading && (!products || !Array.isArray(products) || products.length === 0)) {
+    return null;
+  }
+
   const isLoggedIn = Boolean(loggedInUser || userProfile?.email);
   const userProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M (40)';
 

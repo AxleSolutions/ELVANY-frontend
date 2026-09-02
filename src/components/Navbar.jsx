@@ -11,6 +11,7 @@ export const Navbar = ({
   onOpenSearch,
   onNavigateToCollection,
   onNavigateToConcierge,
+  onNavigateToCustomLab,
   onNavigateHome,
   onSmoothScrollTo,
   currentView,
@@ -50,6 +51,15 @@ export const Navbar = ({
     }
   };
 
+  const handleCustomLabClick = (e) => {
+    if (e) e.preventDefault();
+    if (onNavigateToCustomLab) {
+      onNavigateToCustomLab();
+    } else {
+      navigate('/custom-lab');
+    }
+  };
+
   const handleProfileClick = () => {
     if (loggedInUser) {
       setProfileDropdownOpen(!profileDropdownOpen);
@@ -85,6 +95,24 @@ export const Navbar = ({
               onClick={() => onNavigateToCollection('all')}
             >
               COLLECTION
+            </button>
+
+            <button 
+              className={`nav-link ${currentView === 'custom-lab' ? 'active-nav' : ''}`}
+              onClick={handleCustomLabClick}
+              style={{ display: 'inline-flex', alignItems: 'center' }}
+            >
+              <span>BESPOKE LAB</span>
+              <span style={{
+                fontSize: '8px',
+                backgroundColor: 'var(--gold-bright)',
+                color: '#000000',
+                fontWeight: 800,
+                padding: '1px 4px',
+                borderRadius: '2px',
+                marginLeft: '5px',
+                lineHeight: 1.2
+              }}>NEW</span>
             </button>
 
             <button 
@@ -244,6 +272,26 @@ export const Navbar = ({
           }}
         >
           <span>COLLECTION</span>
+        </button>
+
+        <button 
+          className="mobile-nav-link"
+          onClick={(e) => {
+            handleCustomLabClick(e);
+            setMobileMenuOpen(false);
+          }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        >
+          <span>BESPOKE CUSTOM LAB</span>
+          <span style={{
+            fontSize: '9px',
+            backgroundColor: 'var(--gold-bright)',
+            color: '#000000',
+            fontWeight: 800,
+            padding: '2px 6px',
+            borderRadius: '2px',
+            letterSpacing: '0.04em'
+          }}>NEW</span>
         </button>
 
         <button 

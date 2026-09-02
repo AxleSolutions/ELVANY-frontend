@@ -1,15 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud } from 'lucide-react';
+import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud, Sparkles, Download, Printer, Shirt, Layers, Eye } from 'lucide-react';
+import { getBespokeDesigns, getBespokeDesignById } from '../../services/dbService';
+import { downloadImageFile } from '../../lib/bespokeMockupGenerator';
 
 export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(order?.status || 'Pending Slip Verification');
+  const [bespokeDetailsMap, setBespokeDetailsMap] = useState({});
 
   useEffect(() => {
     if (order?.status) {
       setSelectedStatus(order.status);
     }
-  }, [order?.status]);
+
+    // Load any linked bespoke custom details
+    if (order?.items && order.items.length > 0) {
+      const fetchBespokeDetails = async () => {
+        const details = {};
+        for (const item of order.items) {
+          const code = item.designCode || (item.title || item.name || '').match(/BL-[A-Z0-9]{4,6}/)?.[0];
+          if (code) {
+            try {
+              const res = await getBespokeDesignById(code);
+              if (res) details[code] = res;
+            } catch (e) {}
+          }
+        }
+        setBespokeDetailsMap(details);
+      };
+      fetchBespokeDetails();
+    }
+  }, [order]);
 
   if (!isOpen || !order) return null;
 
@@ -66,11 +87,22 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
         <div className="admin-order-dialog-body">
           
           {/* Top Status Pipeline Card */}
-          <div className="admin-order-status-banner">
+          <div className="admin-order-status-banner" style={{
+            borderColor: selectedStatus.toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.4)' : undefined,
+            backgroundColor: selectedStatus.toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.05)' : undefined
+          }}>
             <div>
               <span className="admin-field-label">CURRENT DISPATCH PIPELINE</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '4px' }}>
-                <span className={`admin-status-badge ${selectedStatus.toLowerCase().replace(/[^a-z]/g, '-')}`}>
+                <span 
+                  className={`admin-status-badge ${selectedStatus.toLowerCase().replace(/[^a-z]/g, '-')}`}
+                  style={{
+                    backgroundColor: selectedStatus.toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.15)' : undefined,
+                    borderColor: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : undefined,
+                    color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : undefined,
+                    fontWeight: selectedStatus.toLowerCase().includes('reject') ? 700 : undefined
+                  }}
+                >
                   {selectedStatus}
                 </span>
                 <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
@@ -80,11 +112,15 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <label style={{ fontSize: '0.74rem', color: 'var(--gold-bright)', fontWeight: 600 }}>CHANGE STATUS:</label>
+              <label style={{ fontSize: '0.74rem', color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : 'var(--gold-bright)', fontWeight: 600 }}>CHANGE STATUS:</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => handleStatusChange(e.target.value)}
                 className="admin-status-select"
+                style={{
+                  borderColor: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : undefined,
+                  color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : undefined
+                }}
               >
                 {statuses.map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -94,29 +130,30 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
           </div>
 
           {/* Payment Slip Inspection Banner for Bank Transfers */}
-          {(order.paymentSlipUrl || order.paymentMethod?.includes('Bank') || order.status === 'Pending Slip Verification') && (
+          {(order.paymentSlipUrl || order.paymentMethod?.includes('Bank') || order.status === 'Pending Slip Verification' || selectedStatus.toLowerCase().includes('reject')) && (
             <div style={{
-              backgroundColor: '#0c0d12',
-              border: order.status === 'Pending Slip Verification' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
+              backgroundColor: selectedStatus.toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.05)' : '#0c0d12',
+              border: selectedStatus.toLowerCase().includes('reject') ? '1px solid #ef4444' : order.status === 'Pending Slip Verification' ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
               borderRadius: '2px',
               padding: '1.4rem',
               marginTop: '1.5rem',
               marginBottom: '1.5rem'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gold-bright)', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : 'var(--gold-bright)', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em' }}>
                   <Building2 size={16} />
                   <span>DIRECT BANK TRANSFER PAYMENT SLIP</span>
                 </div>
                 <span style={{
                   fontSize: '0.7rem',
-                  backgroundColor: order.status === 'Pending Slip Verification' ? 'var(--gold-bright)' : '#1a1c22',
-                  color: order.status === 'Pending Slip Verification' ? '#000000' : 'var(--gold-bright)',
+                  backgroundColor: selectedStatus.toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.15)' : order.status === 'Pending Slip Verification' ? 'var(--gold-bright)' : '#1a1c22',
+                  color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : order.status === 'Pending Slip Verification' ? '#000000' : 'var(--gold-bright)',
+                  border: selectedStatus.toLowerCase().includes('reject') ? '1px solid #ef4444' : 'none',
                   fontWeight: 800,
                   padding: '2px 8px',
                   borderRadius: '1px'
                 }}>
-                  {order.status === 'Pending Slip Verification' ? 'AWAITING ATELIER APPROVAL' : 'VERIFIED SLIP'}
+                  {selectedStatus.toLowerCase().includes('reject') ? 'SLIP REJECTED — REORDER REQUIRED' : order.status === 'Pending Slip Verification' ? 'AWAITING ATELIER APPROVAL' : 'VERIFIED SLIP'}
                 </span>
               </div>
 
@@ -215,22 +252,220 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
             </div>
 
             <div className="admin-parcel-items-list">
-              {order.items.map((item, idx) => (
-                <div key={idx} className="admin-parcel-item-row">
-                  <img src={item.image || '/images/tshirt_white.jpg'} alt={item.title} className="admin-parcel-item-thumb" />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>{item.title}</div>
-                    <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
-                      Size: <span style={{ color: '#fff' }}>{item.size}</span> • Color: <span style={{ color: '#fff' }}>{item.color || 'Onyx Black'}</span> • Qty: <span style={{ color: '#fff' }}>{item.quantity || 1}</span>
+              {order.items.map((item, idx) => {
+                const isBespoke = item.isBespokeCustom || item.designCode || (item.title || '').includes('Bespoke') || (item.title || '').includes('Custom');
+                return (
+                  <div key={idx} className="admin-parcel-item-row" style={{ borderLeft: isBespoke ? '2px solid var(--gold-bright)' : 'none', paddingLeft: isBespoke ? '10px' : '0' }}>
+                    <img 
+                      src={item.image || item.product_image_url || '/images/tshirt_white.jpg'} 
+                      alt={item.title} 
+                      className="admin-parcel-item-thumb" 
+                      style={{ width: '56px', height: '56px', objectFit: 'contain', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>{item.title || item.name}</div>
+                        {isBespoke && (
+                          <span style={{ fontSize: '0.65rem', background: 'rgba(197, 160, 89, 0.2)', border: '1px solid var(--gold-bright)', color: 'var(--gold-bright)', padding: '1px 6px', borderRadius: '2px', fontWeight: 700 }}>
+                            BESPOKE LAB {item.designCode ? `#${item.designCode}` : ''}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
+                        Size: <span style={{ color: '#fff' }}>{item.size || item.selectedSize}</span> • Color: <span style={{ color: '#fff' }}>{item.color || 'Onyx Black'}</span> • Qty: <span style={{ color: '#fff' }}>{item.quantity || 1}</span>
+                      </div>
+                      {item.customPlacements && item.customPlacements.length > 0 && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', marginTop: '2px' }}>
+                          Prints: {item.customPlacements.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--gold-bright)', fontSize: '0.95rem' }}>
+                      LKR {((item.priceLKR || 18500) * (item.quantity || 1)).toLocaleString()}
                     </div>
                   </div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--gold-bright)', fontSize: '0.95rem' }}>
-                    LKR {((item.priceLKR || 18500) * (item.quantity || 1)).toLocaleString()}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
+
+          {/* Bespoke Custom T-Shirts Production & Artwork Inspection */}
+          {order.items.some(i => i.isBespokeCustom || i.designCode || (i.title || '').includes('Bespoke') || (i.title || '').includes('Custom')) && (
+            <div style={{
+              backgroundColor: '#0c0d12',
+              border: '1px solid var(--gold-border)',
+              borderRadius: '3px',
+              padding: '1.4rem',
+              marginTop: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--gold-bright)', fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.1em' }}>
+                  <Sparkles size={16} />
+                  <span>BESPOKE ATELIER CUSTOM WORK ORDER</span>
+                </div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
+                  Production Blueprint & High-Res Print Assets
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                {order.items.filter(i => i.isBespokeCustom || i.designCode || (i.title || '').includes('Bespoke') || (i.title || '').includes('Custom')).map((customItem, cIdx) => {
+                  const itemCode = customItem.designCode || (customItem.title || customItem.name || '').match(/BL-[A-Z0-9]{4,6}/)?.[0] || `BL-${cIdx + 1}`;
+                  const linkedBespoke = bespokeDetailsMap[itemCode] || {};
+                  const fabric = customItem.fabric || linkedBespoke.fabricName || '240 GSM Luxury Cotton';
+                  const cut = customItem.cut || linkedBespoke.cutName || 'Classic Regular Fit';
+                  const notes = customItem.customNotes || linkedBespoke.notes || '';
+                  const previewImg = customItem.image || customItem.product_image_url || linkedBespoke.previewThumbnail || '/images/hero_tshirt.jpg';
+                  const artworks = customItem.artworks || linkedBespoke.artworks || {};
+                  const artworkList = Object.entries(artworks);
+
+                  return (
+                    <div key={cIdx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px', padding: '1.1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', alignItems: 'center' }}>
+                        
+                        {/* Rendered Mockup Collage Image */}
+                        <div style={{ textAlign: 'center', background: '#07080a', borderRadius: '3px', padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <img
+                            src={previewImg}
+                            alt={`Bespoke #${itemCode}`}
+                            style={{ width: '100%', maxHeight: '190px', objectFit: 'contain', display: 'block', margin: '0 auto 6px auto' }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', gap: '4px' }}>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                              CODE: #{itemCode}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => downloadImageFile(previewImg, `bespoke_order_${order.orderId}_${itemCode}.png`)}
+                              style={{
+                                background: 'rgba(197, 160, 89, 0.2)',
+                                border: '1px solid var(--gold-bright)',
+                                color: 'var(--gold-bright)',
+                                padding: '3px 7px',
+                                borderRadius: '2px',
+                                fontSize: '0.68rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                              title="Download Customized T-Shirt Mockup Image"
+                            >
+                              <Download size={11} />
+                              <span>Download Photo</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Garment Specifications */}
+                        <div>
+                          <div style={{ fontSize: '0.88rem', color: '#fff', fontWeight: 600, marginBottom: '6px' }}>
+                            {cut}
+                          </div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginBottom: '10px' }}>
+                            <div>• Fabric Grade: <strong style={{ color: '#fff' }}>{fabric}</strong></div>
+                            <div>• Color: <strong style={{ color: '#fff' }}>{customItem.color || 'Pure Black'}</strong> ({customItem.size || 'L'} / {customItem.quantity || 1} pcs)</div>
+                            {customItem.customPlacements && customItem.customPlacements.length > 0 && (
+                              <div>• Placement Zones: <strong style={{ color: 'var(--gold-bright)' }}>{customItem.customPlacements.join(' • ')}</strong></div>
+                            )}
+                          </div>
+
+                          {notes && (
+                            <div style={{ fontSize: '0.72rem', background: 'rgba(197, 160, 89, 0.08)', borderLeft: '2px solid var(--gold-bright)', padding: '5px 8px', borderRadius: '2px', color: '#fff', fontStyle: 'italic', marginBottom: '8px' }}>
+                              "{notes}"
+                            </div>
+                          )}
+
+                          {/* Print Assets & Coordinates Section */}
+                          {artworkList.length > 0 && (
+                            <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                PRINT ASSETS & COORDINATES ({artworkList.length})
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {artworkList.map(([spotKey, art]) => {
+                                  const spotLabels = {
+                                    front: 'Front Center',
+                                    back: 'Back Center',
+                                    left_chest: 'Left Chest (Logo)',
+                                    right_chest: 'Right Chest (Logo)',
+                                    left_sleeve: 'Left Sleeve',
+                                    right_sleeve: 'Right Sleeve',
+                                    nape: 'Back Neck (Small)'
+                                  };
+                                  const spotTitle = spotLabels[spotKey] || spotKey.replace('_', ' ');
+                                  const artImg = art?.dataUrl || art?.imageUrl || art;
+
+                                  return (
+                                    <div
+                                      key={spotKey}
+                                      style={{
+                                        background: 'rgba(0,0,0,0.4)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '3px',
+                                        padding: '6px 10px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px'
+                                      }}
+                                    >
+                                      {typeof artImg === 'string' && (
+                                        <img
+                                          src={artImg}
+                                          alt={spotTitle}
+                                          style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#000', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.15)' }}
+                                        />
+                                      )}
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <strong style={{ fontSize: '0.76rem', color: '#ffffff', display: 'block' }}>
+                                          {spotTitle}
+                                        </strong>
+                                        {typeof art === 'object' && art.x !== undefined && (
+                                          <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', marginTop: '1px' }}>
+                                            X: <strong>{art.x}%</strong> • Y: <strong>{art.y}%</strong> • Scale: <strong>{art.scale}%</strong> • Rot: <strong>{art.rotation || 0}°</strong>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => downloadImageFile(artImg, `artwork_${itemCode}_${spotKey}.png`)}
+                                        style={{
+                                          background: 'rgba(197, 160, 89, 0.15)',
+                                          border: '1px solid var(--gold-bright)',
+                                          color: 'var(--gold-bright)',
+                                          padding: '4px 8px',
+                                          borderRadius: '2px',
+                                          fontSize: '0.68rem',
+                                          cursor: 'pointer',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px',
+                                          fontWeight: 600
+                                        }}
+                                        title="Download Customer Uploaded Graphic File"
+                                      >
+                                        <Download size={11} />
+                                        <span>Download</span>
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Verified Customer Evaluation Link Generator */}
           <div className="admin-review-link-generator">

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell } from 'lucide-react';
+import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell, Ruler } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
+import { SizeChartModal } from './SizeChartModal';
 
 export const ProductDetailPage = ({
   products = PRODUCTS,
@@ -31,18 +32,34 @@ export const ProductDetailPage = ({
 
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[1] || product?.sizes?.[0] || 'M (40)');
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
   
-  // Dynamic color palette mapping
-  const colorNames = [
-    product?.color || 'Onyx Black',
-    product?.color === 'Onyx Black' ? 'Florentine White' : 'Onyx Black',
-    'Raw Ecru Melange',
-    'Vintage Navy',
-    'Espresso'
-  ];
+  // Dynamic color palette mapping from product configuration
+  const derivedColors = Array.isArray(product?.colors) && product.colors.length > 0
+    ? product.colors.map(c => ({
+        name: typeof c === 'string' ? c : (c.name || 'Custom Shade'),
+        hex: typeof c === 'string' ? '#121316' : (c.hex || '#121316')
+      }))
+    : Array.isArray(product?.colorsAvailable) && product.colorsAvailable.length > 0
+      ? product.colorsAvailable.map((hex, idx) => ({
+          name: idx === 0 ? (product.color || 'Primary Shade') : `Tone ${idx + 1}`,
+          hex
+        }))
+      : [{ name: product?.color || 'Onyx Black', hex: product?.colorHex || '#121316' }];
+
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product?.color || 'Onyx Black');
+  const [selectedColor, setSelectedColor] = useState(derivedColors[0]?.name || product?.color || 'Onyx Black');
+
+  // Keep selectedColor in sync if product changes
+  useEffect(() => {
+    if (derivedColors.length > 0) {
+      const defaultIdx = product?.colors?.findIndex(c => c.isDefault) ?? -1;
+      const initialIdx = defaultIdx >= 0 ? defaultIdx : 0;
+      setSelectedColorIndex(initialIdx);
+      setSelectedColor(derivedColors[initialIdx]?.name || product?.color || 'Onyx Black');
+    }
+  }, [product?.id, product?.color]);
 
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -292,16 +309,16 @@ export const ProductDetailPage = ({
                 <span className="pdp-selected-val">{selectedColor}</span>
               </div>
               <div className="color-dots" style={{ gap: '0.8rem', display: 'flex', alignItems: 'center' }}>
-                {(product.colorsAvailable || (product.colors ? product.colors.map(c => c.hex) : ['#141518'])).map((hex, idx) => {
+                {derivedColors.map((col, idx) => {
                   const isSelected = selectedColorIndex === idx;
 
                   return (
                     <button 
-                      key={idx} 
+                      key={`${col.hex}-${idx}`} 
                       type="button"
                       className="color-dot" 
                       style={{ 
-                        backgroundColor: hex,
+                        backgroundColor: col.hex,
                         width: '26px',
                         height: '26px',
                         borderRadius: '50%',
@@ -315,9 +332,9 @@ export const ProductDetailPage = ({
                       }} 
                       onClick={() => {
                         setSelectedColorIndex(idx);
-                        setSelectedColor(colorNames[idx] || (idx === 0 ? product.color : `Tone ${idx + 1}`));
+                        setSelectedColor(col.name);
                       }}
-                      title={colorNames[idx] || `Color ${idx + 1}`}
+                      title={`${col.name} (${col.hex})`}
                     />
                   );
                 })}
@@ -327,7 +344,18 @@ export const ProductDetailPage = ({
             {/* Size Selector with Live Stock Badges */}
             <div style={{ marginBottom: '2rem' }}>
               <div className="pdp-label-row">
-                <span className="pdp-label">SELECT SIZE</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <span className="pdp-label">SELECT SIZE</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsSizeChartOpen(true)}
+                    className="pdp-size-guide-btn"
+                    title="Open Official Sizing Chart"
+                  >
+                    <Ruler size={12} />
+                    <span>SIZE CHART</span>
+                  </button>
+                </div>
                 {(() => {
                   const selectedSizeStock = (product.inventory && product.inventory[selectedSize] !== undefined)
                     ? Number(product.inventory[selectedSize])
@@ -746,6 +774,12 @@ export const ProductDetailPage = ({
         </div>
 
       </div>
+
+      {/* Size Chart Modal */}
+      <SizeChartModal
+        isOpen={isSizeChartOpen}
+        onClose={() => setIsSizeChartOpen(false)}
+      />
 
       {/* Atelier Garment Re-Issue Request Modal */}
       <RestockRequestModal

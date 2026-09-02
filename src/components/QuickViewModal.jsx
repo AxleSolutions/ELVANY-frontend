@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Check, Shield, Sparkles, ShoppingBag, Bell } from 'lucide-react';
+import { X, Check, Shield, Sparkles, ShoppingBag, Bell, Ruler } from 'lucide-react';
 import { RestockRequestModal } from './RestockRequestModal';
+import { SizeChartModal } from './SizeChartModal';
 
 export const QuickViewModal = ({
   product,
@@ -16,6 +17,7 @@ export const QuickViewModal = ({
   const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.jpg');
   const [added, setAdded] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
   const selectedSizeStock = product.inventory ? (product.inventory[selectedSize] ?? 10) : 10;
   const isOutOfStock = selectedSizeStock <= 0 || product.status === 'Sold Out';
@@ -132,12 +134,32 @@ export const QuickViewModal = ({
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
+              alignItems: 'center',
               fontSize: '0.72rem',
               color: 'var(--text-light-secondary)',
-              letterSpacing: '0.1em'
+              letterSpacing: '0.1em',
+              marginBottom: '0.6rem'
             }}>
               <span>SELECT BESPOKE SIZE</span>
-              <span style={{ color: 'var(--gold-bright)', cursor: 'pointer' }}>SIZE GUIDE & TAILOR NOTES</span>
+              <button
+                type="button"
+                onClick={() => setIsSizeChartOpen(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--gold-bright)',
+                  cursor: 'pointer',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: 0
+                }}
+              >
+                <Ruler size={12} />
+                <span>SIZE GUIDE & CHART</span>
+              </button>
             </div>
 
             <div className="size-pill-group">
@@ -206,6 +228,12 @@ export const QuickViewModal = ({
           </div>
         </div>
       </div>
+
+      {/* Size Chart Modal */}
+      <SizeChartModal
+        isOpen={isSizeChartOpen}
+        onClose={() => setIsSizeChartOpen(false)}
+      />
 
       {/* Restock Request Modal */}
       <RestockRequestModal

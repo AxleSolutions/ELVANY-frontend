@@ -31,6 +31,7 @@ const AccountPage = React.lazy(() => import('./components/AccountPage').then(m =
 const OrderReviewPortalPage = React.lazy(() => import('./components/OrderReviewPortalPage').then(m => ({ default: m.OrderReviewPortalPage })));
 const ConciergePage = React.lazy(() => import('./components/ConciergePage').then(m => ({ default: m.ConciergePage })));
 const SearchPage = React.lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
+const CustomLabPage = React.lazy(() => import('./components/CustomLabPage').then(m => ({ default: m.CustomLabPage })));
 
 import { PRODUCTS } from './data/products';
 import { INITIAL_ORDERS } from './data/orders';
@@ -126,11 +127,12 @@ export function App() {
   useEffect(() => {
     async function syncBackendData() {
       try {
-        const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes] = await Promise.allSettled([
+        const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes, dbOrdersRes] = await Promise.allSettled([
           getProducts(),
           getOffers(),
           getReviews(),
-          getPopupAdSettings()
+          getPopupAdSettings(),
+          getOrders()
         ]);
 
         if (dbProductsRes.status === 'fulfilled' && Array.isArray(dbProductsRes.value) && dbProductsRes.value.length > 0) {
@@ -147,6 +149,9 @@ export function App() {
         }
         if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
           setPopupAdSettings(dbPopupAdRes.value);
+        }
+        if (dbOrdersRes.status === 'fulfilled' && Array.isArray(dbOrdersRes.value)) {
+          setOrdersList(dbOrdersRes.value);
         }
 
         const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
@@ -192,8 +197,23 @@ export function App() {
       }
     };
     window.addEventListener('elvany_popup_ad_updated', handlePopupAdSync);
+
+    // Listen for order placements and status updates to instantly refresh client orders
+    const handleOrderSync = async () => {
+      try {
+        const freshOrders = await getOrders();
+        if (Array.isArray(freshOrders)) {
+          setOrdersList(freshOrders);
+        }
+      } catch {}
+    };
+    window.addEventListener('elvany_order_placed', handleOrderSync);
+    window.addEventListener('elvany_order_updated', handleOrderSync);
+
     return () => {
       window.removeEventListener('elvany_popup_ad_updated', handlePopupAdSync);
+      window.removeEventListener('elvany_order_placed', handleOrderSync);
+      window.removeEventListener('elvany_order_updated', handleOrderSync);
     };
   }, []);
 
@@ -723,6 +743,10 @@ export function App() {
     triggerPageTransition('/concierge');
   };
 
+  const navigateToCustomLab = () => {
+    triggerPageTransition('/custom-lab');
+  };
+
   const navigateToHome = (callback) => {
     triggerPageTransition('/', callback);
   };
@@ -735,6 +759,8 @@ export function App() {
     ? 'collection'
     : location.pathname === '/search'
     ? 'search'
+    : location.pathname === '/custom-lab' || location.pathname === '/bespoke-lab'
+    ? 'custom-lab'
     : location.pathname === '/account'
     ? 'account'
     : location.pathname === '/concierge' || location.pathname === '/contact'
@@ -761,6 +787,7 @@ export function App() {
           onOpenSearch={() => navigateToSearchPage('')}
           onNavigateToCollection={navigateToCollection}
           onNavigateToConcierge={navigateToConcierge}
+          onNavigateToCustomLab={navigateToCustomLab}
           onNavigateHome={navigateToHome}
           onSmoothScrollTo={handleSmoothScrollTo}
           currentView={currentView}
@@ -921,6 +948,28 @@ export function App() {
             element={<ConciergePage />} 
           />
 
+          {/* Dedicated Atelier Bespoke Custom Lab Route */}
+          <Route 
+            path="/custom-lab" 
+            element={
+              <CustomLabPage
+                onAddToCart={handleAddToCart}
+                onBackToHome={() => navigateToHome()}
+                onNavigateToCollection={navigateToCollection}
+              />
+            } 
+          />
+          <Route 
+            path="/bespoke-lab" 
+            element={
+              <CustomLabPage
+                onAddToCart={handleAddToCart}
+                onBackToHome={() => navigateToHome()}
+                onNavigateToCollection={navigateToCollection}
+              />
+            } 
+          />
+
           {/* Collection Route */}
           <Route 
             path="/collection" 
@@ -1054,6 +1103,8 @@ export function App() {
       {!isAdminView && (
         <Footer
           onNavigateToCollection={navigateToCollection}
+          onNavigateToConcierge={navigateToConcierge}
+          onNavigateToCustomLab={navigateToCustomLab}
         />
       )}
 

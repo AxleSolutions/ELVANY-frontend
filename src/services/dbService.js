@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { uploadPaymentSlipToCloudinary } from '../lib/cloudinary';
+import { uploadPaymentSlipToCloudinary, uploadBespokeMockupToCloudinary } from '../lib/cloudinary';
 import { PRODUCTS } from '../data/products';
 import { INITIAL_ORDERS } from '../data/orders';
 import { INITIAL_OFFERS } from '../data/offers';
@@ -218,15 +218,87 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
     }
   }
 
+  // 2. Upload any bespoke custom T-shirt mockup images AND customer uploaded artworks to Cloudinary
+  const processedItems = await Promise.all((orderPayload.items || []).map(async (item) => {
+    if (item.isBespokeCustom) {
+      let finalMockupUrl = item.image || item.product_image_url || null;
+      let finalArtworks = { ...(item.artworks || {}) };
+
+      // 2a. Upload high-res collage mockup to Cloudinary if it's base64
+      if (item.image && typeof item.image === 'string' && item.image.startsWith('data:')) {
+        try {
+          const cloudUpload = await uploadBespokeMockupToCloudinary(item.image, `mockup_${item.designCode || orderPayload.orderId}`);
+          if (cloudUpload?.secure_url) {
+            finalMockupUrl = cloudUpload.secure_url;
+          }
+        } catch (mockUpErr) {
+          console.warn('Bespoke mockup Cloudinary upload notice:', mockUpErr);
+        }
+      }
+
+      // 2b. Upload each customer uploaded graphic artwork to Cloudinary
+      if (item.artworks && typeof item.artworks === 'object') {
+        for (const [spotKey, art] of Object.entries(item.artworks)) {
+          if (art && art.dataUrl && typeof art.dataUrl === 'string' && art.dataUrl.startsWith('data:')) {
+            try {
+              const cloudArt = await uploadBespokeMockupToCloudinary(art.dataUrl, `artwork_${item.designCode || orderPayload.orderId}_${spotKey}`);
+              if (cloudArt?.secure_url) {
+                finalArtworks[spotKey] = {
+                  ...art,
+                  dataUrl: cloudArt.secure_url,
+                  imageUrl: cloudArt.secure_url
+                };
+              }
+            } catch (artErr) {
+              console.warn(`Bespoke artwork [${spotKey}] Cloudinary upload notice:`, artErr);
+            }
+          }
+        }
+      }
+
+      // 2c. Asynchronously update bespoke_designs table/registry with permanent Cloudinary URLs
+      try {
+        if (item.designCode) {
+          fetch(`${apiUrl}/bespoke/${item.designCode}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: orderPayload.orderId,
+              order_id: orderPayload.orderId,
+              previewThumbnail: finalMockupUrl,
+              preview_thumbnail: finalMockupUrl,
+              artworks: finalArtworks,
+              customerName: orderPayload.customerName,
+              customerEmail: orderPayload.customerEmail,
+              customerPhone: orderPayload.customerPhone,
+              status: 'Ordered / In Production'
+            })
+          }).catch(() => {});
+        }
+      } catch {}
+
+      return {
+        ...item,
+        image: finalMockupUrl,
+        product_image_url: finalMockupUrl,
+        previewThumbnail: finalMockupUrl,
+        customArtworkThumb: finalMockupUrl,
+        artworks: finalArtworks
+      };
+    }
+    return item;
+  }));
+
   const completeOrder = {
     ...orderPayload,
+    items: processedItems,
     hasSlipAttached: !!(slipData?.url || paymentSlipFile || orderPayload.hasSlipAttached),
     paymentSlipUrl: slipData?.url || slipData?.secure_url || orderPayload.paymentSlipUrl || null,
     paymentSlipPublicId: slipData?.public_id || null,
     paymentSlipName: paymentSlipFile?.name || orderPayload.paymentSlipName || (orderPayload.paymentSlipUrl ? 'Bank_Transfer_Slip.png' : null)
   };
 
-  // 2. Try Backend API for transactional creation & stock reduction
+  // 3. Try Backend API for transactional creation & stock reduction
   try {
     const res = await fetch(`${apiUrl}/orders`, {
       method: 'POST',
@@ -243,7 +315,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
     console.warn('Backend API order creation notice:', apiErr);
   }
 
-  // 3. Persist to Supabase Direct Fallback
+  // 4. Persist to Supabase Direct Fallback
   if (isSupabaseConfigured && supabase) {
     try {
       const isQr = completeOrder.paymentMethod?.toLowerCase().includes('qr');
@@ -252,7 +324,8 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
         location: completeOrder.customerLocation || completeOrder.deliveryAddress?.location || 'Colombo, Sri Lanka',
         deliveryFeeLKR: completeOrder.deliveryFeeLKR || 0,
         paymentType: isQr ? 'lanka_qr' : 'bank_transfer',
-        specificPaymentMethod: isQr ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer'
+        specificPaymentMethod: isQr ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
+        orderedItems: completeOrder.items || []
       };
 
       const { data: insertedOrder, error: orderErr } = await supabase
@@ -375,35 +448,48 @@ export async function getOrders() {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map(o => ({
-          orderId: o.order_code || o.orderId,
-          customerName: o.customer_name || o.customerName,
-          customerEmail: o.customer_email || o.customerEmail,
-          customerPhone: o.customer_phone || o.customerPhone,
-          customerLocation: o.delivery_address?.location || o.customerLocation || 'Colombo, Sri Lanka',
-          deliveryAddress: o.delivery_address || o.deliveryAddress,
-          orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-          createdAt: o.created_at || o.createdAt,
-          status: o.status || 'Pending Slip Verification',
-          paymentMethod: (o.payment_method === 'lanka_qr' || (o.paymentMethod || '').toLowerCase().includes('qr')) ? 'LankaQR Instant Transfer' : (o.payment_method === 'bank_transfer' || (o.paymentMethod || '').toLowerCase().includes('bank')) ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
-          hasSlipAttached: Boolean(o.has_slip_attached || o.paymentSlipUrl || o.payment_slip_url),
-          paymentSlipUrl: o.payment_slip_url || o.paymentSlipUrl,
-          paymentSlipName: o.payment_slip_name || o.paymentSlipName,
-          totalLKR: parseFloat(o.grand_total_lkr || o.totalLKR || 0),
-          savingsLKR: parseFloat(o.discount_lkr || o.savingsLKR || 0),
-          items: (o.order_items || o.items || []).map(i => ({
-            productId: i.product_id || i.productId,
-            title: i.product_title || i.title || i.name,
-            name: i.product_title || i.name || i.title,
-            size: i.size || i.selectedSize || 'M (40)',
-            selectedSize: i.size || i.selectedSize || 'M (40)',
-            color: i.color || 'Onyx Black',
-            priceLKR: parseFloat(i.unit_price_lkr || i.priceLKR || 18500),
-            originalPriceLKR: parseFloat(i.original_price_lkr || i.originalPriceLKR || 18500),
-            quantity: i.quantity || i.qty || 1,
-            image: i.product_image_url || i.image || '/images/hero_tshirt.jpg'
-          }))
-        }));
+        return json.data.map(o => {
+          const storedItems = o.delivery_address?.orderedItems || o.items || [];
+          return {
+            orderId: o.order_code || o.orderId,
+            customerName: o.customer_name || o.customerName,
+            customerEmail: o.customer_email || o.customerEmail,
+            customerPhone: o.customer_phone || o.customerPhone,
+            customerLocation: o.delivery_address?.location || o.customerLocation || 'Colombo, Sri Lanka',
+            deliveryAddress: o.delivery_address || o.deliveryAddress,
+            orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            createdAt: o.created_at || o.createdAt,
+            status: o.status || 'Pending Slip Verification',
+            paymentMethod: (o.payment_method === 'lanka_qr' || (o.paymentMethod || '').toLowerCase().includes('qr')) ? 'LankaQR Instant Transfer' : (o.payment_method === 'bank_transfer' || (o.paymentMethod || '').toLowerCase().includes('bank')) ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+            hasSlipAttached: Boolean(o.has_slip_attached || o.paymentSlipUrl || o.payment_slip_url),
+            paymentSlipUrl: o.payment_slip_url || o.paymentSlipUrl,
+            paymentSlipName: o.payment_slip_name || o.paymentSlipName,
+            totalLKR: parseFloat(o.grand_total_lkr || o.totalLKR || 0),
+            savingsLKR: parseFloat(o.discount_lkr || o.savingsLKR || 0),
+            items: (o.order_items && o.order_items.length > 0 ? o.order_items : (o.items || [])).map(i => {
+              const matched = storedItems.find(si => (si.id === i.product_id || (si.name || si.title) === (i.product_title || i.title || i.name)));
+              return {
+                productId: i.product_id || i.productId,
+                title: i.product_title || i.title || i.name,
+                name: i.product_title || i.name || i.title,
+                size: i.size || i.selectedSize || 'M (40)',
+                selectedSize: i.size || i.selectedSize || 'M (40)',
+                color: i.color || 'Onyx Black',
+                priceLKR: parseFloat(i.unit_price_lkr || i.priceLKR || 18500),
+                originalPriceLKR: parseFloat(i.original_price_lkr || i.originalPriceLKR || 18500),
+                quantity: i.quantity || i.qty || 1,
+                image: i.product_image_url || i.image || matched?.image || '/images/hero_tshirt.jpg',
+                isBespokeCustom: i.isBespokeCustom || matched?.isBespokeCustom || Boolean(i.designCode || matched?.designCode) || (i.product_title || i.title || '').toLowerCase().includes('custom') || (i.product_title || i.title || '').toLowerCase().includes('bespoke'),
+                designCode: i.designCode || matched?.designCode || ((i.product_title || i.title || '').match(/BL-[A-Z0-9]{4,6}/)?.[0]) || null,
+                fabric: i.fabric || matched?.fabric || matched?.fabricName || null,
+                cut: i.cut || matched?.cut || matched?.cutName || null,
+                customPlacements: i.customPlacements || matched?.customPlacements || [],
+                customNotes: i.customNotes || matched?.customNotes || matched?.notes || null,
+                artworks: i.artworks || matched?.artworks || {}
+              };
+            })
+          };
+        });
       }
     }
   } catch (apiErr) {
@@ -424,36 +510,48 @@ export async function getOrders() {
       }
 
       if (Array.isArray(data)) {
-        return data.map((o) => ({
-          orderId: o.order_code,
-          customerName: o.customer_name,
-          customerEmail: o.customer_email,
-          customerPhone: o.customer_phone,
-          customerLocation: o.delivery_address?.location || 'Colombo, Sri Lanka',
-          deliveryAddress: o.delivery_address,
-          orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-          createdAt: o.created_at,
-          status: o.status,
-          paymentMethod: o.payment_method === 'lanka_qr' ? 'LankaQR Instant Transfer' : o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
-
-          hasSlipAttached: o.has_slip_attached,
-          paymentSlipUrl: o.payment_slip_url,
-          paymentSlipName: o.payment_slip_name,
-          totalLKR: parseFloat(o.grand_total_lkr),
-          savingsLKR: parseFloat(o.discount_lkr || 0),
-          items: (o.order_items || []).map((i) => ({
-            productId: i.product_id,
-            title: i.product_title,
-            name: i.product_title,
-            size: i.size,
-            selectedSize: i.size,
-            color: i.color,
-            priceLKR: parseFloat(i.unit_price_lkr),
-            originalPriceLKR: parseFloat(i.original_price_lkr),
-            quantity: i.quantity,
-            image: i.product_image_url
-          }))
-        }));
+        return data.map((o) => {
+          const storedItems = o.delivery_address?.orderedItems || [];
+          return {
+            orderId: o.order_code,
+            customerName: o.customer_name,
+            customerEmail: o.customer_email,
+            customerPhone: o.customer_phone,
+            customerLocation: o.delivery_address?.location || 'Colombo, Sri Lanka',
+            deliveryAddress: o.delivery_address,
+            orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            createdAt: o.created_at,
+            status: o.status,
+            paymentMethod: o.payment_method === 'lanka_qr' ? 'LankaQR Instant Transfer' : o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+            hasSlipAttached: o.has_slip_attached,
+            paymentSlipUrl: o.payment_slip_url,
+            paymentSlipName: o.payment_slip_name,
+            totalLKR: parseFloat(o.grand_total_lkr),
+            savingsLKR: parseFloat(o.discount_lkr || 0),
+            items: (o.order_items || []).map((i) => {
+              const matched = storedItems.find(si => (si.id === i.product_id || (si.name || si.title) === i.product_title));
+              return {
+                productId: i.product_id,
+                title: i.product_title,
+                name: i.product_title,
+                size: i.size,
+                selectedSize: i.size,
+                color: i.color,
+                priceLKR: parseFloat(i.unit_price_lkr),
+                originalPriceLKR: parseFloat(i.original_price_lkr),
+                quantity: i.quantity,
+                image: i.product_image_url || matched?.image || '/images/hero_tshirt.jpg',
+                isBespokeCustom: matched?.isBespokeCustom || Boolean(matched?.designCode) || (i.product_title || '').toLowerCase().includes('custom') || (i.product_title || '').toLowerCase().includes('bespoke'),
+                designCode: matched?.designCode || (i.product_title?.match(/BL-[A-Z0-9]{4,6}/)?.[0]) || null,
+                fabric: matched?.fabric || matched?.fabricName || null,
+                cut: matched?.cut || matched?.cutName || null,
+                customPlacements: matched?.customPlacements || [],
+                customNotes: matched?.customNotes || matched?.notes || null,
+                artworks: matched?.artworks || {}
+              };
+            })
+          };
+        });
       }
     } catch (err) {
       console.error('Supabase fetch failed:', err);
@@ -528,14 +626,25 @@ export async function saveProduct(productData) {
         const p = json.data;
         const defaultVariant = p.product_variants?.find(v => v.is_default) || p.product_variants?.[0];
         const allImages = p.product_variants?.flatMap(v => v.gallery_images || []) || [];
+        const finalImages = defaultVariant?.gallery_images?.length > 0 
+          ? defaultVariant.gallery_images 
+          : (productData.images?.length > 0 ? productData.images : [productData.image]);
 
         return {
           ...productData,
           id: p.id,
           sku: p.sku || productData.sku,
           slug: p.slug,
-          image: defaultVariant?.gallery_images?.[0] || allImages[0] || productData.image,
-          images: defaultVariant?.gallery_images?.length > 0 ? defaultVariant.gallery_images : (productData.images || [productData.image]),
+          image: finalImages[0] || productData.image,
+          images: finalImages,
+          color: defaultVariant?.color_name || productData.color || 'Onyx Black',
+          colorHex: defaultVariant?.color_hex || productData.colorHex || '#121316',
+          colors: (p.product_variants && p.product_variants.length > 0)
+            ? p.product_variants.map(v => ({ name: v.color_name, hex: v.color_hex, isDefault: v.is_default }))
+            : (productData.colors || [{ name: productData.color || 'Onyx Black', hex: productData.colorHex || '#121316', isDefault: true }]),
+          colorsAvailable: (p.product_variants && p.product_variants.length > 0)
+            ? p.product_variants.map(v => v.color_hex)
+            : (productData.colorsAvailable || [productData.colorHex || '#121316']),
           totalStock: Object.values(productData.inventory || {}).reduce((a, b) => a + Number(b), 0)
         };
       }
@@ -549,6 +658,16 @@ export async function saveProduct(productData) {
     try {
       const slug = (productData.title || 'garment').toLowerCase().replace(/[^a-z0-9]+/g, '-');
       let productId = productData.id;
+
+      const orderedImages = Array.isArray(productData.images) && productData.images.length > 0
+        ? productData.images
+        : [productData.image || '/images/hero_tshirt.jpg'];
+
+      const configuredColors = Array.isArray(productData.colors) && productData.colors.length > 0
+        ? productData.colors
+        : [{ name: productData.color || 'Onyx Black', hex: productData.colorHex || '#121316', isDefault: true }];
+
+      const defaultCol = configuredColors.find(c => c.isDefault) || configuredColors[0];
 
       if (isNew) {
         const { data: inserted } = await supabase
@@ -578,12 +697,10 @@ export async function saveProduct(productData) {
             .from('product_variants')
             .insert({
               product_id: productId,
-              color_name: productData.color || 'Onyx Black',
-              color_hex: productData.colorHex || '#141518',
+              color_name: defaultCol.name,
+              color_hex: defaultCol.hex,
               is_default: true,
-              gallery_images: Array.isArray(productData.images) && productData.images.length > 0 
-                ? productData.images 
-                : [productData.image || '/images/hero_tshirt.jpg']
+              gallery_images: orderedImages
             })
             .select()
             .single();
@@ -597,7 +714,16 @@ export async function saveProduct(productData) {
             await supabase.from('product_stock').insert(stockRows);
           }
 
-          return { ...productData, id: productId };
+          return { 
+            ...productData, 
+            id: productId,
+            image: orderedImages[0],
+            images: orderedImages,
+            color: defaultCol.name,
+            colorHex: defaultCol.hex,
+            colors: configuredColors,
+            colorsAvailable: configuredColors.map(c => c.hex)
+          };
         }
       } else {
         await supabase
@@ -615,7 +741,33 @@ export async function saveProduct(productData) {
           })
           .eq('id', productData.id);
 
-        return productData;
+        let { data: existingVariant } = await supabase
+          .from('product_variants')
+          .select('id')
+          .eq('product_id', productData.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingVariant) {
+          await supabase
+            .from('product_variants')
+            .update({
+              gallery_images: orderedImages,
+              color_name: defaultCol.name,
+              color_hex: defaultCol.hex
+            })
+            .eq('id', existingVariant.id);
+        }
+
+        return {
+          ...productData,
+          image: orderedImages[0],
+          images: orderedImages,
+          color: defaultCol.name,
+          colorHex: defaultCol.hex,
+          colors: configuredColors,
+          colorsAvailable: configuredColors.map(c => c.hex)
+        };
       }
     } catch (err) {
       console.warn('Supabase direct save notice:', err);
@@ -1553,6 +1705,264 @@ export async function deleteRestockRequest(id) {
 
   return true;
 }
+
+// =========================================================================
+// BESPOKE ATELIER CUSTOM T-SHIRT STUDIO SERVICE
+// =========================================================================
+const LOCAL_BESPOKE_KEY = 'elvany_bespoke_designs_v1';
+
+/**
+ * Register / Save a custom bespoke T-shirt design
+ */
+export async function saveBespokeDesign(designData) {
+  const apiUrl = getApiUrl();
+  const timestamp = new Date().toISOString();
+  const fallbackCode = `BL-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+  const localPayload = {
+    id: `bl-${Date.now()}`,
+    designCode: designData.designCode || fallbackCode,
+    fabricName: designData.fabricName || '240 GSM Luxury Supima Cotton',
+    fabricGsm: designData.fabricGsm || '240 GSM',
+    cutName: designData.cutName || 'Classic Regular Fit',
+    cutId: designData.cutId || 'tailored',
+    colorName: designData.colorName || 'Pure Black',
+    colorHex: designData.colorHex || '#0a0a0b',
+    sleeveColorName: designData.sleeveColorName || null,
+    sleeveColorHex: designData.sleeveColorHex || null,
+    size: designData.size || 'L',
+    quantity: Number(designData.quantity) || 1,
+    unitPrice: Number(designData.unitPrice) || 14500,
+    totalPrice: Number(designData.totalPrice) || 14500,
+    artworks: designData.artworks || {},
+    notes: designData.notes || '',
+    tailorTuning: designData.tailorTuning !== false,
+    customerName: designData.customerName || 'VIP Guest',
+    customerEmail: designData.customerEmail || '',
+    customerPhone: designData.customerPhone || '',
+    previewThumbnail: designData.previewThumbnail || null,
+    status: 'Saved / In Design',
+    createdAt: timestamp
+  };
+
+  // 1. Save to LocalStorage immediately
+  try {
+    const existing = JSON.parse(localStorage.getItem(LOCAL_BESPOKE_KEY) || '[]');
+    const updated = [localPayload, ...existing.filter(d => d.designCode !== localPayload.designCode)];
+    localStorage.setItem(LOCAL_BESPOKE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.warn('LocalStorage saveBespokeDesign notice:', err);
+  }
+
+  // 2. Persist to Backend API / Supabase
+  try {
+    const res = await fetch(`${apiUrl}/bespoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(localPayload)
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        // Update local with database ID
+        try {
+          const existing = JSON.parse(localStorage.getItem(LOCAL_BESPOKE_KEY) || '[]');
+          const merged = existing.map(d => d.designCode === localPayload.designCode ? json.data : d);
+          localStorage.setItem(LOCAL_BESPOKE_KEY, JSON.stringify(merged));
+        } catch {}
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend API saveBespokeDesign notice (local fallback active):', err);
+  }
+
+  return localPayload;
+}
+
+/**
+ * Get all bespoke designs (real data from Supabase, API, Orders, and Local Storage)
+ */
+export async function getBespokeDesigns() {
+  const apiUrl = getApiUrl();
+  const map = new Map();
+
+  // 1. Seed from local storage
+  try {
+    const localList = JSON.parse(localStorage.getItem(LOCAL_BESPOKE_KEY) || '[]');
+    localList.forEach(d => {
+      const code = d.designCode || d.design_code || d.id;
+      if (code) map.set(code, d);
+    });
+  } catch {}
+
+  // 2. Direct Supabase Query for bespoke_designs
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data: sbDesigns, error: sbErr } = await supabase
+        .from('bespoke_designs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!sbErr && Array.isArray(sbDesigns)) {
+        sbDesigns.forEach(d => {
+          const code = d.design_code || d.designCode || d.id;
+          map.set(code, {
+            id: d.id,
+            designCode: code,
+            orderId: d.order_id || d.orderId || null,
+            fabricName: d.fabric_name || d.fabricName || 'Heavyweight Cotton (240 GSM)',
+            fabricGsm: d.fabric_gsm || d.fabricGsm || '240 GSM',
+            cutName: d.cut_name || d.cutName || 'Classic Regular Fit',
+            cutId: d.cut_id || d.cutId || 'tailored',
+            colorName: d.color_name || d.colorName || 'Pure Black',
+            colorHex: d.color_hex || d.colorHex || '#0a0a0b',
+            sleeveColorName: d.sleeve_color_name || d.sleeveColorName || null,
+            sleeveColorHex: d.sleeve_color_hex || d.sleeveColorHex || null,
+            size: d.size || 'L',
+            quantity: Number(d.quantity) || 1,
+            unitPrice: Number(d.unit_price || d.unitPrice || 18500),
+            totalPrice: Number(d.total_price || d.totalPrice || 18500),
+            artworks: d.artworks || {},
+            notes: d.notes || '',
+            tailorTuning: typeof d.tailor_tuning === 'boolean' ? d.tailor_tuning : (typeof d.tailorTuning === 'boolean' ? d.tailorTuning : true),
+            customerName: d.customer_name || d.customerName || 'VIP Guest',
+            customerEmail: d.customer_email || d.customerEmail || '',
+            customerPhone: d.customer_phone || d.customerPhone || '',
+            status: d.status || 'Saved / Ready to Order',
+            previewThumbnail: d.preview_thumbnail || d.previewThumbnail || null,
+            createdAt: d.created_at || d.createdAt || new Date().toISOString(),
+            updatedAt: d.updated_at || d.updatedAt || new Date().toISOString()
+          });
+        });
+      }
+    } catch (sbErr) {
+      console.warn('Supabase bespoke_designs direct query notice:', sbErr);
+    }
+  }
+
+  // 3. Try Backend API
+  try {
+    const res = await fetch(`${apiUrl}/bespoke`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        json.data.forEach(d => {
+          const code = d.designCode || d.design_code || d.id;
+          if (code) map.set(code, { ...d, designCode: code });
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('Backend API getBespokeDesigns notice:', err);
+  }
+
+  // 4. Also scan orders for any custom bespoke items placed by real customers
+  try {
+    const ordersList = await getOrders();
+    if (Array.isArray(ordersList)) {
+      ordersList.forEach(order => {
+        (order.items || []).forEach(item => {
+          const isBespoke = item.isBespokeCustom || Boolean(item.designCode) || (item.title || item.name || '').toLowerCase().includes('custom') || (item.title || item.name || '').toLowerCase().includes('bespoke');
+          if (isBespoke) {
+            const code = item.designCode || (item.title || item.name || '').match(/BL-[A-Z0-9]{4,6}/)?.[0] || `BL-${(order.orderId || '').slice(-4)}`;
+            if (!map.has(code)) {
+              map.set(code, {
+                id: `order-bespoke-${order.orderId}-${item.id || code}`,
+                designCode: code,
+                orderId: order.orderId,
+                fabricName: item.fabric || 'Heavyweight Cotton (240 GSM)',
+                fabricGsm: '240 GSM',
+                cutName: item.cut || 'Classic Regular Fit',
+                cutId: 'tailored',
+                colorName: item.color || 'Pure Black',
+                colorHex: item.colorHex || '#0a0a0b',
+                size: item.size || item.selectedSize || 'L',
+                quantity: Number(item.quantity || item.qty) || 1,
+                unitPrice: Number(item.priceLKR || 18500),
+                totalPrice: Number((item.priceLKR || 18500) * (item.quantity || 1)),
+                artworks: item.artworks || {},
+                notes: item.customNotes || order.deliveryNotes || '',
+                tailorTuning: true,
+                customerName: order.customerName || 'VIP Guest',
+                customerEmail: order.customerEmail || '',
+                customerPhone: order.customerPhone || '',
+                status: order.status || 'Ordered / In Production',
+                previewThumbnail: item.image || item.product_image_url || null,
+                createdAt: order.createdAt || new Date().toISOString(),
+                updatedAt: order.createdAt || new Date().toISOString()
+              });
+            }
+          }
+        });
+      });
+    }
+  } catch (scanErr) {
+    console.warn('Orders bespoke scan in frontend notice:', scanErr);
+  }
+
+  return Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+/**
+ * Get single bespoke design by ID or code
+ */
+export async function getBespokeDesignById(idOrCode) {
+  const apiUrl = getApiUrl();
+
+  try {
+    const res = await fetch(`${apiUrl}/bespoke/${idOrCode}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) return json.data;
+    }
+  } catch (err) {
+    console.warn('Backend API getBespokeDesignById notice:', err);
+  }
+
+  try {
+    const all = await getBespokeDesigns();
+    return all.find(d => d.id === idOrCode || d.designCode === idOrCode) || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Update bespoke design status or properties
+ */
+export async function updateBespokeDesign(idOrCode, updateFields = {}) {
+  const apiUrl = getApiUrl();
+
+  // 1. Update local storage
+  try {
+    const localList = JSON.parse(localStorage.getItem(LOCAL_BESPOKE_KEY) || '[]');
+    const updated = localList.map(d => (d.id === idOrCode || d.designCode === idOrCode) ? { ...d, ...updateFields, updatedAt: new Date().toISOString() } : d);
+    localStorage.setItem(LOCAL_BESPOKE_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Local bespoke update notice:', e);
+  }
+
+  // 2. Update Backend API
+  try {
+    const res = await fetch(`${apiUrl}/bespoke/${idOrCode}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateFields)
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) return json.data;
+    }
+  } catch (err) {
+    console.warn('Backend API updateBespokeDesign notice:', err);
+  }
+
+  return { id: idOrCode, ...updateFields };
+}
+
+
 
 
 

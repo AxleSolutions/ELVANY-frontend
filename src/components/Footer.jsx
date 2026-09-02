@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Phone, ArrowUpRight } from 'lucide-react';
 
-export const Footer = ({ onNavigateToCollection, onNavigateToConcierge }) => {
+export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNavigateToCustomLab }) => {
   return (
     <footer className="footer-section">
       <div className="container">
@@ -43,6 +43,11 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge }) => {
           <div>
             <h4 className="footer-col-title">T-SHIRT EDITIONS</h4>
             <ul className="footer-links-list">
+              <li className="footer-link-item">
+                <a href="#custom-lab" onClick={(e) => { e.preventDefault(); if (onNavigateToCustomLab) onNavigateToCustomLab(); }}>
+                  <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>★ Bespoke Custom Lab (Design Tee)</span>
+                </a>
+              </li>
               <li className="footer-link-item">
                 <a href="#offerings" onClick={(e) => { e.preventDefault(); if (onNavigateToCollection) onNavigateToCollection('heavyweight'); }}>
                   Heavyweight (280 GSM)

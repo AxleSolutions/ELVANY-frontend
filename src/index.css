@@ -2231,10 +2231,11 @@ img {
   min-height: 100vh;
 }
 
-.pdp-layout-grid {
+.pdp-layout-grid,
+.pdp-grid {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: 4.5rem;
+  grid-template-columns: minmax(320px, 460px) 1fr;
+  gap: 3.5rem;
   align-items: start;
   margin-top: 1.5rem;
 }
@@ -2242,37 +2243,49 @@ img {
 .pdp-gallery-column {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1rem;
+  width: 100%;
+  max-width: 460px;
+  position: sticky;
+  top: 90px;
 }
 
 .pdp-main-image-wrap {
   position: relative;
   background-color: #121316;
   border: 1px solid var(--border-dark);
-  border-radius: 2px;
+  border-radius: 4px;
   overflow: hidden;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4 / 5;
+  max-height: 500px;
+  width: 100%;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
 }
 
 .pdp-main-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   display: block;
+  transition: transform 0.35s ease;
 }
 
 .pdp-thumbnails-strip {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .pdp-thumb-btn {
-  width: 80px;
-  height: 100px;
-  border-radius: 2px;
+  width: 64px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 3px;
   overflow: hidden;
   border: 1px solid var(--border-dark);
-  background: none;
+  background: #121316;
   cursor: pointer;
   padding: 0;
   opacity: 0.6;
@@ -2283,6 +2296,7 @@ img {
 .pdp-thumb-btn:hover {
   opacity: 1;
   border-color: var(--gold-bright);
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.25);
 }
 
 .pdp-thumb-btn img {
@@ -2372,6 +2386,31 @@ img {
 .pdp-fit-advice {
   font-size: 0.75rem;
   color: var(--gold-primary);
+}
+
+.pdp-size-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(197, 160, 89, 0.08);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-bright);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.pdp-size-guide-btn:hover {
+  color: #000000;
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 12px rgba(197, 160, 89, 0.4);
+  transform: translateY(-1px);
 }
 
 .pdp-sizes-grid {
@@ -2501,12 +2540,30 @@ img {
 }
 
 @media (max-width: 900px) {
-  .pdp-layout-grid {
+  .pdp-layout-grid,
+  .pdp-grid {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2.2rem;
+  }
+  .pdp-gallery-column {
+    position: static;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .pdp-main-image-wrap {
+    max-height: 440px;
   }
   .pdp-buybox-column {
     position: static;
+  }
+}
+
+@media (max-width: 576px) {
+  .pdp-gallery-column {
+    max-width: 100%;
+  }
+  .pdp-main-image-wrap {
+    max-height: 380px;
   }
 }
 
@@ -3865,15 +3922,112 @@ img {
   border-color: rgba(197, 160, 89, 0.35);
 }
 
-.cart-item-thumbnail {
+.cart-item-card.is-bespoke-card {
+  border-left: 2px solid var(--gold-bright);
+}
+
+.cart-item-thumb-wrapper {
+  position: relative;
   width: 78px;
   height: 96px;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 1px;
-  background-color: #07080a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  border-radius: 2px;
+  overflow: hidden;
+  background-color: #07080a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cart-item-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+}
+
+.cart-item-thumb-zoom-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(7, 8, 10, 0.88);
+  border: none;
+  border-top: 1px solid var(--gold-border);
+  color: var(--gold-bright);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.cart-item-thumb-zoom-btn:hover {
+  background-color: var(--gold-bright);
+  color: #000000;
+}
+
+/* 4-Angle Switcher in Cart Drawer */
+.cl-cart-angles-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 5px 0 3px 0;
+  flex-wrap: wrap;
+}
+
+.cl-cart-angles-label {
+  font-size: 0.64rem;
+  color: var(--gold-bright);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cl-cart-angle-buttons {
+  display: inline-flex;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cl-cart-angle-btn {
+  background: none;
+  border: none;
+  color: var(--text-light-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.cl-cart-angle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cl-cart-angle-btn.active {
+  background-color: var(--gold-bright);
+  color: #000000;
+  box-shadow: 0 0 8px rgba(197, 160, 89, 0.35);
+}
+
+.cl-angle-art-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
 }
 
 .cart-item-details {
@@ -6131,6 +6285,753 @@ img {
 img {
   image-rendering: -webkit-optimize-contrast;
 }
+
+/* =========================================================================
+   ATELIER BESPOKE LAB (CUSTOM T-SHIRT STUDIO) - CLEAN & DECLUTTERED
+   ========================================================================= */
+
+.custom-lab-page {
+  background-color: #060709;
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.cl-top-summary-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(197, 160, 89, 0.35);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+}
+
+.cl-top-tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-light-secondary);
+}
+
+.cl-top-divider {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.8rem;
+}
+
+.cl-studio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* 3-Step Stepper Bar */
+.cl-stepper-bar {
+  display: flex;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.cl-stepper-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-light-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 10px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cl-stepper-btn:hover {
+  color: #ffffff;
+}
+
+.cl-stepper-btn.active {
+  background-color: transparent;
+  border: 1px solid var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+.cl-stepper-btn.completed {
+  color: var(--gold-bright);
+}
+
+.cl-step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-stepper-btn.active .cl-step-num {
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: #000000;
+}
+
+.cl-stepper-btn.completed .cl-step-num {
+  background-color: transparent;
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+/* Step Panel Containers */
+.cl-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeIn 0.25s ease;
+}
+
+.cl-section-box {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+
+.cl-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-light-muted);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+/* Clean Cards (Fabrics) */
+.cl-fabric-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cl-clean-card {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cl-clean-card:hover {
+  background: transparent;
+  border-color: rgba(197, 160, 89, 0.5);
+}
+
+.cl-clean-card.active {
+  background: transparent;
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.1);
+}
+
+/* Cut Pills */
+.cl-cut-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.65rem;
+}
+
+.cl-cut-pill {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.75rem 0.85rem;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cl-cut-pill:hover {
+  border-color: rgba(197, 160, 89, 0.5);
+  background: transparent;
+}
+
+.cl-cut-pill.active {
+  background: transparent;
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+/* Color Dots Row */
+.cl-color-dots-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.cl-color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, outline 0.2s ease;
+  outline-offset: 3px;
+  padding: 0;
+}
+
+.cl-color-dot:hover {
+  transform: scale(1.1);
+}
+
+.cl-color-dot.active {
+  outline: 2px solid var(--gold-bright);
+  transform: scale(1.15);
+}
+
+/* Sizes Clean Row */
+.cl-sizes-clean-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: 0.5rem;
+}
+
+.cl-size-btn-clean {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 0.65rem 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.cl-size-btn-clean:hover {
+  border-color: rgba(197, 160, 89, 0.5);
+  color: var(--gold-bright);
+}
+
+.cl-size-btn-clean.active {
+  background-color: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: #000000;
+  font-weight: 800;
+}
+
+/* Spot Pills (Artwork step) */
+.cl-spots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cl-spot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-light-secondary);
+  font-size: 0.74rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cl-spot-pill:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.cl-spot-pill.active {
+  background: transparent;
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.cl-spot-pill.has-art {
+  border-color: rgba(197, 160, 89, 0.6);
+}
+
+/* Upload Dropzone (Clean) */
+.cl-clean-upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(197, 160, 89, 0.35);
+  border-radius: 4px;
+  padding: 1.75rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.cl-clean-upload-dropzone:hover {
+  border-color: var(--gold-bright);
+  background: transparent;
+}
+
+.cl-delete-btn-clean {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.cl-replace-btn-clean {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--gold-border);
+  color: var(--gold-bright);
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.cl-action-btn-clean {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.cl-action-btn-clean:hover {
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+.cl-btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cl-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+}
+
+.cl-checkout-box {
+  background: transparent;
+  border: 1px solid var(--gold-border);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+
+.cl-free-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #000000;
+  background-color: var(--gold-bright);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.cl-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.cl-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cl-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: 0.3s;
+  border-radius: 22px;
+}
+
+.cl-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.cl-toggle-switch input:checked + .cl-toggle-slider {
+  background-color: var(--gold-bright);
+}
+
+.cl-toggle-switch input:checked + .cl-toggle-slider:before {
+  transform: translateX(20px);
+  background-color: #000000;
+}
+
+.cl-notes-textarea {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  border-radius: 2px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.cl-notes-textarea:focus {
+  border-color: var(--gold-bright);
+}
+
+/* ================= RIGHT STAGE VISUALIZER ================= */
+.cl-stage-col {
+  position: sticky;
+  top: 90px;
+}
+
+.cl-stage-card {
+  background: transparent;
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-stage-header {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+}
+
+.cl-view-switcher {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.cl-view-tab {
+  background: none;
+  border: none;
+  color: var(--text-light-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.cl-view-tab:hover {
+  color: #ffffff;
+}
+
+.cl-view-tab.active {
+  background-color: var(--gold-bright);
+  color: #000000;
+}
+
+.cl-view-count {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #000;
+  color: #fff;
+  font-size: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-view-tab.active .cl-view-count {
+  background-color: #000;
+  color: var(--gold-bright);
+}
+
+.cl-stage-tool-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-light-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cl-stage-tool-btn:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cl-stage-tool-btn.active {
+  background: rgba(197, 160, 89, 0.15);
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+.cl-backdrop-switcher {
+  display: flex;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.cl-backdrop-btn {
+  background: none;
+  border: none;
+  color: var(--text-light-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cl-backdrop-btn:hover {
+  color: #ffffff;
+}
+
+.cl-backdrop-btn.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Visualizer Stage with Dynamic Studio Backdrop */
+.cl-interactive-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.08;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  overflow: hidden;
+  transition: background 0.35s ease;
+}
+
+/* 1. Neutral Grey Studio (Default: Crisp balance for black & white garments) */
+.cl-interactive-stage[data-backdrop="studio"],
+.cl-interactive-stage:not([data-backdrop]) {
+  background: radial-gradient(circle at 50% 45%, #2a303e 0%, #1a1e28 55%, #0e1017 100%);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+/* 2. Light Studio Backdrop (Ultra high contrast for dark shirts: Pure Black, Charcoal, Navy) */
+.cl-interactive-stage[data-backdrop="light"] {
+  background: radial-gradient(circle at 50% 45%, #eaedf5 0%, #cfd5e3 55%, #a8b0c2 100%);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.15);
+}
+
+.cl-interactive-stage[data-backdrop="light"] .cl-empty-stage-hint {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111215;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* 3. Dark Noir Atelier */
+.cl-interactive-stage[data-backdrop="dark"] {
+  background: radial-gradient(circle at 50% 45%, #16171e 0%, #0c0d12 70%, #050608 100%);
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.9);
+}
+
+.cl-garment-svg {
+  width: 90%;
+  height: 90%;
+  max-width: 440px;
+  display: block;
+  filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.65));
+}
+
+/* Artwork Layer */
+.cl-artwork-element {
+  position: absolute;
+  transform-origin: center center;
+  cursor: move;
+}
+
+.cl-artwork-bounding-frame {
+  position: absolute;
+  inset: -4px;
+  border: 1px dashed var(--gold-bright);
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.cl-bounding-corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--gold-bright);
+  border: 1px solid #000;
+}
+
+.cl-bounding-corner.tl { top: -3px; left: -3px; }
+.cl-bounding-corner.tr { top: -3px; right: -3px; }
+.cl-bounding-corner.bl { bottom: -3px; left: -3px; }
+.cl-bounding-corner.br { bottom: -3px; right: -3px; }
+
+.cl-bounding-tag {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #000000;
+  border: 1px solid var(--gold-border);
+  color: var(--gold-bright);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  white-space: nowrap;
+  border-radius: 2px;
+}
+
+.cl-empty-stage-hint {
+  position: absolute;
+  bottom: 1.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  color: var(--text-light-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cl-stage-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Fullscreen Mode */
+.custom-lab-page.fullscreen-mode .cl-stage-col {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background-color: #060709;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-lab-page.fullscreen-mode .cl-stage-card {
+  width: 100%;
+  max-width: 900px;
+  height: 90vh;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .cl-studio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-stage-col {
+    position: relative;
+    top: 0;
+    order: -1;
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .cl-hero-header {
+    padding: 1.25rem;
+  }
+
+  .cl-stepper-btn {
+    font-size: 0.68rem;
+    padding: 8px 4px;
+  }
+
+  .cl-section-box {
+    padding: 1rem;
+  }
+
+  .cl-cut-pills {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 
 

@@ -1,6 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, Plus, Trash2, Image as ImageIcon, ShieldCheck, Layers, Package, SlidersHorizontal, UploadCloud, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { 
+  X, 
+  Save, 
+  Plus, 
+  Trash2, 
+  Image as ImageIcon, 
+  Package, 
+  SlidersHorizontal, 
+  UploadCloud, 
+  CheckCircle2, 
+  AlertCircle, 
+  Loader2,
+  Palette,
+  ArrowLeft,
+  ArrowRight,
+  Star,
+  Check
+} from 'lucide-react';
 import { uploadGarmentImageToCloudinary } from '../../lib/cloudinary';
+
+const PRESET_LUXURY_COLORS = [
+  { name: 'Onyx Black', hex: '#121316' },
+  { name: 'Optic White', hex: '#F7F7F7' },
+  { name: 'Florentine Gold', hex: '#C5A059' },
+  { name: 'Vintage Navy', hex: '#1E2530' },
+  { name: 'Raw Ecru Melange', hex: '#E3DAC9' },
+  { name: 'Espresso Brown', hex: '#2B1D14' },
+  { name: 'Heather Slate', hex: '#474A51' },
+  { name: 'Forest Olive', hex: '#2D382E' },
+  { name: 'Charcoal Melange', hex: '#2A2C31' },
+  { name: 'Crimson Merlot', hex: '#5A1827' },
+  { name: 'Dusty Sage', hex: '#6B7E6F' },
+  { name: 'Midnight Indigo', hex: '#151C28' }
+];
 
 export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +44,13 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     composition: '100% Long-Staple Combed Cotton',
     image: '/images/hero_tshirt.jpg',
     images: ['/images/hero_tshirt.jpg'],
+    color: 'Onyx Black',
+    colorHex: '#121316',
+    colors: [
+      { name: 'Onyx Black', hex: '#121316', isDefault: true },
+      { name: 'Optic White', hex: '#F7F7F7', isDefault: false }
+    ],
+    colorsAvailable: ['#121316', '#F7F7F7'],
     description: '',
     status: 'Active',
     inventory: {
@@ -30,19 +69,58 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
   const [quickTotalQty, setQuickTotalQty] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [newImageUrl, setNewImageUrl] = useState('');
+  
+  // Custom Color inputs
+  const [customColorName, setCustomColorName] = useState('');
+  const [customColorHex, setCustomColorHex] = useState('#C5A059');
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
+
     if (product) {
       const productImages = Array.isArray(product.images) && product.images.length > 0
         ? product.images
         : [product.image || '/images/hero_tshirt.jpg'];
 
+      // Extract colors
+      let initialColors = [];
+      if (Array.isArray(product.colors) && product.colors.length > 0) {
+        initialColors = product.colors.map(c => ({
+          name: typeof c === 'string' ? c : (c.name || 'Custom Shade'),
+          hex: typeof c === 'string' ? '#121316' : (c.hex || '#121316'),
+          isDefault: typeof c === 'object' ? Boolean(c.isDefault) : false
+        }));
+      } else if (Array.isArray(product.colorsAvailable) && product.colorsAvailable.length > 0) {
+        initialColors = product.colorsAvailable.map((hex, idx) => ({
+          name: idx === 0 ? (product.color || 'Primary Shade') : `Colorway ${idx + 1}`,
+          hex: hex || '#121316',
+          isDefault: idx === 0
+        }));
+      } else {
+        initialColors = [
+          { name: product.color || 'Onyx Black', hex: product.colorHex || '#121316', isDefault: true }
+        ];
+      }
+
+      if (!initialColors.some(c => c.isDefault) && initialColors.length > 0) {
+        initialColors[0].isDefault = true;
+      }
+
+      const defaultColorObj = initialColors.find(c => c.isDefault) || initialColors[0] || { name: 'Onyx Black', hex: '#121316' };
+
       setFormData({
         ...product,
+        price: product.price ?? product.priceLKR ?? 18500,
+        gsm: product.gsm ?? 280,
         image: product.image || productImages[0] || '/images/hero_tshirt.jpg',
         images: productImages,
+        color: product.color || defaultColorObj.name,
+        colorHex: product.colorHex || defaultColorObj.hex,
+        colors: initialColors,
+        colorsAvailable: initialColors.map(c => c.hex),
         inventory: (product.inventory && Object.keys(product.inventory).length > 0) 
           ? product.inventory 
           : {
@@ -61,8 +139,15 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         price: 18500,
         gsm: 280,
         composition: '100% Long-Staple Combed Cotton',
-        image: '',
-        images: [],
+        image: '/images/hero_tshirt.jpg',
+        images: ['/images/hero_tshirt.jpg'],
+        color: 'Onyx Black',
+        colorHex: '#121316',
+        colors: [
+          { name: 'Onyx Black', hex: '#121316', isDefault: true },
+          { name: 'Optic White', hex: '#F7F7F7', isDefault: false }
+        ],
+        colorsAvailable: ['#121316', '#F7F7F7'],
         description: '',
         status: 'Active',
         inventory: {
@@ -77,8 +162,12 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         origin: 'Florence, Italy'
       });
     }
+
     setNewSizeName('');
     setQuickTotalQty('');
+    setCustomColorName('');
+    setCustomColorHex('#C5A059');
+    setNewImageUrl('');
     setIsUploadingImage(false);
     setUploadError('');
   }, [product, isOpen]);
@@ -87,6 +176,9 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
   const totalUnits = Object.values(formData.inventory || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 
+  // ==========================================
+  // IMAGE MANAGEMENT & ORDERING
+  // ==========================================
   const handleImageFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,15 +189,15 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
       const result = await uploadGarmentImageToCloudinary(file);
       if (result?.secure_url) {
         const newUrl = result.secure_url;
-        // Filter out default static placeholders so user's uploaded images take exclusive priority
-        const currentImages = (Array.isArray(formData.images) ? formData.images : [])
-          .filter(img => Boolean(img) && !img.startsWith('/images/'));
-
-        const nextImages = [newUrl, ...currentImages.filter(img => img !== newUrl)];
+        const currentImages = Array.isArray(formData.images) ? [...formData.images] : [];
+        
+        // Remove duplicate if exists, append new image to gallery
+        const filtered = currentImages.filter(img => img !== newUrl && img !== '/images/hero_tshirt.jpg');
+        const nextImages = [newUrl, ...filtered];
 
         setFormData(prev => ({
           ...prev,
-          image: newUrl,
+          image: nextImages[0] || newUrl,
           images: nextImages
         }));
       }
@@ -118,24 +210,155 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     }
   };
 
-  const handleSetPrimaryImage = (imgUrl) => {
-    setFormData(prev => ({
-      ...prev,
-      image: imgUrl
-    }));
+  const handleAddDirectUrl = () => {
+    if (!newImageUrl.trim()) return;
+    const cleanUrl = newImageUrl.trim();
+    const currentImages = Array.isArray(formData.images) ? [...formData.images] : [];
+    if (!currentImages.includes(cleanUrl)) {
+      const nextImages = [...currentImages, cleanUrl];
+      setFormData(prev => ({
+        ...prev,
+        image: prev.image || cleanUrl,
+        images: nextImages
+      }));
+    }
+    setNewImageUrl('');
   };
 
-  const handleRemoveImage = (imgUrl) => {
-    const nextImages = (formData.images || []).filter(img => img !== imgUrl);
-    const fallbackImg = nextImages[0] || '';
+  const handleSetPrimaryImage = (index) => {
+    const currentImages = [...(formData.images || [])];
+    if (index < 0 || index >= currentImages.length) return;
+    
+    // Move selected image to index 0 (Primary Hero)
+    const [selected] = currentImages.splice(index, 1);
+    const nextImages = [selected, ...currentImages];
+
     setFormData(prev => ({
       ...prev,
-      image: prev.image === imgUrl ? fallbackImg : prev.image,
+      image: selected,
       images: nextImages
     }));
   };
 
+  const handleMoveImage = (currentIndex, direction) => {
+    const targetIndex = currentIndex + direction;
+    const currentImages = [...(formData.images || [])];
+    if (targetIndex < 0 || targetIndex >= currentImages.length) return;
 
+    const temp = currentImages[currentIndex];
+    currentImages[currentIndex] = currentImages[targetIndex];
+    currentImages[targetIndex] = temp;
+
+    setFormData(prev => ({
+      ...prev,
+      image: currentImages[0] || '',
+      images: currentImages
+    }));
+  };
+
+  const handleRemoveImage = (indexToRemove) => {
+    const currentImages = (formData.images || []).filter((_, idx) => idx !== indexToRemove);
+    const nextPrimary = currentImages[0] || '';
+    setFormData(prev => ({
+      ...prev,
+      image: nextPrimary,
+      images: currentImages
+    }));
+  };
+
+  // ==========================================
+  // AVAILABLE COLOURS MANAGEMENT
+  // ==========================================
+  const handleAddPresetColor = (preset) => {
+    const currentColors = Array.isArray(formData.colors) ? [...formData.colors] : [];
+    const exists = currentColors.some(c => c.hex.toLowerCase() === preset.hex.toLowerCase() || c.name.toLowerCase() === preset.name.toLowerCase());
+    
+    if (exists) {
+      handleSetDefaultColor(preset.name);
+      return;
+    }
+
+    const isFirst = currentColors.length === 0;
+    const newColorItem = {
+      name: preset.name,
+      hex: preset.hex,
+      isDefault: isFirst
+    };
+
+    const nextColors = [...currentColors, newColorItem];
+    setFormData(prev => ({
+      ...prev,
+      colors: nextColors,
+      colorsAvailable: nextColors.map(c => c.hex),
+      color: isFirst ? preset.name : prev.color,
+      colorHex: isFirst ? preset.hex : prev.colorHex
+    }));
+  };
+
+  const handleAddCustomColor = () => {
+    if (!customColorName.trim()) return;
+    const cleanName = customColorName.trim();
+    const cleanHex = customColorHex || '#C5A059';
+
+    const currentColors = Array.isArray(formData.colors) ? [...formData.colors] : [];
+    const exists = currentColors.some(c => c.name.toLowerCase() === cleanName.toLowerCase());
+    if (exists) return;
+
+    const isFirst = currentColors.length === 0;
+    const newColorItem = {
+      name: cleanName,
+      hex: cleanHex,
+      isDefault: isFirst
+    };
+
+    const nextColors = [...currentColors, newColorItem];
+    setFormData(prev => ({
+      ...prev,
+      colors: nextColors,
+      colorsAvailable: nextColors.map(c => c.hex),
+      color: isFirst ? cleanName : prev.color,
+      colorHex: isFirst ? cleanHex : prev.colorHex
+    }));
+
+    setCustomColorName('');
+  };
+
+  const handleSetDefaultColor = (colorName) => {
+    const nextColors = (formData.colors || []).map(c => ({
+      ...c,
+      isDefault: c.name === colorName
+    }));
+    const target = nextColors.find(c => c.name === colorName);
+
+    setFormData(prev => ({
+      ...prev,
+      colors: nextColors,
+      colorsAvailable: nextColors.map(c => c.hex),
+      color: target ? target.name : prev.color,
+      colorHex: target ? target.hex : prev.colorHex
+    }));
+  };
+
+  const handleRemoveColor = (colorNameToRemove) => {
+    const nextColors = (formData.colors || []).filter(c => c.name !== colorNameToRemove);
+    if (nextColors.length > 0 && !nextColors.some(c => c.isDefault)) {
+      nextColors[0].isDefault = true;
+    }
+
+    const defaultColor = nextColors.find(c => c.isDefault) || nextColors[0];
+
+    setFormData(prev => ({
+      ...prev,
+      colors: nextColors,
+      colorsAvailable: nextColors.map(c => c.hex),
+      color: defaultColor ? defaultColor.name : 'Onyx Black',
+      colorHex: defaultColor ? defaultColor.hex : '#121316'
+    }));
+  };
+
+  // ==========================================
+  // INVENTORY MATRIX MANAGEMENT
+  // ==========================================
   const handleInventoryChange = (size, val) => {
     const parsed = Math.max(0, parseInt(val, 10) || 0);
     setFormData(prev => ({
@@ -146,7 +369,6 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
       }
     }));
   };
-
 
   const handleAddSize = () => {
     if (!newSizeName.trim()) return;
@@ -194,10 +416,30 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.price) return;
+    if (!formData.title || formData.price === '' || formData.price === undefined) return;
     
+    // Ensure primary image is sync'd
+    const finalImages = Array.isArray(formData.images) && formData.images.length > 0 
+      ? formData.images 
+      : [formData.image || '/images/hero_tshirt.jpg'];
+    
+    const finalColors = Array.isArray(formData.colors) && formData.colors.length > 0
+      ? formData.colors
+      : [{ name: formData.color || 'Onyx Black', hex: formData.colorHex || '#121316', isDefault: true }];
+
+    const defaultColorObj = finalColors.find(c => c.isDefault) || finalColors[0];
+
     const finalProduct = {
       ...formData,
+      price: parseFloat(formData.price) || 0,
+      priceLKR: parseFloat(formData.price) || 0,
+      gsm: parseInt(formData.gsm, 10) || 0,
+      image: finalImages[0],
+      images: finalImages,
+      color: defaultColorObj.name,
+      colorHex: defaultColorObj.hex,
+      colors: finalColors,
+      colorsAvailable: finalColors.map(c => c.hex),
       totalStock: totalUnits,
       inventory: formData.inventory
     };
@@ -210,26 +452,27 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     <div className="modal-backdrop" onClick={onClose}>
       <div 
         className="admin-edit-dialog"
-        style={{ maxWidth: '820px' }}
+        style={{ maxWidth: '960px', maxHeight: '92vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="admin-dialog-header">
           <div>
             <div className="admin-dialog-subtitle">GARMENT ATELIER & STOCK MANAGER</div>
             <h2 className="admin-dialog-title">
-              {product ? `Edit Garment: ${product.title}` : 'Add New Luxury Garment'}
+              {product ? `Edit Garment: ${product.title || product.name}` : 'Add New Luxury Garment'}
             </h2>
           </div>
-          <button className="admin-close-btn" onClick={onClose}>
+          <button className="admin-close-btn" onClick={onClose} type="button">
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="admin-dialog-form">
-          <div className="admin-form-grid">
+          <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.2fr', gap: '1.8rem' }}>
             
             {/* Left Column: Core Garment Info */}
-            <div className="admin-form-col">
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              
               <div className="form-group">
                 <label className="form-label">Garment Title / Model Name</label>
                 <input
@@ -262,10 +505,16 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                   <input
                     type="number"
                     required
-                    min="1000"
-                    step="500"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value, 10) || 0 })}
+                    min="0"
+                    placeholder="Enter any amount (e.g. 18500)"
+                    value={formData.price === '' ? '' : formData.price}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        price: val === '' ? '' : (parseFloat(val) || 0)
+                      }));
+                    }}
                     className="form-input admin-input"
                   />
                 </div>
@@ -276,8 +525,15 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                   <label className="form-label">Fabric Weight (GSM)</label>
                   <input
                     type="number"
-                    value={formData.gsm}
-                    onChange={(e) => setFormData({ ...formData, gsm: parseInt(e.target.value, 10) || 0 })}
+                    min="0"
+                    value={formData.gsm === '' ? '' : formData.gsm}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        gsm: val === '' ? '' : (parseInt(val, 10) || 0)
+                      }));
+                    }}
                     className="form-input admin-input"
                   />
                 </div>
@@ -328,34 +584,245 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                   placeholder="e.g. Double-needle non-sag 1x1 ribbing"
                 />
               </div>
-            </div>
 
-            {/* Right Column: Size Inventory Matrix & Image */}
-            <div className="admin-form-col">
-              
-              {/* CLOUDINARY GARMENT IMAGE & GALLERY UPLOAD */}
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <ImageIcon size={14} color="var(--gold-bright)" />
-                    <span>Garment Imagery (Cloudinary CDN)</span>
-                  </label>
-                  {formData.image?.includes('cloudinary') && (
-                    <span style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                      <CheckCircle2 size={11} />
-                      <span>Cloudinary Synced</span>
+              {/* AVAILABLE COLOURS SECTION */}
+              <div style={{
+                padding: '1.2rem',
+                backgroundColor: '#090a0c',
+                border: '1px solid var(--border-dark)',
+                borderRadius: '3px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Palette size={16} color="var(--gold-bright)" />
+                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#ffffff' }}>
+                      AVAILABLE COLOURWAYS (ATELIER PALETTE)
                     </span>
-                  )}
-
+                  </div>
+                  <span style={{ 
+                    fontSize: '0.72rem', 
+                    color: 'var(--gold-bright)',
+                    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                    padding: '2px 8px',
+                    borderRadius: '2px',
+                    fontWeight: 700
+                  }}>
+                    {formData.colors?.length || 0} Colors Configured
+                  </span>
                 </div>
 
-                {/* Cloudinary File Upload Dropzone / Button */}
+                {/* Quick Luxury Presets Palette */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+                    Click to Add Curated Atelier Shades:
+                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {PRESET_LUXURY_COLORS.map((preset) => {
+                      const isAdded = (formData.colors || []).some(c => c.name === preset.name);
+                      return (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => handleAddPresetColor(preset)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 8px',
+                            backgroundColor: isAdded ? 'rgba(197, 160, 89, 0.15)' : '#121316',
+                            border: isAdded ? '1px solid var(--gold-bright)' : '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '3px',
+                            color: isAdded ? 'var(--gold-bright)' : '#ffffff',
+                            fontSize: '0.72rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                          title={`Add ${preset.name} (${preset.hex})`}
+                        >
+                          <span 
+                            style={{ 
+                              width: '12px', 
+                              height: '12px', 
+                              borderRadius: '50%', 
+                              backgroundColor: preset.hex,
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              display: 'inline-block' 
+                            }} 
+                          />
+                          <span>{preset.name}</span>
+                          {isAdded && <Check size={10} color="var(--gold-bright)" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Color Creator */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={customColorHex}
+                      onChange={(e) => setCustomColorHex(e.target.value)}
+                      style={{
+                        width: '34px',
+                        height: '32px',
+                        padding: '1px',
+                        backgroundColor: '#121316',
+                        border: '1px solid var(--border-dark)',
+                        borderRadius: '2px',
+                        cursor: 'pointer'
+                      }}
+                      title="Choose Custom Color HEX"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Custom Shade Name (e.g. Imperial Emerald)"
+                    value={customColorName}
+                    onChange={(e) => setCustomColorName(e.target.value)}
+                    className="form-input admin-input"
+                    style={{ fontSize: '0.74rem', padding: '0.4rem 0.6rem', flex: 1 }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomColor(); } }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomColor}
+                    className="btn-secondary-outline"
+                    style={{ padding: '0.4rem 0.75rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                  >
+                    <Plus size={13} />
+                    <span>Add Color</span>
+                  </button>
+                </div>
+
+                {/* Configured Colors List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                  {(formData.colors || []).map((col) => (
+                    <div
+                      key={col.name}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '6px 10px',
+                        backgroundColor: col.isDefault ? 'rgba(197, 160, 89, 0.08)' : '#121316',
+                        border: col.isDefault ? '1px solid var(--gold-border)' : '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: '2px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span 
+                          style={{ 
+                            width: '18px', 
+                            height: '18px', 
+                            borderRadius: '50%', 
+                            backgroundColor: col.hex,
+                            border: '1px solid rgba(255, 255, 255, 0.4)',
+                            display: 'inline-block',
+                            boxShadow: '0 0 3px rgba(0,0,0,0.5)'
+                          }} 
+                        />
+                        <div>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff' }}>{col.name}</span>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', marginLeft: '6px' }}>{col.hex}</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {col.isDefault ? (
+                          <span style={{ 
+                            fontSize: '0.65rem', 
+                            color: 'var(--gold-bright)', 
+                            backgroundColor: 'rgba(197, 160, 89, 0.18)', 
+                            padding: '2px 6px', 
+                            borderRadius: '2px', 
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}>
+                            <Star size={10} fill="var(--gold-bright)" />
+                            <span>PRIMARY</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetDefaultColor(col.name)}
+                            className="btn-secondary-outline"
+                            style={{ padding: '2px 6px', fontSize: '0.65rem', color: 'var(--text-light-muted)' }}
+                            title="Set as Default / Primary Colorway"
+                          >
+                            Set Primary
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColor(col.name)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            padding: '2px 4px',
+                            opacity: 0.8
+                          }}
+                          title={`Remove ${col.name}`}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {(!formData.colors || formData.colors.length === 0) && (
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textAlign: 'center', padding: '0.8rem' }}>
+                      No colors added yet. Select a shade from the palette above.
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Right Column: Garment Imagery Order & Size Matrix */}
+            <div className="admin-form-col" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              
+              {/* IMAGE GALLERY & SEQUENCE ORDER SECTION */}
+              <div style={{
+                padding: '1.2rem',
+                backgroundColor: '#090a0c',
+                border: '1px solid var(--border-dark)',
+                borderRadius: '3px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ImageIcon size={16} color="var(--gold-bright)" />
+                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#ffffff' }}>
+                      GARMENT IMAGERY & SEQUENCE ORDER
+                    </span>
+                  </div>
+                  <span style={{ 
+                    fontSize: '0.72rem', 
+                    color: 'var(--gold-bright)',
+                    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                    padding: '2px 8px',
+                    borderRadius: '2px',
+                    fontWeight: 700
+                  }}>
+                    {formData.images?.length || 0} Angles / Photos
+                  </span>
+                </div>
+
+                {/* Cloudinary File Upload Dropzone */}
                 <div 
                   onClick={() => fileInputRef.current?.click()}
                   style={{
                     border: '1px dashed var(--gold-border)',
                     backgroundColor: 'rgba(197, 160, 89, 0.04)',
-                    padding: '1.2rem',
+                    padding: '1rem',
                     borderRadius: '2px',
                     textAlign: 'center',
                     cursor: isUploadingImage ? 'wait' : 'pointer',
@@ -375,19 +842,19 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
                   {isUploadingImage ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                      <Loader2 size={24} className="spin-animation" color="var(--gold-bright)" />
-                      <span style={{ fontSize: '0.78rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                      <Loader2 size={22} className="spin-animation" color="var(--gold-bright)" />
+                      <span style={{ fontSize: '0.76rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
                         Uploading high-res garment to Cloudinary CDN...
                       </span>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                      <UploadCloud size={24} color="var(--gold-bright)" />
-                      <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600 }}>
-                        Click to Upload Garment Photo to Cloudinary
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <UploadCloud size={22} color="var(--gold-bright)" />
+                      <span style={{ fontSize: '0.8rem', color: '#fff', fontWeight: 600 }}>
+                        Upload Atelier Angle / Photo to Cloudinary
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
-                        Supports JPG, PNG, WEBP high-resolution atelier shots
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>
+                        JPG, PNG, WEBP — automatically placed in your ordered gallery
                       </span>
                     </div>
                   )}
@@ -400,112 +867,234 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                   </div>
                 )}
 
-                {/* Main Preview with Cloudinary Tag */}
-                <div className="admin-image-preview-box" style={{ position: 'relative', marginBottom: '0.8rem', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#090a0c', border: '1px solid var(--border-dark)', overflow: 'hidden' }}>
-                  {formData.image ? (
-                    <>
-                      <img 
-                        src={formData.image} 
-                        alt="Preview" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
-                      />
-                      <div className="admin-image-badge" style={{ backgroundColor: 'rgba(0,0,0,0.85)', border: '1px solid var(--gold-bright)', color: 'var(--gold-bright)' }}>
-                        {formData.image?.includes('cloudinary') ? 'CLOUDINARY CDN' : 'PRIMARY SHOWCASE'}
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{ textAlign: 'center', color: 'var(--text-light-muted)', padding: '1rem' }}>
-                      <ImageIcon size={32} color="var(--gold-border)" style={{ margin: '0 auto 8px', display: 'block' }} />
-                      <span style={{ fontSize: '0.78rem', display: 'block' }}>No image attached yet</span>
-                      <span style={{ fontSize: '0.68rem', opacity: 0.7 }}>Click "Upload Garment Photo" above</span>
-                    </div>
-                  )}
-                </div>
-
-
-                {/* Multi-Image Gallery Thumbnails */}
-                {formData.images?.length > 1 && (
-                  <div style={{ marginBottom: '0.8rem' }}>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '4px' }}>
-                      Garment Angle Gallery ({formData.images.length} Photos)
-                    </span>
-                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-                      {formData.images.map((imgUrl, idx) => (
-                        <div 
-                          key={idx} 
-                          style={{ 
-                            position: 'relative', 
-                            width: '46px', 
-                            height: '46px', 
-                            flexShrink: 0, 
-                            border: formData.image === imgUrl ? '2px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                            borderRadius: '2px',
-                            overflow: 'hidden',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => handleSetPrimaryImage(imgUrl)}
-                          title="Click to set as primary showcase image"
-                        >
-                          <img src={imgUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          {formData.images.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); handleRemoveImage(imgUrl); }}
-                              style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(0,0,0,0.7)', border: 'none', color: '#f87171', padding: '1px 3px', cursor: 'pointer', fontSize: '9px' }}
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Direct Image URL & Presets Row */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Direct URL / Preset Image Inserter */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>
                   <input
                     type="text"
-                    placeholder="Or paste Cloudinary URL..."
-                    value={formData.image}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFormData(prev => ({
-                        ...prev,
-                        image: val,
-                        images: [val, ...(prev.images || []).filter(i => i !== val)]
-                      }));
-                    }}
+                    placeholder="Or paste Cloudinary / Web Image URL..."
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
                     className="form-input admin-input"
                     style={{ fontSize: '0.74rem', padding: '0.4rem 0.6rem', flex: 1 }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddDirectUrl(); } }}
                   />
-
+                  <button
+                    type="button"
+                    onClick={handleAddDirectUrl}
+                    className="btn-secondary-outline"
+                    style={{ padding: '0.4rem 0.75rem', fontSize: '0.72rem', whiteSpace: 'nowrap' }}
+                  >
+                    + Add URL
+                  </button>
                   <select
                     value=""
                     onChange={(e) => {
                       if (e.target.value) {
                         const val = e.target.value;
-                        setFormData(prev => ({
-                          ...prev,
-                          image: val,
-                          images: [val, ...(prev.images || []).filter(i => i !== val)]
-                        }));
+                        const current = formData.images || [];
+                        if (!current.includes(val)) {
+                          setFormData(prev => ({
+                            ...prev,
+                            image: prev.image || val,
+                            images: [...current, val]
+                          }));
+                        }
                       }
                     }}
                     className="form-input admin-input"
-                    style={{ fontSize: '0.74rem', padding: '0.4rem', width: '110px' }}
+                    style={{ fontSize: '0.74rem', padding: '0.4rem', width: '100px' }}
                   >
                     <option value="">Presets...</option>
-                    <option value="/images/hero_tshirt.jpg">Onyx Black</option>
+                    <option value="/images/hero_tshirt.jpg">Onyx Hero</option>
                     <option value="/images/tshirt_white.jpg">Optic White</option>
                     <option value="/images/pillar_knitwear.jpg">Florentine Gold</option>
-                    <option value="/images/tshirt_oversized.jpg">Boxy Silhouette</option>
+                    <option value="/images/pillar_heavyweight.jpg">Fabric Detail</option>
+                    <option value="/images/model_tshirt.jpg">Model Fit</option>
                   </select>
                 </div>
 
-              </div>
+                {/* REORDERABLE ORDERED IMAGES LIST / GALLERY */}
+                <div style={{ marginBottom: '0.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Display Order Sequence (Image #1 is Primary Cover):
+                    </span>
+                  </div>
 
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '8px', 
+                    maxHeight: '230px', 
+                    overflowY: 'auto',
+                    paddingRight: '4px'
+                  }}>
+                    {(formData.images || []).map((imgUrl, idx) => {
+                      const isPrimary = idx === 0;
+                      return (
+                        <div
+                          key={`${imgUrl}-${idx}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '6px 10px',
+                            backgroundColor: isPrimary ? 'rgba(197, 160, 89, 0.08)' : '#121316',
+                            border: isPrimary ? '1px solid var(--gold-bright)' : '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '3px'
+                          }}
+                        >
+                          {/* Left: Thumbnail + Order Number Badge + URL/Label */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              backgroundColor: isPrimary ? 'var(--gold-bright)' : 'rgba(255, 255, 255, 0.1)',
+                              color: isPrimary ? '#000' : '#fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              flexShrink: 0
+                            }}>
+                              {idx + 1}
+                            </div>
+
+                            <div style={{ width: '48px', height: '48px', borderRadius: '2px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border-dark)' }}>
+                              <img 
+                                src={imgUrl} 
+                                alt="" 
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                              />
+                            </div>
+
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {isPrimary ? (
+                                  <span style={{ 
+                                    fontSize: '0.66rem', 
+                                    color: '#000', 
+                                    backgroundColor: 'var(--gold-bright)', 
+                                    padding: '1px 6px', 
+                                    borderRadius: '2px', 
+                                    fontWeight: 800,
+                                    letterSpacing: '0.04em'
+                                  }}>
+                                    ★ HERO COVER / THUMBNAIL
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.72rem', color: '#fff', fontWeight: 600 }}>
+                                    Angle #{idx + 1}
+                                  </span>
+                                )}
+                              </div>
+                              <span style={{ 
+                                fontSize: '0.64rem', 
+                                color: 'var(--text-light-muted)', 
+                                display: 'block', 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis', 
+                                whiteSpace: 'nowrap',
+                                marginTop: '2px' 
+                              }}>
+                                {imgUrl.includes('cloudinary') ? 'Cloudinary CDN Asset' : imgUrl}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Right: Re-Order Buttons & Delete */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
+                            {/* Move Up / Earlier (←) */}
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveImage(idx, -1)}
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                backgroundColor: idx === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.06)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: idx === 0 ? 'rgba(255, 255, 255, 0.2)' : '#fff',
+                                borderRadius: '2px',
+                                cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              title="Move Earlier in Gallery (Position Up)"
+                            >
+                              <ArrowLeft size={12} />
+                            </button>
+
+                            {/* Move Down / Later (→) */}
+                            <button
+                              type="button"
+                              disabled={idx === (formData.images?.length || 0) - 1}
+                              onClick={() => handleMoveImage(idx, 1)}
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                backgroundColor: idx === (formData.images?.length || 0) - 1 ? 'transparent' : 'rgba(255, 255, 255, 0.06)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: idx === (formData.images?.length || 0) - 1 ? 'rgba(255, 255, 255, 0.2)' : '#fff',
+                                borderRadius: '2px',
+                                cursor: idx === (formData.images?.length || 0) - 1 ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              title="Move Later in Gallery (Position Down)"
+                            >
+                              <ArrowRight size={12} />
+                            </button>
+
+                            {/* Set as Cover action */}
+                            {!isPrimary && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetPrimaryImage(idx)}
+                                className="btn-secondary-outline"
+                                style={{ padding: '3px 7px', fontSize: '0.65rem', whiteSpace: 'nowrap' }}
+                                title="Move to Position #1 as Primary Showcase"
+                              >
+                                Set Cover
+                              </button>
+                            )}
+
+                            {/* Remove image */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(idx)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#ef4444',
+                                cursor: 'pointer',
+                                padding: '3px 5px',
+                                marginLeft: '2px',
+                                opacity: 0.8
+                              }}
+                              title="Remove Photo"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {(!formData.images || formData.images.length === 0) && (
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textAlign: 'center', padding: '1rem' }}>
+                        No images attached. Upload or paste a URL above.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
 
               {/* AVAILABLE QUANTITY & INVENTORY MATRIX */}
               <div className="admin-stock-matrix-box" style={{ padding: '1.2rem', backgroundColor: '#090a0c', border: '1px solid var(--border-dark)', borderRadius: '3px' }}>
@@ -554,7 +1143,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                 </div>
 
                 {/* Size-by-Size Quantity Rows */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                   {Object.entries(formData.inventory || {}).map(([size, count]) => (
                     <div 
                       key={size} 
@@ -682,7 +1271,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
           </div>
 
-          <div className="admin-dialog-actions" style={{ marginTop: '1.6rem' }}>
+          <div className="admin-dialog-actions" style={{ marginTop: '1.6rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1.2rem' }}>
             <button type="button" className="btn-secondary-outline" onClick={onClose}>
               Cancel
             </button>
@@ -696,4 +1285,3 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     </div>
   );
 };
-

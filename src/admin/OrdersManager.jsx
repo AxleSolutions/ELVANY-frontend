@@ -153,14 +153,13 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                 <th>PARCEL CONTENTS</th>
                 <th>AMOUNT (LKR)</th>
                 <th>DISPATCH STATUS</th>
-                <th>VERIFIED REVIEW LINK</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-light-muted)' }}>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-light-muted)' }}>
                     No client orders found matching this filter.
                   </td>
                 </tr>
@@ -208,34 +207,18 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                           value={order.status}
                           onChange={(e) => onUpdateOrderStatus(order.orderId, e.target.value)}
                           className="admin-table-status-select"
+                          style={{
+                            borderColor: (order.status || '').toLowerCase().includes('reject') ? '#ef4444' : undefined,
+                            color: (order.status || '').toLowerCase().includes('reject') ? '#ef4444' : undefined,
+                            backgroundColor: (order.status || '').toLowerCase().includes('reject') ? 'rgba(239, 68, 68, 0.12)' : undefined,
+                            fontWeight: (order.status || '').toLowerCase().includes('reject') ? 700 : undefined
+                          }}
                         >
                           {statuses.map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
                       </td>
-
-                      <td>
-                        <button
-                          type="button"
-                          className="admin-copy-link-btn"
-                          onClick={(e) => handleCopyReviewLink(order.orderId, e)}
-                          title="Copy Private Review Portal Link"
-                        >
-                          {copiedId === order.orderId ? (
-                            <>
-                              <Check size={13} color="var(--gold-bright)" />
-                              <span style={{ color: 'var(--gold-bright)' }}>COPIED!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={13} />
-                              <span>COPY REVIEW URL</span>
-                            </>
-                          )}
-                        </button>
-                      </td>
-
 
                       <td>
                         <button

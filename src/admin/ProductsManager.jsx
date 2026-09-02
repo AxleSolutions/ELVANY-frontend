@@ -132,7 +132,34 @@ export const ProductsManager = ({
                               <span>{gsm} GSM</span> • 
                               <span>{composition}</span>
                             </div>
-                            <span className="admin-sku-tag">{sku}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                              <span className="admin-sku-tag">{sku}</span>
+                              {Array.isArray(product.images) && product.images.length > 1 && (
+                                <span style={{ fontSize: '0.65rem', color: 'var(--gold-bright)', backgroundColor: 'rgba(197, 160, 89, 0.1)', border: '1px solid rgba(197, 160, 89, 0.25)', padding: '1px 5px', borderRadius: '2px' }}>
+                                  {product.images.length} angles
+                                </span>
+                              )}
+                            </div>
+                            {/* Colorway swatches preview */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+                              {((product.colors && product.colors.length > 0) ? product.colors.map(c => c.hex) : (product.colorsAvailable || ['#121316'])).map((hex, cIdx) => (
+                                <span 
+                                  key={cIdx} 
+                                  style={{ 
+                                    width: '11px', 
+                                    height: '11px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: hex, 
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    display: 'inline-block' 
+                                  }} 
+                                  title={product.colors?.[cIdx]?.name || hex}
+                                />
+                              ))}
+                              <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', marginLeft: '4px' }}>
+                                {product.color || (product.colors?.[0]?.name) || 'Onyx Black'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
