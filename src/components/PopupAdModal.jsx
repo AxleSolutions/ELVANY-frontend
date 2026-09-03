@@ -13,7 +13,11 @@ export const PopupAdModal = ({
 
   useEffect(() => {
     // Wait until database sync is complete before deciding to show
-    if (isLoading || !popupAdSettings || !popupAdSettings.enabled || !popupAdSettings.imageUrl) {
+    // Must be enabled and have a valid Cloudinary/uploaded image URL (not prestored local path)
+    const img = popupAdSettings?.imageUrl;
+    const isCloudinaryOrUploaded = typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://')) && !img.includes('/images/editorial');
+    
+    if (isLoading || !popupAdSettings || !popupAdSettings.enabled || !isCloudinaryOrUploaded) {
       setIsOpen(false);
       return;
     }
@@ -132,10 +136,9 @@ export const PopupAdModal = ({
             alt={popupAdSettings.altText || 'ELVANY Seasonal Advertisement'} 
             className="popup-ad-img"
             loading="eager"
-            onError={(e) => {
-              if (e.target.src !== window.location.origin + '/images/editorial_brutalist.webp') {
-                e.target.src = '/images/editorial_brutalist.webp';
-              }
+            onError={() => {
+              // Hide modal if uploaded image fails to load; never fall back to prestored image
+              setIsOpen(false);
             }}
           />
         </div>

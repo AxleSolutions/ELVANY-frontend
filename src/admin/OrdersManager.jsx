@@ -321,6 +321,7 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                           type="button"
                           className="admin-action-btn"
                           onClick={() => onViewOrder(order)}
+                          title="Inspect Order Passport & Dispatch WhatsApp Notice"
                         >
                           <Eye size={13} />
                           <span>Inspect</span>
@@ -406,8 +407,8 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
               </div>
             )}
 
-            {/* Conditional Citypak Waybill Input: shown only when changing status to 'Shipped (In Transit)' or when editing tracking explicitly */}
-            {(pendingChange.isEditingTrackingOnly || pendingChange.targetStatus === 'Shipped (In Transit)') && (
+            {/* Conditional Citypak Waybill Input */}
+            {(pendingChange.isEditingTrackingOnly || pendingChange.targetStatus === 'Shipped (In Transit)' || pendingChange.trackingNumber) && (
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold-bright)', marginBottom: '0.4rem', letterSpacing: '0.06em', fontWeight: 600 }}>
                   CITYPAK WAYBILL / TRACKING NUMBER
@@ -476,3 +477,5 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
     </div>
   );
 };
+
+

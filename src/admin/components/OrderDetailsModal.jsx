@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud, Sparkles, Download, Printer, Shirt, Layers, Eye } from 'lucide-react';
+import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud, Sparkles, Download, Printer, Shirt, Layers, Eye, MessageSquare, Send } from 'lucide-react';
 import { getBespokeDesigns, getBespokeDesignById } from '../../services/dbService';
 import { downloadImageFile } from '../../lib/bespokeMockupGenerator';
+import { formatWhatsAppPhone, generateShippingWhatsAppMessage, generateWhatsAppUrl } from '../../lib/orderWhatsAppNotifier';
 
 const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }) => {
   const views = customItem?.views || linkedBespoke?.views || {};
@@ -97,11 +98,18 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
   const [trackingSavedSuccess, setTrackingSavedSuccess] = useState(false);
   const [bespokeDetailsMap, setBespokeDetailsMap] = useState({});
 
+  // WhatsApp Dispatch State
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppPhone, setWhatsAppPhone] = useState(order?.customerPhone || order?.phone || '');
+  const [whatsAppCustomNote, setWhatsAppCustomNote] = useState('');
+  const [whatsAppCopied, setWhatsAppCopied] = useState(false);
+
   useEffect(() => {
     if (order?.status) {
       setSelectedStatus(order.status);
     }
     setTrackingInput(order?.trackingNumber || order?.tracking_number || '');
+    setWhatsAppPhone(order?.customerPhone || order?.phone || '');
 
     // Load any linked bespoke custom details
     if (order?.items && order.items.length > 0) {
@@ -130,6 +138,26 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
     navigator.clipboard.writeText(reviewUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleCopyWhatsAppMessage = (text) => {
+    navigator.clipboard.writeText(text);
+    setWhatsAppCopied(true);
+    setTimeout(() => setWhatsAppCopied(false), 2500);
+  };
+
+  const handleDispatchWhatsApp = () => {
+    const cleanTracking = trackingInput.trim();
+    const message = generateShippingWhatsAppMessage(order, cleanTracking, whatsAppCustomNote);
+    const url = generateWhatsAppUrl(whatsAppPhone, message);
+
+    // If tracking is entered but not saved yet, save it now
+    if (cleanTracking && (!order.trackingNumber || order.trackingNumber !== cleanTracking)) {
+      handleStatusChange(selectedStatus === 'Payment Verified — Processing Dispatch' ? 'Shipped (In Transit)' : selectedStatus, cleanTracking);
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setIsWhatsAppModalOpen(false);
   };
 
   const handleStatusChange = (newStatus, customTracking = null) => {
@@ -400,7 +428,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 </div>
               </div>
 
-              {/* Action Buttons for Start Shipping & Live Test */}
+              {/* Action Buttons for Start Shipping, WhatsApp Dispatch & Live Test */}
               <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-end', flexWrap: 'wrap', paddingTop: '1.2rem' }}>
                 {(selectedStatus === 'Payment Verified — Processing Dispatch' || selectedStatus === 'In Production' || selectedStatus === 'Packed & Inspected' || selectedStatus === 'Pending Confirmation') && (
                   <button
@@ -425,6 +453,29 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                     <span>START TO SHIP (DISPATCH ORDER)</span>
                   </button>
                 )}
+
+                {/* Direct WhatsApp Dispatch Notification Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsWhatsAppModalOpen(true)}
+                  style={{
+                    padding: '0.65rem 1.1rem',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    backgroundColor: '#25D366',
+                    color: '#000000',
+                    border: '1px solid #25D366',
+                    borderRadius: '2px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    cursor: 'pointer'
+                  }}
+                  title="Send WhatsApp Shipping & Tracking message to the customer"
+                >
+                  <MessageSquare size={13} />
+                  <span>DISPATCH WHATSAPP NOTICE</span>
+                </button>
 
                 {trackingInput && (
                   <a
@@ -470,9 +521,32 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 <Mail size={12} />
                 <span>{order.customerEmail || 'client@private.lk'}</span>
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Phone size={12} />
-                <span>{order.customerPhone || '071 909 2726'}</span>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Phone size={12} />
+                  <span>{order.customerPhone || '071 909 2726'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsWhatsAppModalOpen(true)}
+                  style={{
+                    background: 'rgba(37, 211, 102, 0.12)',
+                    border: '1px solid rgba(37, 211, 102, 0.4)',
+                    color: '#25D366',
+                    borderRadius: '2px',
+                    padding: '2px 7px',
+                    fontSize: '0.68rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600
+                  }}
+                  title="Send WhatsApp Shipping Notice to customer"
+                >
+                  <MessageSquare size={11} />
+                  <span>WhatsApp</span>
+                </button>
               </div>
             </div>
 
@@ -739,6 +813,234 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
           </button>
         </div>
       </div>
+
+      {/* Luxury WhatsApp Customer Shipping Dispatch Modal */}
+      {isWhatsAppModalOpen && (
+        <div 
+          className="modal-backdrop"
+          onClick={() => setIsWhatsAppModalOpen(false)}
+          style={{ zIndex: 10005, padding: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div 
+            className="admin-dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '560px',
+              width: '100%',
+              backgroundColor: '#0c0d12',
+              border: '1px solid #25D366',
+              borderRadius: '3px',
+              padding: '2rem 1.8rem',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.98)'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}>
+                  <MessageSquare size={16} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: 0, fontWeight: 700, letterSpacing: '0.04em' }}>
+                    WhatsApp Customer Shipping Notice
+                  </h3>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                    Maison ELVANY Atelier Dispatch Notification
+                  </div>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsWhatsAppModalOpen(false)} 
+                className="admin-close-btn"
+                style={{ padding: '4px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Order Brief Banner */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#14161f',
+              border: '1px solid rgba(255,255,255,0.08)',
+              padding: '0.75rem 1rem',
+              borderRadius: '2px',
+              marginBottom: '1rem'
+            }}>
+              <div>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ORDER PASSPORT</span>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                  #{order.orderId}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>
+                  {order.customerName}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                  {order.customerLocation}
+                </div>
+              </div>
+            </div>
+
+            {/* Form Fields: Phone & Tracking */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '0.9rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.72rem', color: '#25D366', fontWeight: 600, marginBottom: '0.35rem', letterSpacing: '0.06em' }}>
+                  CUSTOMER WHATSAPP PHONE
+                </label>
+                <input 
+                  type="text"
+                  value={whatsAppPhone}
+                  onChange={(e) => setWhatsAppPhone(e.target.value)}
+                  placeholder="e.g. 077 123 4567 or 9477..."
+                  className="admin-input"
+                  style={{ width: '100%', fontSize: '0.82rem', fontFamily: 'monospace' }}
+                />
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', marginTop: '3px' }}>
+                  Format: {formatWhatsAppPhone(whatsAppPhone) ? `+${formatWhatsAppPhone(whatsAppPhone)}` : 'Enter mobile number'}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 600, marginBottom: '0.35rem', letterSpacing: '0.06em' }}>
+                  CITYPAK WAYBILL / TRACKING #
+                </label>
+                <input 
+                  type="text"
+                  value={trackingInput}
+                  onChange={(e) => setTrackingInput(e.target.value)}
+                  placeholder="e.g. CPK1088294"
+                  className="admin-input"
+                  style={{ width: '100%', fontSize: '0.82rem', fontFamily: 'monospace', fontWeight: 600 }}
+                />
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', marginTop: '3px' }}>
+                  Live link embedded automatically
+                </div>
+              </div>
+            </div>
+
+            {/* Custom Atelier Dispatch Note (Optional) */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-light-secondary)', marginBottom: '0.35rem', letterSpacing: '0.06em' }}>
+                SPECIAL DISPATCH NOTE (OPTIONAL)
+              </label>
+              <input 
+                type="text"
+                value={whatsAppCustomNote}
+                onChange={(e) => setWhatsAppCustomNote(e.target.value)}
+                placeholder="e.g. Please inform security guard / delivery expected before 4 PM"
+                className="admin-input"
+                style={{ width: '100%', fontSize: '0.78rem' }}
+              />
+            </div>
+
+            {/* Live Message Preview */}
+            <div style={{ marginBottom: '1.4rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <label style={{ fontSize: '0.72rem', color: 'var(--text-light-secondary)', letterSpacing: '0.06em', fontWeight: 600 }}>
+                  MESSAGE PREVIEW (WHATSAPP READY):
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleCopyWhatsAppMessage(generateShippingWhatsAppMessage(order, trackingInput, whatsAppCustomNote))}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: whatsAppCopied ? '#4ade80' : 'var(--gold-bright)',
+                    fontSize: '0.7rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600
+                  }}
+                >
+                  {whatsAppCopied ? <Check size={12} /> : <Copy size={12} />}
+                  <span>{whatsAppCopied ? 'COPIED TO CLIPBOARD' : 'COPY TEXT'}</span>
+                </button>
+              </div>
+
+              <div style={{
+                backgroundColor: '#07080a',
+                border: '1px solid rgba(255,255,255,0.1)',
+                padding: '0.9rem',
+                borderRadius: '3px',
+                fontSize: '0.74rem',
+                color: '#d1d5db',
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.5,
+                maxHeight: '170px',
+                overflowY: 'auto',
+                fontFamily: 'monospace'
+              }}>
+                {generateShippingWhatsAppMessage(order, trackingInput, whatsAppCustomNote)}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-secondary-outline"
+                onClick={() => setIsWhatsAppModalOpen(false)}
+                style={{ padding: '0.65rem 1.1rem', fontSize: '0.76rem' }}
+              >
+                CLOSE
+              </button>
+
+              {trackingInput && (
+                <a
+                  href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(trackingInput.trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary-outline"
+                  style={{
+                    padding: '0.65rem 1rem',
+                    fontSize: '0.74rem',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: 'var(--gold-bright)',
+                    borderColor: 'var(--gold-border)'
+                  }}
+                  title="Verify Citypak live tracking webpage"
+                >
+                  <span>TEST CITYPAK</span>
+                  <ExternalLink size={12} />
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={handleDispatchWhatsApp}
+                style={{
+                  padding: '0.65rem 1.4rem',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  backgroundColor: '#25D366',
+                  color: '#000000',
+                  border: '1px solid #25D366',
+                  borderRadius: '2px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)'
+                }}
+              >
+                <MessageSquare size={14} />
+                <span>DISPATCH VIA WHATSAPP</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

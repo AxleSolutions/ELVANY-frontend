@@ -1,11 +1,13 @@
 // Maison ELVANY — Luxury Progressive Web App Service Worker
-const CACHE_NAME = 'elvany-pwa-v1';
+const CACHE_NAME = 'elvany-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/logo/Main.png',
-  '/logo/Main-4.png',
-  '/favicon.svg',
+  '/logo/pwa-icon-192.png',
+  '/logo/pwa-icon-512.png',
+  '/logo/pwa-maskable-512.png',
+  '/logo/apple-touch-icon.png',
+  '/logo/favicon-48.png',
   '/manifest.webmanifest'
 ];
 

@@ -418,10 +418,8 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     e.preventDefault();
     if (!formData.title || formData.price === '' || formData.price === undefined) return;
     
-    // Ensure primary image is sync'd
-    const finalImages = Array.isArray(formData.images) && formData.images.length > 0 
-      ? formData.images 
-      : [formData.image || '/images/hero_tshirt.webp'];
+    // Ensure images and primary image are strictly preserved
+    const finalImages = Array.isArray(formData.images) ? formData.images : (formData.image ? [formData.image] : []);
     
     const finalColors = Array.isArray(formData.colors) && formData.colors.length > 0
       ? formData.colors
@@ -434,7 +432,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
       price: parseFloat(formData.price) || 0,
       priceLKR: parseFloat(formData.price) || 0,
       gsm: parseInt(formData.gsm, 10) || 0,
-      image: finalImages[0],
+      image: finalImages[0] || '',
       images: finalImages,
       color: defaultColorObj.name,
       colorHex: defaultColorObj.hex,
@@ -1067,17 +1065,25 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                             {/* Remove image */}
                             <button
                               type="button"
-                              onClick={() => handleRemoveImage(idx)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRemoveImage(idx);
+                              }}
                               style={{
-                                background: 'none',
-                                border: 'none',
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
                                 color: '#ef4444',
                                 cursor: 'pointer',
-                                padding: '3px 5px',
-                                marginLeft: '2px',
-                                opacity: 0.8
+                                padding: '4px 7px',
+                                marginLeft: '4px',
+                                borderRadius: '3px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.15s ease'
                               }}
-                              title="Remove Photo"
+                              title="Delete Photo from Gallery"
                             >
                               <Trash2 size={13} />
                             </button>

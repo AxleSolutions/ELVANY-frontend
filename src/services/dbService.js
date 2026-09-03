@@ -361,13 +361,25 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
   // 4. Persist to Supabase Direct Fallback
   if (isSupabaseConfigured && supabase) {
     try {
-      const isQr = completeOrder.paymentMethod?.toLowerCase().includes('qr');
+      const isCard = (completeOrder.paymentMethod || '').toLowerCase().includes('card') || (completeOrder.paymentMethod || '').toLowerCase().includes('payhere');
+      const isQr = (completeOrder.paymentMethod || '').toLowerCase().includes('qr') || (completeOrder.paymentMethod || '').toLowerCase().includes('lanka');
+      const isCod = (completeOrder.paymentMethod || '').toLowerCase().includes('cod') || (completeOrder.paymentMethod || '').toLowerCase().includes('cash');
+
+      const detectedPaymentType = isCard ? 'card' : isQr ? 'lanka_qr' : isCod ? 'cod' : 'bank_transfer';
+      const detectedSpecificMethod = isCard
+        ? 'PayHere Secure Online Card Payment'
+        : isQr
+        ? 'LankaQR Instant Transfer'
+        : isCod
+        ? 'Cash on Delivery (COD)'
+        : 'Direct Bank Transfer';
+
       const structuredAddress = {
         ...(completeOrder.deliveryAddress || {}),
         location: completeOrder.customerLocation || completeOrder.deliveryAddress?.location || 'Colombo, Sri Lanka',
         deliveryFeeLKR: completeOrder.deliveryFeeLKR || 0,
-        paymentType: isQr ? 'lanka_qr' : 'bank_transfer',
-        specificPaymentMethod: isQr ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
+        paymentType: detectedPaymentType,
+        specificPaymentMethod: detectedSpecificMethod,
         orderedItems: completeOrder.items || []
       };
 
@@ -379,8 +391,8 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
           customer_email: completeOrder.customerEmail || 'client@elvany.com',
           customer_phone: completeOrder.customerPhone || '',
           delivery_address: structuredAddress,
-          payment_method: 'bank_transfer',
-          status: completeOrder.status || 'Pending Slip Verification',
+          payment_method: isCard ? 'card' : isCod ? 'cod' : 'bank_transfer',
+          status: completeOrder.status || (isCard || isCod ? 'Payment Verified — Processing Dispatch' : 'Pending Slip Verification'),
           subtotal_lkr: completeOrder.subtotalLKR || completeOrder.totalLKR,
           discount_lkr: completeOrder.savingsLKR || 0,
           grand_total_lkr: completeOrder.grandTotalLKR || completeOrder.totalLKR,
@@ -482,6 +494,28 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
 }
 
 
+function resolvePaymentMethod(o) {
+  const specific = o.delivery_address?.specificPaymentMethod || o.deliveryAddress?.specificPaymentMethod;
+  if (specific) return specific;
+
+  const raw = (o.paymentMethod || o.payment_method || o.delivery_address?.paymentType || o.deliveryAddress?.paymentType || '').toLowerCase();
+  if (raw.includes('card') || raw.includes('payhere') || raw.includes('online')) {
+    return 'PayHere Secure Online Card Payment';
+  }
+  if (raw.includes('qr') || raw.includes('lanka_qr') || raw.includes('lankaqr')) {
+    return 'LankaQR Instant Transfer';
+  }
+  if (raw.includes('cod') || raw.includes('cash')) {
+    return 'Cash on Delivery (COD)';
+  }
+  if (raw.includes('bank') || raw.includes('transfer')) {
+    return 'Direct Bank Transfer';
+  }
+  if (o.payment_method === 'card') return 'PayHere Secure Online Card Payment';
+  if (o.payment_method === 'cod') return 'Cash on Delivery (COD)';
+  return 'Direct Bank Transfer';
+}
+
 export async function getOrders() {
   const apiUrl = getApiUrl();
 
@@ -500,17 +534,21 @@ export async function getOrders() {
             customerPhone: o.customer_phone || o.customerPhone,
             customerLocation: o.delivery_address?.location || o.customerLocation || 'Colombo, Sri Lanka',
             deliveryAddress: o.delivery_address || o.deliveryAddress,
-            // New field: tracking number (prefers dedicated column, falls back to JSONB field)
-            trackingNumber: o.tracking_number || (o.delivery_address && o.delivery_address.trackingNumber) || null,
+            // Accurate live tracking number: check direct field, column, delivery_address JSONB, or courier notes
+            trackingNumber: o.trackingNumber || o.tracking_number || o.delivery_address?.trackingNumber || o.deliveryAddress?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || (typeof o.courier_notes === 'string' && !o.courier_notes.includes(' ') ? o.courier_notes : null) || null,
+            tracking_number: o.trackingNumber || o.tracking_number || o.delivery_address?.trackingNumber || o.deliveryAddress?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || (typeof o.courier_notes === 'string' && !o.courier_notes.includes(' ') ? o.courier_notes : null) || null,
             orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at || o.createdAt,
             status: o.status || 'Pending Slip Verification',
-            paymentMethod: (o.payment_method === 'lanka_qr' || (o.paymentMethod || '').toLowerCase().includes('qr')) ? 'LankaQR Instant Transfer' : (o.payment_method === 'bank_transfer' || (o.paymentMethod || '').toLowerCase().includes('bank')) ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+            paymentMethod: resolvePaymentMethod(o),
             hasSlipAttached: Boolean(o.has_slip_attached || o.paymentSlipUrl || o.payment_slip_url),
             paymentSlipUrl: o.payment_slip_url || o.paymentSlipUrl,
             paymentSlipName: o.payment_slip_name || o.paymentSlipName,
-            totalLKR: parseFloat(o.grand_total_lkr || o.totalLKR || 0),
+            subtotalLKR: parseFloat(o.subtotal_lkr || o.subtotalLKR || o.subtotal || 0),
+            deliveryFeeLKR: parseFloat(o.delivery_fee_lkr || o.deliveryFeeLKR || o.shippingFeeLKR || o.delivery_address?.deliveryFeeLKR || o.deliveryAddress?.deliveryFeeLKR || 0),
             savingsLKR: parseFloat(o.discount_lkr || o.savingsLKR || 0),
+            grandTotalLKR: parseFloat(o.grand_total_lkr || o.grandTotalLKR || o.totalLKR || 0),
+            totalLKR: parseFloat(o.grand_total_lkr || o.grandTotalLKR || o.totalLKR || 0),
             items: (o.order_items && o.order_items.length > 0 ? o.order_items : (o.items || [])).map(i => {
               const matched = storedItems.find(si => (si.id === i.product_id || (si.name || si.title) === (i.product_title || i.title || i.name)));
               return {
@@ -569,12 +607,15 @@ export async function getOrders() {
             status: o.status,
             trackingNumber: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,
             tracking_number: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,
-            paymentMethod: o.payment_method === 'lanka_qr' ? 'LankaQR Instant Transfer' : o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
+            paymentMethod: resolvePaymentMethod(o),
             hasSlipAttached: o.has_slip_attached,
             paymentSlipUrl: o.payment_slip_url,
             paymentSlipName: o.payment_slip_name,
-            totalLKR: parseFloat(o.grand_total_lkr),
+            subtotalLKR: parseFloat(o.subtotal_lkr || 0),
+            deliveryFeeLKR: parseFloat(o.delivery_address?.deliveryFeeLKR || 0),
             savingsLKR: parseFloat(o.discount_lkr || 0),
+            grandTotalLKR: parseFloat(o.grand_total_lkr || 0),
+            totalLKR: parseFloat(o.grand_total_lkr || 0),
             items: (o.order_items || []).map((i) => {
               const matched = storedItems.find(si => (si.id === i.product_id || (si.name || si.title) === i.product_title));
               return {
@@ -678,7 +719,14 @@ export async function updateOrderStatus(orderCode, newStatus, trackingNumber = n
       console.error('Failed to update status in Supabase:', err);
     }
   }
-  return { orderCode, newStatus, trackingNumber };
+
+  try {
+    window.dispatchEvent(new CustomEvent('elvany_order_updated', { 
+      detail: { orderCode, newStatus, trackingNumber } 
+    }));
+  } catch {}
+
+  return { orderCode, newStatus, trackingNumber, tracking_number: trackingNumber };
 }
 
 
@@ -709,17 +757,16 @@ export async function saveProduct(productData) {
       if (json.data) {
         const p = json.data;
         const defaultVariant = p.product_variants?.find(v => v.is_default) || p.product_variants?.[0];
-        const allImages = p.product_variants?.flatMap(v => v.gallery_images || []) || [];
-        const finalImages = defaultVariant?.gallery_images?.length > 0 
-          ? defaultVariant.gallery_images 
-          : (productData.images?.length > 0 ? productData.images : [productData.image]);
+        const finalImages = Array.isArray(productData.images)
+          ? productData.images
+          : (defaultVariant?.gallery_images?.length > 0 ? defaultVariant.gallery_images : [productData.image]);
 
         return {
           ...productData,
           id: p.id,
           sku: p.sku || productData.sku,
           slug: p.slug,
-          image: finalImages[0] || productData.image,
+          image: finalImages[0] || '',
           images: finalImages,
           color: defaultVariant?.color_name || productData.color || 'Onyx Black',
           colorHex: defaultVariant?.color_hex || productData.colorHex || '#121316',
@@ -823,7 +870,11 @@ export async function saveProduct(productData) {
             fabric_weight: productData.gsm ? `${productData.gsm} GSM` : productData.weight,
             description: productData.description
           })
-          .eq('id', productData.id);
+        // Update gallery_images across all variants for this product
+        await supabase
+          .from('product_variants')
+          .update({ gallery_images: orderedImages })
+          .eq('product_id', productData.id);
 
         let { data: existingVariant } = await supabase
           .from('product_variants')
@@ -836,7 +887,6 @@ export async function saveProduct(productData) {
           await supabase
             .from('product_variants')
             .update({
-              gallery_images: orderedImages,
               color_name: defaultCol.name,
               color_hex: defaultCol.hex
             })

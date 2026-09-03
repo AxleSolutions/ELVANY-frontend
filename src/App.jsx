@@ -90,7 +90,13 @@ export function App() {
   const [popupAdSettings, setPopupAdSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('elvany_popup_ad_settings');
-      return saved ? JSON.parse(saved) : DEFAULT_POPUP_AD;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.imageUrl && !parsed.imageUrl.startsWith('/images/')) {
+          return parsed;
+        }
+      }
+      return DEFAULT_POPUP_AD;
     } catch {
       return DEFAULT_POPUP_AD;
     }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download, Truck, ExternalLink, Eye } from 'lucide-react';
+import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download, Truck, ExternalLink, Eye, FileText, Receipt, Loader2, CreditCard } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { getOrders } from '../services/dbService';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
+import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
 
 import { INITIAL_ORDERS } from '../data/orders';
 
@@ -147,6 +148,22 @@ export const AccountPage = ({
   // Live Database Orders State for Client Account
   const [fetchedOrders, setFetchedOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
+  // Client Order Details Inspection Modal State
+  const [inspectingOrderDetails, setInspectingOrderDetails] = useState(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadInvoicePdf = async (order) => {
+    if (!order) return;
+    setIsDownloadingPdf(true);
+    try {
+      await downloadOrderInvoice(order);
+    } catch (err) {
+      console.error('Invoice PDF download error:', err);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   const fetchClientOrders = async () => {
     setIsLoadingOrders(true);
@@ -660,35 +677,89 @@ export const AccountPage = ({
                           </div>
                         </div>
 
-                        {isDelivered && (
-                          isOrderFullyReviewed(order) ? (
-                            <div style={{
+                        {/* Right-Side Action Controls */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                          {/* View Order Details Button */}
+                          <button
+                            type="button"
+                            className="btn-secondary-outline"
+                            onClick={() => setInspectingOrderDetails(order)}
+                            style={{
+                              padding: '0.65rem 1.15rem',
+                              fontSize: '0.74rem',
+                              gap: '6px',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              padding: '6px 14px',
-                              borderRadius: '2px',
-                              backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                              border: '1px solid var(--gold-border)',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
                               color: 'var(--gold-bright)',
-                              fontSize: '0.74rem',
-                              fontWeight: 600,
-                              letterSpacing: '0.04em'
-                            }}>
-                              <Check size={14} color="var(--gold-bright)" />
-                              <span>EVALUATION SUBMITTED</span>
-                            </div>
-                          ) : (
-                            <button
+                              border: '1px solid var(--gold-border)',
+                              backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                              cursor: 'pointer',
+                              borderRadius: '2px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            title={`View complete receipt & specifications for Order #${order.orderId}`}
+                          >
+                            <Eye size={13} color="var(--gold-bright)" />
+                            <span>VIEW DETAILS</span>
+                          </button>
+
+                          {/* Citypak Live Tracking Button (Right Aligned) */}
+                          {((order.status || '').toLowerCase().includes('shipped') || (order.status || '').toLowerCase().includes('transit') || isDelivered) && (order.trackingNumber || order.tracking_number) && (
+                            <a
+                              href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(order.trackingNumber || order.tracking_number)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="btn-primary-gold"
-                              onClick={() => handleGoToOrderReview(order.orderId)}
-                              style={{ padding: '0.7rem 1.3rem', fontSize: '0.78rem', gap: '0.5rem' }}
+                              style={{
+                                padding: '0.65rem 1.2rem',
+                                fontSize: '0.74rem',
+                                gap: '6px',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                fontWeight: 700,
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0 2px 10px rgba(197, 160, 89, 0.2)'
+                              }}
+                              title={`Track Citypak Parcel #${order.trackingNumber || order.tracking_number}`}
                             >
-                              <span>REVIEW THIS ORDER</span>
-                              <ArrowRight size={13} />
-                            </button>
-                          )
-                        )}
+                              <span>TRACK ORDER</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          )}
+
+                          {isDelivered && (
+                            isOrderFullyReviewed(order) ? (
+                              <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 14px',
+                                borderRadius: '2px',
+                                backgroundColor: 'rgba(197, 160, 89, 0.1)',
+                                border: '1px solid var(--gold-border)',
+                                color: 'var(--gold-bright)',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                letterSpacing: '0.04em'
+                              }}>
+                                <Check size={14} color="var(--gold-bright)" />
+                                <span>EVALUATION SUBMITTED</span>
+                              </div>
+                            ) : (
+                              <button
+                                className="btn-primary-gold"
+                                onClick={() => handleGoToOrderReview(order.orderId)}
+                                style={{ padding: '0.65rem 1.2rem', fontSize: '0.74rem', gap: '0.5rem' }}
+                              >
+                                <span>REVIEW THIS ORDER</span>
+                                <ArrowRight size={13} />
+                              </button>
+                            )
+                          )}
+                        </div>
                       </div>
 
                       {/* Rejected Slip Warning Box with Reorder CTA */}
@@ -735,8 +806,6 @@ export const AccountPage = ({
                         </div>
                       )}
 
-
-
                       {isBankTransfer && !isRejected && order.status === 'Payment Verified — Processing Dispatch' && (
                         <div style={{
                           margin: '0 1.5rem 1rem 1.5rem',
@@ -748,73 +817,6 @@ export const AccountPage = ({
                           color: '#ffffff'
                         }}>
                           <strong style={{ color: 'var(--gold-bright)' }}>✓ Bank Transfer Verified:</strong> Your payment receipt has been verified by the atelier. Parcel is currently being packed for express courier dispatch.
-                        </div>
-                      )}
-
-                      {/* Citypak Courier Express Tracking Banner & Auto-Search Button */}
-                      {((order.status || '').toLowerCase().includes('shipped') || (order.status || '').toLowerCase().includes('transit') || isDelivered) && (order.trackingNumber || order.tracking_number) && (
-                        <div style={{
-                          margin: '0 1.5rem 1.2rem 1.5rem',
-                          padding: '1.1rem 1.4rem',
-                          backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                          border: '1px solid var(--gold-bright)',
-                          borderRadius: '3px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '1.2rem',
-                          flexWrap: 'wrap'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              backgroundColor: 'rgba(197, 160, 89, 0.18)',
-                              border: '1px solid var(--gold-bright)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--gold-bright)',
-                              flexShrink: 0
-                            }}>
-                              <Truck size={20} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '3px' }}>
-                                CITYPAK EXPRESS DISPATCH
-                              </div>
-                              <div style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 600 }}>
-                                Waybill / Consignment No: <span style={{ color: 'var(--gold-bright)', fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.06em', marginLeft: '4px' }}>{order.trackingNumber || order.tracking_number}</span>
-                              </div>
-                              <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
-                                Your luxury garments are dispatched in signature packaging. Click below to view live transit checkpoints.
-                              </div>
-                            </div>
-                          </div>
-
-                          <a
-                            href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(order.trackingNumber || order.tracking_number)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-primary-gold"
-                            style={{
-                              padding: '0.75rem 1.4rem',
-                              fontSize: '0.76rem',
-                              gap: '6px',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              fontWeight: 700,
-                              whiteSpace: 'nowrap',
-                              boxShadow: '0 4px 14px rgba(197, 160, 89, 0.25)'
-                            }}
-                            title="Open live Citypak tracking search in a new tab"
-                          >
-                            <Truck size={14} />
-                            <span>TRACK ON CITYPAK</span>
-                            <ExternalLink size={12} />
-                          </a>
                         </div>
                       )}
 
@@ -948,10 +950,53 @@ export const AccountPage = ({
                           })()}
                         </div>
                       ))}
-
-
-
                     </div>
+
+                    {/* Order Financial Summary Strip */}
+                    {(() => {
+                      const itemsSubtotal = (order.items || []).reduce((sum, item) => sum + ((parseFloat(item.priceLKR || item.price || 0)) * (parseInt(item.quantity || item.qty || 1, 10))), 0);
+                      const deliveryFee = Number(order.deliveryFeeLKR ?? order.shippingFeeLKR ?? order.deliveryAddress?.deliveryFeeLKR ?? order.delivery_address?.deliveryFeeLKR ?? 0);
+                      const savings = Number(order.savingsLKR || order.discount_lkr || 0);
+                      const grandTotal = Number(order.grandTotalLKR || order.totalLKR || (itemsSubtotal + deliveryFee - savings));
+
+                      return (
+                        <div style={{
+                          backgroundColor: '#0c0d10',
+                          borderTop: '1px solid var(--border-dark)',
+                          padding: '0.9rem 1.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '0.8rem'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)', flexWrap: 'wrap' }}>
+                            <span>Items Subtotal: <strong style={{ color: '#ffffff' }}>LKR {itemsSubtotal.toLocaleString()}</strong></span>
+                            <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                            <span>
+                              Delivery: <strong style={{ color: deliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80' }}>
+                                {deliveryFee > 0 ? `+ LKR ${deliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
+                              </strong>
+                            </span>
+                            {savings > 0 && (
+                              <>
+                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                                <span style={{ color: '#4ade80' }}>Savings: -LKR {savings.toLocaleString()}</span>
+                              </>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                              Total Paid:
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                              LKR {grandTotal.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                   </div>
                 );
@@ -1744,6 +1789,370 @@ export const AccountPage = ({
                 style={{ padding: '0.7rem 1.4rem', fontSize: '0.76rem' }}
               >
                 <span>CLOSE INSPECTION</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Order Details Modal (with smooth internal scroll) */}
+      {inspectingOrderDetails && (
+        <div 
+          className="modal-backdrop" 
+          onClick={() => setInspectingOrderDetails(null)}
+          data-lenis-prevent="true"
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.88)', 
+            backdropFilter: 'blur(10px)', 
+            WebkitBackdropFilter: 'blur(10px)',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 99999, 
+            padding: '1rem' 
+          }}
+        >
+          <div 
+            className="client-order-details-dialog"
+            onClick={(e) => e.stopPropagation()}
+            data-lenis-prevent="true"
+            style={{ 
+              maxWidth: '680px', 
+              width: '100%', 
+              maxHeight: '88vh', 
+              backgroundColor: '#0c0d10', 
+              border: '1px solid var(--gold-border)', 
+              borderRadius: '4px', 
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(197, 160, 89, 0.15)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Modal Header (Fixed at Top) */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'flex-start', 
+              borderBottom: '1px solid rgba(255,255,255,0.08)', 
+              padding: '1.3rem 1.6rem',
+              backgroundColor: '#0f1014',
+              flexShrink: 0 
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <img src="/logo/Main-4.png" alt="ELVANY" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+                  <span style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+                    ATELIER ORDER PASSPORT
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+                  Order #{inspectingOrderDetails.orderId}
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
+                  Placed on {inspectingOrderDetails.orderDate}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setInspectingOrderDetails(null)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--text-light-muted)', 
+                  cursor: 'pointer', 
+                  padding: '6px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold-bright)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-light-muted)'; }}
+                title="Close Order Details"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Scrollable Modal Body */}
+            <div 
+              data-lenis-prevent="true"
+              style={{ 
+                flex: 1, 
+                overflowY: 'auto', 
+                overscrollBehavior: 'contain', 
+                WebkitOverflowScrolling: 'touch',
+                padding: '1.4rem 1.6rem'
+              }}
+            >
+              {/* Status & Payment Summary Strip */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.8rem',
+                backgroundColor: '#121317',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '3px',
+                padding: '1rem 1.2rem',
+                marginBottom: '1.4rem'
+              }}>
+                <div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
+                    Current Status
+                  </span>
+                  <span style={{
+                    display: 'inline-block',
+                    backgroundColor: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? 'rgba(34, 197, 94, 0.15)' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(197, 160, 89, 0.18)',
+                    color: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '#4ade80' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '#ef4444' : 'var(--gold-bright)',
+                    border: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '1px solid rgba(34, 197, 94, 0.3)' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '1px solid #ef4444' : '1px solid var(--gold-border)',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '2px',
+                    textTransform: 'uppercase'
+                  }}>
+                    {inspectingOrderDetails.status}
+                  </span>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
+                    Payment Method
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <CreditCard size={13} color="var(--gold-bright)" />
+                    <span>{inspectingOrderDetails.paymentMethod || 'Direct Bank Transfer'}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Courier Dispatch & Tracking Info (if active) */}
+              {(inspectingOrderDetails.trackingNumber || inspectingOrderDetails.tracking_number) && (
+                <div style={{
+                  backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                  border: '1px solid var(--gold-border)',
+                  borderRadius: '3px',
+                  padding: '0.9rem 1.2rem',
+                  marginBottom: '1.4rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.8rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Truck size={18} color="var(--gold-bright)" />
+                    <div>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em', display: 'block' }}>
+                        CITYPAK COURIER TRACKING
+                      </span>
+                      <span style={{ fontSize: '0.84rem', color: '#ffffff', fontFamily: 'monospace', fontWeight: 700 }}>
+                        {inspectingOrderDetails.trackingNumber || inspectingOrderDetails.tracking_number}
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(inspectingOrderDetails.trackingNumber || inspectingOrderDetails.tracking_number)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary-gold"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.72rem',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 700
+                    }}
+                  >
+                    <span>Track Live</span>
+                    <ExternalLink size={11} />
+                  </a>
+                </div>
+              )}
+
+              {/* Delivery Address Details */}
+              <div style={{
+                backgroundColor: '#121317',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '3px',
+                padding: '1rem 1.2rem',
+                marginBottom: '1.4rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <MapPin size={14} color="var(--gold-bright)" />
+                  <span style={{ fontSize: '0.76rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    SHIPPING & RECIPIENT INFORMATION
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#ffffff', lineHeight: 1.6 }}>
+                  <div><strong>Recipient:</strong> {inspectingOrderDetails.customerName || inspectingOrderDetails.deliveryAddress?.recipientName || 'Valued Client'}</div>
+                  {inspectingOrderDetails.customerPhone && <div><strong>Phone:</strong> {inspectingOrderDetails.customerPhone}</div>}
+                  {inspectingOrderDetails.customerEmail && <div><strong>Email:</strong> {inspectingOrderDetails.customerEmail}</div>}
+                  <div style={{ color: 'var(--text-light-secondary)', marginTop: '4px' }}>
+                    <strong>Address:</strong> {[
+                      inspectingOrderDetails.deliveryAddress?.streetAddress || inspectingOrderDetails.customerLocation,
+                      inspectingOrderDetails.deliveryAddress?.apartment,
+                      inspectingOrderDetails.deliveryAddress?.city,
+                      inspectingOrderDetails.deliveryAddress?.country || 'Sri Lanka'
+                    ].filter(Boolean).join(', ')}
+                  </div>
+                  {inspectingOrderDetails.deliveryAddress?.deliveryNotes && (
+                    <div style={{ fontStyle: 'italic', color: 'var(--gold-bright)', marginTop: '4px' }}>
+                      Notes: {inspectingOrderDetails.deliveryAddress.deliveryNotes}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Items List */}
+              <div style={{ marginBottom: '1.4rem' }}>
+                <span style={{ fontSize: '0.76rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                  GARMENTS ORDERED ({inspectingOrderDetails.items?.length || 0})
+                </span>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(inspectingOrderDetails.items || []).map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: '#121317',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '2px',
+                        padding: '10px 12px',
+                        gap: '10px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                        <img 
+                          src={item.image || '/images/hero_tshirt.webp'} 
+                          alt="" 
+                          style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}
+                          onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
+                        />
+                        <div style={{ minWidth: 0 }}>
+                          <span style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.name || item.title || 'Haute Atelier Garment'}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
+                            Size: {item.selectedSize || item.size} • Color: {item.color} • Qty: {item.quantity || item.qty || 1}
+                          </span>
+                          {item.designCode && (
+                            <span style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', display: 'block', marginTop: '1px' }}>
+                              ★ Bespoke Lab: {item.designCode}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                          LKR {((item.priceLKR || item.price || 0) * (item.quantity || item.qty || 1)).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial Summary */}
+              {(() => {
+                const modalItemsSubtotal = (inspectingOrderDetails.items || []).reduce((sum, item) => sum + ((parseFloat(item.priceLKR || item.price || 0)) * (parseInt(item.quantity || item.qty || 1, 10))), 0);
+                const modalDeliveryFee = Number(inspectingOrderDetails.deliveryFeeLKR ?? inspectingOrderDetails.shippingFeeLKR ?? inspectingOrderDetails.deliveryAddress?.deliveryFeeLKR ?? inspectingOrderDetails.delivery_address?.deliveryFeeLKR ?? 0);
+                const modalSavings = Number(inspectingOrderDetails.savingsLKR || inspectingOrderDetails.discount_lkr || 0);
+                const modalGrandTotal = Number(inspectingOrderDetails.grandTotalLKR || inspectingOrderDetails.totalLKR || (modalItemsSubtotal + modalDeliveryFee - modalSavings));
+
+                return (
+                  <div style={{
+                    backgroundColor: '#121317',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '3px',
+                    padding: '1rem 1.2rem'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                      <span>Garments Subtotal:</span>
+                      <span style={{ color: '#ffffff', fontWeight: 600 }}>LKR {modalItemsSubtotal.toLocaleString()}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                      <span>Island-Wide Courier Delivery:</span>
+                      <span style={{ color: modalDeliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80', fontWeight: 600 }}>
+                        {modalDeliveryFee > 0 ? `+ LKR ${modalDeliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
+                      </span>
+                    </div>
+                    {modalSavings > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
+                        <span>Privilege / Promo Savings:</span>
+                        <span>- LKR {modalSavings.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.96rem',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                      paddingTop: '8px',
+                      marginTop: '6px'
+                    }}>
+                      <span>Grand Total:</span>
+                      <span style={{ color: 'var(--gold-bright)', fontFamily: 'var(--font-display)' }}>
+                        LKR {modalGrandTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer (Fixed at Bottom) */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: '10px', 
+              flexWrap: 'wrap',
+              padding: '1rem 1.6rem',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: '#0f1014',
+              flexShrink: 0
+            }}>
+              <button
+                type="button"
+                className="btn-outline-gold"
+                onClick={() => handleDownloadInvoicePdf(inspectingOrderDetails)}
+                disabled={isDownloadingPdf}
+                style={{ padding: '0.65rem 1.2rem', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                {isDownloadingPdf ? (
+                  <>
+                    <Loader2 size={14} className="spin-animation" />
+                    <span>GENERATING PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={14} />
+                    <span>DOWNLOAD INVOICE (PDF)</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="btn-primary-gold"
+                onClick={() => setInspectingOrderDetails(null)}
+                style={{ padding: '0.65rem 1.4rem', fontSize: '0.76rem', fontWeight: 700 }}
+              >
+                <span>CLOSE</span>
               </button>
             </div>
           </div>

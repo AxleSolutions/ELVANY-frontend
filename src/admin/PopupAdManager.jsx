@@ -17,22 +17,13 @@ import {
 } from 'lucide-react';
 import { uploadPopupAdImage, getPopupAdSettings, savePopupAdSettings } from '../services/dbService';
 
-const PRESET_IMAGES = [
-  { label: 'Brutalist Campaign', path: '/images/editorial_brutalist.webp' },
-  { label: 'Heavyweight Sea Island', path: '/images/pillar_heavyweight.webp' },
-  { label: 'Florence Tailoring', path: '/images/pillar_tailoring.webp' },
-  { label: 'Onyx Silk Cotton', path: '/images/pillar_silk.webp' },
-  { label: 'Editorial Model', path: '/images/hero_model.webp' },
-  { label: 'Oversized Silhouette', path: '/images/tshirt_oversized.webp' }
-];
-
 export const PopupAdManager = ({ 
   popupAdSettings, 
   onSavePopupAdSettings 
 }) => {
   const [formData, setFormData] = useState({
     enabled: popupAdSettings?.enabled ?? true,
-    imageUrl: popupAdSettings?.imageUrl || '/images/editorial_brutalist.webp',
+    imageUrl: popupAdSettings?.imageUrl || '',
     targetUrl: popupAdSettings?.targetUrl || '/collection',
     altText: popupAdSettings?.altText || 'ELVANY Seasonal Advertisement',
     showOncePerSession: popupAdSettings?.showOncePerSession ?? true
@@ -52,7 +43,7 @@ export const PopupAdManager = ({
         if (dbData) {
           setFormData({
             enabled: dbData.enabled ?? true,
-            imageUrl: dbData.imageUrl || '/images/editorial_brutalist.webp',
+            imageUrl: dbData.imageUrl || '',
             targetUrl: dbData.targetUrl || '/collection',
             altText: dbData.altText || 'ELVANY Seasonal Advertisement',
             showOncePerSession: dbData.showOncePerSession ?? true
@@ -379,69 +370,36 @@ export const PopupAdManager = ({
           </div>
 
 
-            {/* Atelier Visual Gallery Presets */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '0.6rem', letterSpacing: '0.06em' }}>
-                QUICK SELECTION FROM ATELIER ARCHIVE
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.8rem' }}>
-                {PRESET_IMAGES.map((preset, idx) => {
-                  const isSelected = formData.imageUrl === preset.path;
-
-                  return (
-                    <div 
-                      key={idx}
-                      onClick={() => handlePresetSelect(preset.path)}
-                      style={{
-                        position: 'relative',
-                        aspectRatio: '4/5',
-                        borderRadius: '2px',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        border: isSelected ? '2px solid var(--gold-bright)' : '1px solid rgba(255, 255, 255, 0.1)',
-                        transition: 'transform 0.2s ease'
-                      }}
-                    >
-                      <img 
-                        src={preset.path} 
-                        alt={preset.label} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                      />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        padding: '6px',
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                        fontSize: '0.68rem',
-                        color: isSelected ? 'var(--gold-bright)' : '#ffffff',
-                        fontWeight: 600,
-                        textAlign: 'center'
-                      }}>
-                        {preset.label}
-                      </div>
-                      {isSelected && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '6px',
-                          right: '6px',
-                          backgroundColor: 'var(--gold-bright)',
-                          color: '#000000',
-                          borderRadius: '50%',
-                          width: '18px',
-                          height: '18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <Check size={11} strokeWidth={3} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Cloudinary Upload Guidance & Live Active Asset Preview */}
+            <div style={{
+              backgroundColor: '#0d0f12',
+              border: '1px solid var(--border-dark)',
+              borderRadius: '3px',
+              padding: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem'
+            }}>
+              <div>
+                <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                  Cloudinary CDN Storage Only
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                  Upload your high-res editorial campaign banner directly above to ensure global ultra-fast CDN delivery on Home.
+                </span>
               </div>
+              {formData.imageUrl && formData.imageUrl.startsWith('http') && (
+                <a
+                  href={formData.imageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary-outline"
+                  style={{ fontSize: '0.72rem', padding: '4px 10px', whiteSpace: 'nowrap' }}
+                >
+                  View CDN Image ↗
+                </a>
+              )}
             </div>
           </div>
 
