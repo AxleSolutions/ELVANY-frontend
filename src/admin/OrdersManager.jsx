@@ -473,10 +473,6 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
           </div>
         </div>
       )}
-
-    </div>
-  );
-};
     </div>
   );
 };
