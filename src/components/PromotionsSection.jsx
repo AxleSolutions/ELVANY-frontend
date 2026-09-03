@@ -156,10 +156,18 @@ export const PromotionsSection = ({
               const origPrice = offer.originalPriceLKR || 18500;
               const offerPrice = offer.offerPriceLKR || 15500;
               const savingsAmount = origPrice - offerPrice;
-              const percentOff = Math.round((savingsAmount / origPrice) * 100);
-              const totalAllocation = offer.totalAllocation || 25;
-              const remaining = offer.remainingUnits || 6;
-              const claimedPercent = Math.round(((totalAllocation - remaining) / totalAllocation) * 100);
+              const percentOff = origPrice > 0 ? Math.round((savingsAmount / origPrice) * 100) : 0;
+
+              // Only show claimed/scarcity data if genuine valid allocation and remaining data exists; otherwise cleanly remove
+              const hasTotal = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0;
+              const hasRemaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0;
+              const isStaleFixedArtifact = offer.totalAllocation === 25 && offer.remainingUnits === 6;
+
+              const canShowScarcity = hasTotal && hasRemaining && (offer.totalAllocation >= offer.remainingUnits) && !isStaleFixedArtifact;
+              const claimedPercent = canShowScarcity 
+                ? Math.round(((offer.totalAllocation - offer.remainingUnits) / offer.totalAllocation) * 100)
+                : null;
+              const remainingUnits = (hasRemaining && !isStaleFixedArtifact) ? offer.remainingUnits : null;
 
               return (
                 <div 
@@ -195,22 +203,30 @@ export const PromotionsSection = ({
                         }}
                       />
 
-                      {/* Privilege Badge Overlay (Hidden on Mobile) */}
-                      <div className="offer-badge-overlay">
-                        <Sparkles size={13} />
-                        <span>{offer.badge || 'ATELIER PRIVILEGE'}</span>
-                      </div>
+                      {/* Privilege Badge Overlay (only if custom badge and not ATELIER LAUNCH PRIVILEGE) */}
+                      {offer.badge && !offer.badge.toUpperCase().includes('LAUNCH PRIVILEGE') && (
+                        <div className="offer-badge-overlay">
+                          <Sparkles size={13} />
+                          <span>{offer.badge}</span>
+                        </div>
+                      )}
 
-                      {/* Bottom Scarcity Banner */}
-                      <div className="offer-scarcity-pill">
-                        <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Flame size={13} color="var(--gold-bright)" />
-                          <span>{remaining} left</span>
-                        </span>
-                        <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
-                          {claimedPercent}% claimed
-                        </span>
-                      </div>
+                      {/* Bottom Scarcity Banner (Only shown when enough genuine data exists) */}
+                      {(remainingUnits !== null || claimedPercent !== null) && (
+                        <div className="offer-scarcity-pill">
+                          {remainingUnits !== null && (
+                            <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Flame size={13} color="var(--gold-bright)" />
+                              <span>{remainingUnits} left</span>
+                            </span>
+                          )}
+                          {claimedPercent !== null && (
+                            <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
+                              {claimedPercent}% claimed
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Right Column: Offer Headline, Price Comparison & Direct Product Redirect CTA */}

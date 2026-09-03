@@ -4,6 +4,7 @@ import { PRODUCTS, CATEGORIES } from '../data/products';
 
 export const CollectionPage = ({
   products = [],
+  offers = [],
   isLoading = false,
   loggedInUser,
   userProfile,
@@ -53,16 +54,79 @@ export const CollectionPage = ({
 
   const currentMeta = categoryDetails[selectedCategory] || categoryDetails.all;
 
+  // Helper to resolve offer details for a given product
+  const getProductOfferInfo = (product) => {
+    const activeOffer = (offers || []).find(
+      (o) => o.isActive !== false && (
+        (o.productId && (String(o.productId) === String(product.id) || String(o.productId) === String(product.slug))) ||
+        (o.productName && (product.name || product.title) && o.productName.trim().toLowerCase() === (product.name || product.title).trim().toLowerCase())
+      )
+    );
+
+    const originalPrice = parseFloat(
+      activeOffer?.originalPriceLKR || 
+      product.originalPriceLKR || 
+      product.original_price_lkr || 
+      product.base_price_lkr || 
+      product.priceLKR || 
+      product.price || 
+      18500
+    );
+
+    let offerPrice = null;
+    if (activeOffer && activeOffer.offerPriceLKR !== undefined && activeOffer.offerPriceLKR !== null) {
+      offerPrice = parseFloat(activeOffer.offerPriceLKR);
+    } else if (product.offerPriceLKR !== undefined && product.offerPriceLKR !== null) {
+      offerPrice = parseFloat(product.offerPriceLKR);
+    } else if (product.offer_price_lkr !== undefined && product.offer_price_lkr !== null) {
+      offerPrice = parseFloat(product.offer_price_lkr);
+    } else if (product.is_offer_applied || product.isOfferApplied) {
+      if (product.discount_value) {
+        const dVal = parseFloat(product.discount_value);
+        offerPrice = product.discount_type === 'percentage'
+          ? Math.round(originalPrice * (1 - dVal / 100))
+          : Math.max(0, originalPrice - dVal);
+      } else if (offers && offers.length > 0) {
+        const anyActive = offers.find(o => o.isActive !== false);
+        if (anyActive) {
+          if (anyActive.discountType === 'percentage' && anyActive.discountValue) {
+            offerPrice = Math.round(originalPrice * (1 - anyActive.discountValue / 100));
+          } else if (anyActive.discountValue) {
+            offerPrice = Math.max(0, originalPrice - anyActive.discountValue);
+          } else if (anyActive.offerPriceLKR) {
+            offerPrice = anyActive.offerPriceLKR;
+          }
+        }
+      }
+    }
+
+    const isDiscounted = Boolean(offerPrice && Number(offerPrice) > 0 && Number(offerPrice) < originalPrice);
+    const savings = isDiscounted ? (originalPrice - Number(offerPrice)) : 0;
+    const discountPercent = isDiscounted && originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0;
+
+    return {
+      activeOffer,
+      hasOffer: isDiscounted || Boolean(product.is_offer_applied || product.isOfferApplied),
+      isDiscounted,
+      offerPrice: isDiscounted ? Number(offerPrice) : null,
+      originalPrice,
+      savings,
+      discountPercent
+    };
+  };
+
   const filteredProducts = useMemo(() => {
     return products.filter((item) => {
       if (selectedCategory === 'all') return true;
       return item.category === selectedCategory;
     }).sort((a, b) => {
-      if (sortBy === 'price-low') return (a.priceLKR || a.price) - (b.priceLKR || b.price);
-      if (sortBy === 'price-high') return (b.priceLKR || b.price) - (a.priceLKR || a.price);
+      const priceA = getProductOfferInfo(a).offerPrice || a.priceLKR || a.price || 0;
+      const priceB = getProductOfferInfo(b).offerPrice || b.priceLKR || b.price || 0;
+      if (sortBy === 'price-low') return priceA - priceB;
+      if (sortBy === 'price-high') return priceB - priceA;
       return 0;
     });
-  }, [products, selectedCategory, sortBy]);
+  }, [products, selectedCategory, sortBy, offers]);
 
   const formatLKR = (val) => {
     return `LKR ${val.toLocaleString()}`;
@@ -226,12 +290,20 @@ export const CollectionPage = ({
             filteredProducts.map((product) => {
               const isJustAdded = addedItemId === product.id;
               const isOutOfStock = product.totalStock === 0 || (product.inventory && Object.values(product.inventory).every(v => Number(v) <= 0));
+              const { activeOffer, isDiscounted, offerPrice, originalPrice, savings, discountPercent } = getProductOfferInfo(product);
+
+              const productToAdd = isDiscounted
+                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true }
+                : product;
 
               return (
                 <article 
                   key={product.id} 
                   className="product-card"
-                  onClick={() => onSelectProduct ? onSelectProduct(product) : onOpenQuickView(product)}
+                  onClick={() => {
+                    if (onSelectProduct) onSelectProduct(productToAdd);
+                    else if (onOpenQuickView) onOpenQuickView(productToAdd);
+                  }}
                   style={{ cursor: 'pointer', opacity: isOutOfStock ? 0.75 : 1 }}
                 >
                   <div className="product-image-wrap">
@@ -239,16 +311,40 @@ export const CollectionPage = ({
                       <span className="product-badge" style={{ backgroundColor: 'rgba(239,68,68,0.9)', color: '#ffffff', border: '1px solid #ef4444' }}>
                         SOLD OUT
                       </span>
-                    ) : product.badge ? (
+                    ) : product.badge && product.badge !== 'ATELIER LAUNCH PRIVILEGE' ? (
                       <span className="product-badge">{product.badge}</span>
                     ) : null}
+
+                    {/* Offer Discount Saving Pill */}
+                    {isDiscounted && savings > 0 && !isOutOfStock && (
+                      <span 
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          backgroundColor: '#b91c1c',
+                          color: '#ffffff',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '4px 8px',
+                          borderRadius: '2px',
+                          letterSpacing: '0.04em',
+                          zIndex: 3,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        SAVE LKR {savings.toLocaleString()}
+                      </span>
+                    )}
+
                     <img 
-                      src={product.image || '/images/hero_tshirt.jpg'} 
+                      src={product.image || '/images/hero_tshirt.webp'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
                       loading="lazy"
                       decoding="async"
-                      onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                      onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                     />
 
                     {/* Hover Quick Actions */}
@@ -271,7 +367,7 @@ export const CollectionPage = ({
                               else if (onOpenQuickView) onOpenQuickView(product);
                               return;
                             }
-                            onAddToCart(product, userProfileSize);
+                            onAddToCart(productToAdd, userProfileSize);
                           }}
                           style={{
                             backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
@@ -338,7 +434,25 @@ export const CollectionPage = ({
                     <div>
                       <div className="product-title-row">
                         <h3 className="product-name">{product.name || product.title}</h3>
-                        <div className="product-price">{formatLKR(product.priceLKR || product.price || 18500)}</div>
+                        {isDiscounted ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0 }}>
+                            <div className="product-price" style={{ color: 'var(--gold-bright)', fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.02em' }}>
+                              {formatLKR(offerPrice)}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)', textDecoration: 'line-through', opacity: 0.75 }}>
+                                {formatLKR(originalPrice)}
+                              </span>
+                              {discountPercent > 0 && (
+                                <span style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700 }}>
+                                  ({discountPercent}% OFF)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="product-price">{formatLKR(originalPrice)}</div>
+                        )}
                       </div>
                       <p className="product-tagline">{product.tagline || product.subtitle}</p>
                     </div>

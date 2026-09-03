@@ -18,12 +18,12 @@ import {
 import { uploadPopupAdImage, getPopupAdSettings, savePopupAdSettings } from '../services/dbService';
 
 const PRESET_IMAGES = [
-  { label: 'Brutalist Campaign', path: '/images/editorial_brutalist.jpg' },
-  { label: 'Heavyweight Sea Island', path: '/images/pillar_heavyweight.jpg' },
-  { label: 'Florence Tailoring', path: '/images/pillar_tailoring.jpg' },
-  { label: 'Onyx Silk Cotton', path: '/images/pillar_silk.jpg' },
-  { label: 'Editorial Model', path: '/images/hero_model.jpg' },
-  { label: 'Oversized Silhouette', path: '/images/tshirt_oversized.jpg' }
+  { label: 'Brutalist Campaign', path: '/images/editorial_brutalist.webp' },
+  { label: 'Heavyweight Sea Island', path: '/images/pillar_heavyweight.webp' },
+  { label: 'Florence Tailoring', path: '/images/pillar_tailoring.webp' },
+  { label: 'Onyx Silk Cotton', path: '/images/pillar_silk.webp' },
+  { label: 'Editorial Model', path: '/images/hero_model.webp' },
+  { label: 'Oversized Silhouette', path: '/images/tshirt_oversized.webp' }
 ];
 
 export const PopupAdManager = ({ 
@@ -32,7 +32,7 @@ export const PopupAdManager = ({
 }) => {
   const [formData, setFormData] = useState({
     enabled: popupAdSettings?.enabled ?? true,
-    imageUrl: popupAdSettings?.imageUrl || '/images/editorial_brutalist.jpg',
+    imageUrl: popupAdSettings?.imageUrl || '/images/editorial_brutalist.webp',
     targetUrl: popupAdSettings?.targetUrl || '/collection',
     altText: popupAdSettings?.altText || 'ELVANY Seasonal Advertisement',
     showOncePerSession: popupAdSettings?.showOncePerSession ?? true
@@ -52,7 +52,7 @@ export const PopupAdManager = ({
         if (dbData) {
           setFormData({
             enabled: dbData.enabled ?? true,
-            imageUrl: dbData.imageUrl || '/images/editorial_brutalist.jpg',
+            imageUrl: dbData.imageUrl || '/images/editorial_brutalist.webp',
             targetUrl: dbData.targetUrl || '/collection',
             altText: dbData.altText || 'ELVANY Seasonal Advertisement',
             showOncePerSession: dbData.showOncePerSession ?? true
@@ -91,32 +91,38 @@ export const PopupAdManager = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Immediately display the selected file in the preview canvas
+    const instantPreview = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, imageUrl: instantPreview }));
+
     setIsUploading(true);
-    setUploadStatusMsg('Streaming image directly to Cloudinary CDN...');
+    setUploadStatusMsg('Uploading and processing banner visual...');
 
     try {
       const result = await uploadPopupAdImage(file);
-      if (result && result.secure_url) {
-        const updated = {
-          ...formData,
-          imageUrl: result.secure_url
-        };
-        setFormData(updated);
-        
-        // Auto-save to Supabase and database immediately
-        await savePopupAdSettings(updated);
-        if (onSavePopupAdSettings) {
-          onSavePopupAdSettings(updated);
-        }
-        sessionStorage.removeItem('elvany_popup_ad_dismissed');
-        window.dispatchEvent(new CustomEvent('elvany_popup_ad_updated', { detail: updated }));
-
-        setUploadStatusMsg('✓ Uploaded & Saved to Database!');
-        setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3500);
+      const finalUrl = result?.secure_url || instantPreview;
+      const updated = {
+        ...formData,
+        imageUrl: finalUrl
+      };
+      setFormData(updated);
+      
+      // Auto-save to Supabase and database immediately
+      await savePopupAdSettings(updated);
+      if (onSavePopupAdSettings) {
+        onSavePopupAdSettings(updated);
       }
+      sessionStorage.removeItem('elvany_popup_ad_dismissed');
+      try {
+        localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(updated));
+      } catch {}
+      window.dispatchEvent(new CustomEvent('elvany_popup_ad_updated', { detail: updated }));
+
+      setUploadStatusMsg('✓ Visual Uploaded & Published to Atelier!');
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3500);
     } catch (err) {
-      console.error('Cloudinary upload error:', err);
+      console.error('Ad image upload error:', err);
       // Fallback to local FileReader Data URL
       const reader = new FileReader();
       reader.onload = async (uploadEvent) => {
@@ -131,8 +137,11 @@ export const PopupAdManager = ({
             onSavePopupAdSettings(updated);
           }
           sessionStorage.removeItem('elvany_popup_ad_dismissed');
+          try {
+            localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(updated));
+          } catch {}
           window.dispatchEvent(new CustomEvent('elvany_popup_ad_updated', { detail: updated }));
-          setUploadStatusMsg('✓ Image applied & saved!');
+          setUploadStatusMsg('✓ Visual applied & saved!');
         }
       };
       reader.readAsDataURL(file);
@@ -164,7 +173,7 @@ export const PopupAdManager = ({
 
   const handleResetSession = () => {
     sessionStorage.removeItem('elvany_popup_ad_dismissed');
-    alert('Session test flag cleared! When you visit the storefront home page, the popup will appear now.');
+    window.open('/', '_blank');
   };
 
 
@@ -306,7 +315,7 @@ export const PopupAdManager = ({
                 type="text"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                placeholder="e.g. /images/editorial_brutalist.jpg or https://..."
+                placeholder="e.g. /images/editorial_brutalist.webp or https://..."
                 className="admin-input"
                 style={{ width: '100%' }}
               />
@@ -573,7 +582,7 @@ export const PopupAdManager = ({
                 inset: 0,
                 opacity: 0.15,
                 filter: 'blur(4px)',
-                backgroundImage: 'url(/images/hero_model.jpg)',
+                backgroundImage: 'url(/images/hero_model.webp)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 pointerEvents: 'none'
@@ -620,7 +629,6 @@ export const PopupAdManager = ({
                       objectFit: 'cover',
                       display: 'block'
                     }}
-                    onError={(e) => { e.target.src = '/images/editorial_brutalist.jpg'; }}
                   />
 
                   {formData.targetUrl && (

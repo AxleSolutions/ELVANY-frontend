@@ -1,26 +1,64 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Check, ShieldCheck, Award, Layers, Sparkles } from 'lucide-react';
 
 export const EditorialModal = ({ isOpen, onClose }) => {
+  // Lock background body scroll and listen for Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 9999, padding: '1rem' }}>
+    <div 
+      className="modal-backdrop editorial-modal-backdrop" 
+      onClick={onClose} 
+      data-lenis-prevent="true"
+      style={{ 
+        position: 'fixed',
+        inset: 0,
+        zIndex: 99999, 
+        padding: '1rem',
+        backgroundColor: 'rgba(5, 6, 8, 0.92)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflowY: 'auto'
+      }}
+    >
       <div 
         className="editorial-study-dialog" 
+        data-lenis-prevent="true"
         style={{
           backgroundColor: '#121316',
           color: '#ffffff',
           width: '100%',
           maxWidth: '960px',
           maxHeight: '90vh',
-          borderRadius: '2px',
+          borderRadius: '4px',
           border: '1px solid var(--border-dark)',
           boxShadow: 'var(--shadow-luxury)',
           position: 'relative',
           display: 'grid',
           gridTemplateColumns: '1fr 1.2fr',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          overscrollBehavior: 'contain'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -51,7 +89,7 @@ export const EditorialModal = ({ isOpen, onClose }) => {
         {/* Left Column: Image Banner */}
         <div className="editorial-dialog-image" style={{ position: 'relative', minHeight: '300px', backgroundColor: '#090a0c' }}>
           <img 
-            src="/images/editorial_brutalist.jpg" 
+            src="/images/editorial_brutalist.webp" 
             alt="ELVANY Architectural Study" 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -78,12 +116,15 @@ export const EditorialModal = ({ isOpen, onClose }) => {
         {/* Right Column: Scrollable Deep Dive Content */}
         <div 
           className="editorial-dialog-body" 
+          data-lenis-prevent="true"
           style={{
             padding: '2.8rem 2.4rem',
             overflowY: 'auto',
             maxHeight: '90vh',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           <div style={{

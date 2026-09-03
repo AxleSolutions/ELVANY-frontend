@@ -1,10 +1,140 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell, Ruler } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
 import { SizeChartModal } from './SizeChartModal';
+
+/**
+ * Intelligent Atelier Recommendation Engine
+ * Computes multidimensional compatibility based on category, silhouette,
+ * fabric composition, styling pairing, colorway harmony, and customer acclaim.
+ */
+function getCuratedRecommendations(currentProduct, allProducts = []) {
+  if (!currentProduct || !Array.isArray(allProducts) || allProducts.length <= 1) {
+    return [];
+  }
+
+  // Filter out the current active item and draft/archived records
+  const candidates = allProducts.filter((p) => {
+    if (!p) return false;
+    const isSame = (p.id && currentProduct.id && p.id === currentProduct.id) || 
+                   (p.slug && currentProduct.slug && p.slug === currentProduct.slug);
+    if (isSame) return false;
+    if (p.status === 'Draft' || p.status === 'Archived') return false;
+    return true;
+  });
+
+  if (candidates.length === 0) return [];
+
+  const curCategory = (currentProduct.category || '').toLowerCase();
+  const curName = (currentProduct.name || '').toLowerCase();
+  const curColor = (currentProduct.color || '').toLowerCase();
+  const curFabric = (currentProduct.fabricProvenance || currentProduct.tagline || currentProduct.details?.join(' ') || '').toLowerCase();
+  const curPrice = Number(currentProduct.priceLKR) || 18500;
+  const curColorsAvailable = Array.isArray(currentProduct.colorsAvailable) 
+    ? currentProduct.colorsAvailable.map(c => String(c).toLowerCase()) 
+    : [];
+
+  const scored = candidates.map((p) => {
+    let score = 0;
+    let reasons = [];
+
+    const pCategory = (p.category || '').toLowerCase();
+    const pName = (p.name || '').toLowerCase();
+    const pColor = (p.color || '').toLowerCase();
+    const pFabric = (p.fabricProvenance || p.tagline || p.details?.join(' ') || '').toLowerCase();
+    const pPrice = Number(p.priceLKR) || 18500;
+    const pColorsAvailable = Array.isArray(p.colorsAvailable) 
+      ? p.colorsAvailable.map(c => String(c).toLowerCase()) 
+      : [];
+
+    // 1. Same Architectural Category / Pillar (e.g. Heavyweight, Silk-Cotton, Oversized)
+    if (curCategory && pCategory && curCategory === pCategory) {
+      score += 45;
+      const catLabel = curCategory.charAt(0).toUpperCase() + curCategory.slice(1);
+      reasons.push(`Same ${catLabel} Pillar`);
+    }
+
+    // 2. Complementary Wardrobe Pairing (Tee + Trousers / Overcoat / Leather Accessories)
+    const isCurTee = curName.includes('tee') || curName.includes('t-shirt') || curCategory.includes('heavyweight') || curCategory.includes('silk') || curCategory.includes('oversized');
+    const isPOuter = pName.includes('coat') || pName.includes('jacket') || pCategory.includes('tailoring');
+    const isPTrouser = pName.includes('trouser') || pName.includes('pant') || pName.includes('denim');
+    const isPAccessory = pName.includes('duffle') || pName.includes('bag') || pName.includes('belt') || pCategory.includes('accessories');
+
+    if (isCurTee && (isPOuter || isPTrouser || isPAccessory)) {
+      score += 35;
+      if (isPTrouser) reasons.push('Pairs With Atelier Trousers');
+      else if (isPOuter) reasons.push('Layer With Tailoring');
+      else if (isPAccessory) reasons.push('Complete The Look');
+    }
+
+    // 3. Similar Cut & Silhouette (Drop-shoulder/Oversized vs Tailored Classic)
+    const isCurOversized = curName.includes('oversized') || curName.includes('boxy') || curName.includes('drop-shoulder') || curCategory.includes('oversized');
+    const isPOversized = pName.includes('oversized') || pName.includes('boxy') || pName.includes('drop-shoulder') || pCategory.includes('oversized');
+    if (isCurOversized && isPOversized) {
+      score += 25;
+      reasons.push('Similar Boxy Silhouette');
+    } else if (curName.includes('tailored') && pName.includes('tailored')) {
+      score += 25;
+      reasons.push('Tailored Sartorial Cut');
+    }
+
+    // 4. Fabric Synergy & Textile Pairing (e.g. Combed Cotton, Mulberry Silk, French Terry)
+    const fabricTokens = [
+      { key: 'sea island', label: 'Sea Island Cotton' },
+      { key: 'silk', label: 'Mulberry Silk' },
+      { key: 'mercerized', label: 'Mercerized Cotton' },
+      { key: 'french terry', label: 'French Terry' },
+      { key: '280 gsm', label: '280 GSM Heavyweight' },
+      { key: 'cotton', label: 'Long-Staple Cotton' },
+      { key: 'wool', label: 'Fine Wool' }
+    ];
+
+    for (const token of fabricTokens) {
+      if (curFabric.includes(token.key) && pFabric.includes(token.key)) {
+        score += 15;
+        if (!reasons.some(r => r.includes('Fabric') || r.includes('Woven') || r.includes('Cotton') || r.includes('Silk'))) {
+          reasons.push(`Matching ${token.label}`);
+        }
+        break;
+      }
+    }
+
+    // 5. Coordinating Colorway & Shared Palette
+    const sharedColors = curColorsAvailable.filter(c => pColorsAvailable.includes(c));
+    if (sharedColors.length > 0) {
+      score += 15;
+      if (reasons.length === 0) reasons.push('Coordinating Colorway');
+    }
+    if (curColor && pColor && curColor === pColor) {
+      score += 10;
+      if (reasons.length === 0) reasons.push(`In Matching ${p.color}`);
+    }
+
+    // 6. Price Proximity Tier
+    const priceDiff = Math.abs(curPrice - pPrice);
+    if (priceDiff <= 3000) score += 10;
+    else if (priceDiff <= 6000) score += 5;
+
+    // 7. Verified Customer Acclaim
+    if (Number(p.rating) >= 4.9) score += 8;
+
+    const primaryReason = reasons[0] || (p.provenanceTag || (p.category ? `${p.category.toUpperCase()} EDITION` : 'ATELIER CURATION'));
+
+    return {
+      ...p,
+      recommendationScore: score,
+      recommendationReason: primaryReason
+    };
+  });
+
+  // Sort by highest compatibility score descending
+  scored.sort((a, b) => b.recommendationScore - a.recommendationScore);
+
+  return scored.slice(0, 4);
+}
 
 export const ProductDetailPage = ({
   products = PRODUCTS,
@@ -95,7 +225,7 @@ export const ProductDetailPage = ({
 
   const images = product.images && product.images.length > 0 
     ? product.images 
-    : [product.image || '/images/hero_tshirt.jpg'];
+    : [product.image || '/images/hero_tshirt.webp'];
 
   const handleHelpfulClick = (revId) => {
     if (helpfulMap[revId]) return;
@@ -107,9 +237,11 @@ export const ProductDetailPage = ({
     );
   };
 
-  const relatedProducts = (products.length > 0 ? products : PRODUCTS)
-    .filter((p) => p.id !== product.id && p.status !== 'Draft' && p.status !== 'Archived')
-    .slice(0, 4);
+  // Multidimensional Intelligent Atelier Recommendation Algorithm
+  const relatedProducts = useMemo(() => {
+    const pool = Array.isArray(products) && products.length > 0 ? products : PRODUCTS;
+    return getCuratedRecommendations(product, pool);
+  }, [product?.id, product?.category, product?.fabricProvenance, product?.name, product?.color, products]);
 
   const averageRating = localReviews.length > 0
     ? (localReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / localReviews.length).toFixed(1)
@@ -748,9 +880,9 @@ export const ProductDetailPage = ({
                     decoding="async"
                     className="pdp-related-img"
                   />
-                  {rp.provenanceTag && (
+                  {(rp.recommendationReason || rp.provenanceTag) && (
                     <span className="pdp-related-badge">
-                      {rp.provenanceTag}
+                      {rp.recommendationReason || rp.provenanceTag}
                     </span>
                   )}
                 </div>

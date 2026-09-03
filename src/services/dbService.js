@@ -42,7 +42,12 @@ export async function getProducts() {
       });
     }
 
-    const price = parseFloat(p.base_price_lkr || p.price || 18500);
+    const basePrice = parseFloat(p.base_price_lkr || p.price || 18500);
+    const origPrice = parseFloat(p.original_price_lkr || basePrice);
+    const offerPrice = (p.offer_price_lkr !== undefined && p.offer_price_lkr !== null)
+      ? parseFloat(p.offer_price_lkr)
+      : ((p.offerPriceLKR !== undefined && p.offerPriceLKR !== null) ? parseFloat(p.offerPriceLKR) : null);
+    const hasOffer = Boolean(p.is_offer_applied || (offerPrice && offerPrice < basePrice));
 
     return {
       id: p.id,
@@ -53,10 +58,12 @@ export async function getProducts() {
       subtitle: p.subtitle,
       category: p.category || 'heavyweight',
       silhouette: p.silhouette || 'Boxy Drop-Shoulder',
-      price,
-      priceLKR: price,
-      originalPriceLKR: parseFloat(p.original_price_lkr || price),
-      isOfferApplied: p.is_offer_applied || false,
+      price: basePrice,
+      priceLKR: basePrice,
+      originalPriceLKR: origPrice,
+      offerPriceLKR: offerPrice,
+      discountTag: p.discount_tag || (offerPrice && origPrice > offerPrice ? `SAVE LKR ${(origPrice - offerPrice).toLocaleString()}` : null),
+      isOfferApplied: hasOffer,
       is_active: p.is_active !== false,
       status: p.is_active === false ? 'Draft' : 'Active',
       description: p.description,
@@ -67,21 +74,21 @@ export async function getProducts() {
       weight: p.fabric_weight || '280 GSM',
       features: Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details : [],
       care: Array.isArray(p.care_instructions) ? p.care_instructions : [],
-      image: defaultVariant?.gallery_images?.[0] || allImages[0] || p.image || '/images/hero_tshirt.jpg',
+      image: defaultVariant?.gallery_images?.[0] || allImages[0] || p.image || '/images/hero_tshirt.webp',
       images: defaultVariant?.gallery_images?.length > 0 
         ? defaultVariant.gallery_images 
-        : (allImages.length > 0 ? allImages : [p.image || '/images/hero_tshirt.jpg']),
+        : (allImages.length > 0 ? allImages : [p.image || '/images/hero_tshirt.webp']),
       colors: (p.product_variants || []).map((v) => ({
         name: v.color_name,
         hex: v.color_hex,
-        image: v.gallery_images?.[0] || '/images/hero_tshirt.jpg'
+        image: v.gallery_images?.[0] || '/images/hero_tshirt.webp'
       })),
       colorsAvailable: (p.product_variants && p.product_variants.length > 0)
         ? p.product_variants.map(v => v.color_hex)
         : ['#141518', '#c5a059'],
       color: defaultVariant?.color_name || 'Onyx Black',
       tagline: p.subtitle || p.silhouette || 'Noble Cotton Atelier Edition',
-      badge: p.is_offer_applied ? 'SPECIAL PRIVILEGE' : (p.is_featured ? 'SIGNATURE EDITION' : null),
+      badge: p.badge || (p.is_featured ? 'SIGNATURE EDITION' : null),
       sizes: defaultVariant?.product_stock?.length > 0 
         ? defaultVariant.product_stock.map(s => s.size_code)
         : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
@@ -409,7 +416,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
             unit_price_lkr: parseFloat(item.priceLKR || 18500),
             original_price_lkr: parseFloat(item.originalPriceLKR || item.priceLKR || 18500),
             quantity: parseInt(item.quantity || item.qty || 1, 10),
-            product_image_url: item.image || '/images/hero_tshirt.jpg'
+            product_image_url: item.image || '/images/hero_tshirt.webp'
           };
         });
 
@@ -493,6 +500,8 @@ export async function getOrders() {
             customerPhone: o.customer_phone || o.customerPhone,
             customerLocation: o.delivery_address?.location || o.customerLocation || 'Colombo, Sri Lanka',
             deliveryAddress: o.delivery_address || o.deliveryAddress,
+            // New field: tracking number (prefers dedicated column, falls back to JSONB field)
+            trackingNumber: o.tracking_number || (o.delivery_address && o.delivery_address.trackingNumber) || null,
             orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at || o.createdAt,
             status: o.status || 'Pending Slip Verification',
@@ -514,7 +523,7 @@ export async function getOrders() {
                 priceLKR: parseFloat(i.unit_price_lkr || i.priceLKR || 18500),
                 originalPriceLKR: parseFloat(i.original_price_lkr || i.originalPriceLKR || 18500),
                 quantity: i.quantity || i.qty || 1,
-                image: i.product_image_url || i.image || matched?.image || '/images/hero_tshirt.jpg',
+                image: i.product_image_url || i.image || matched?.image || '/images/hero_tshirt.webp',
                 isBespokeCustom: i.isBespokeCustom || matched?.isBespokeCustom || Boolean(i.designCode || matched?.designCode) || (i.product_title || i.title || '').toLowerCase().includes('custom') || (i.product_title || i.title || '').toLowerCase().includes('bespoke'),
                 designCode: i.designCode || matched?.designCode || ((i.product_title || i.title || '').match(/BL-[A-Z0-9]{4,6}/)?.[0]) || null,
                 fabric: i.fabric || matched?.fabric || matched?.fabricName || null,
@@ -558,6 +567,8 @@ export async function getOrders() {
             orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at,
             status: o.status,
+            trackingNumber: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,
+            tracking_number: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,
             paymentMethod: o.payment_method === 'lanka_qr' ? 'LankaQR Instant Transfer' : o.payment_method === 'bank_transfer' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)',
             hasSlipAttached: o.has_slip_attached,
             paymentSlipUrl: o.payment_slip_url,
@@ -576,7 +587,7 @@ export async function getOrders() {
                 priceLKR: parseFloat(i.unit_price_lkr),
                 originalPriceLKR: parseFloat(i.original_price_lkr),
                 quantity: i.quantity,
-                image: i.product_image_url || matched?.image || '/images/hero_tshirt.jpg',
+                image: i.product_image_url || matched?.image || '/images/hero_tshirt.webp',
                 isBespokeCustom: matched?.isBespokeCustom || Boolean(matched?.designCode) || (i.product_title || '').toLowerCase().includes('custom') || (i.product_title || '').toLowerCase().includes('bespoke'),
                 designCode: matched?.designCode || (i.product_title?.match(/BL-[A-Z0-9]{4,6}/)?.[0]) || null,
                 fabric: matched?.fabric || matched?.fabricName || null,
@@ -597,7 +608,7 @@ export async function getOrders() {
   return [];
 }
 
-export async function updateOrderStatus(orderCode, newStatus) {
+export async function updateOrderStatus(orderCode, newStatus, trackingNumber = null) {
   const apiUrl = getApiUrl();
 
   // 1. Try Backend API
@@ -605,11 +616,11 @@ export async function updateOrderStatus(orderCode, newStatus) {
     const res = await fetch(`${apiUrl}/orders/${orderCode}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus })
+      body: JSON.stringify({ status: newStatus, trackingNumber })
     });
     if (res.ok) {
       const json = await res.json();
-      if (json.success) return { orderCode, newStatus, ...json.data };
+      if (json.success) return { orderCode, newStatus, trackingNumber, ...json.data };
     }
   } catch (e) {
     console.warn('API updateOrderStatus notice:', e);
@@ -618,19 +629,56 @@ export async function updateOrderStatus(orderCode, newStatus) {
   // 2. Direct Supabase Update
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase
-        .from('orders')
-        .update({ 
+        const updateData = { 
           status: newStatus,
           updated_at: new Date().toISOString(),
           slip_approved_at: newStatus === 'Payment Verified — Processing Dispatch' ? new Date().toISOString() : null
-        })
-        .eq('order_code', orderCode);
+        };
+
+        // Only apply tracking updates if a tracking number argument was provided (including empty string for clearing)
+        if (trackingNumber !== undefined) {
+          const clean = trackingNumber ? String(trackingNumber).trim() : null;
+          // Store in courier_notes for backward compatibility (null clears the note)
+          updateData.courier_notes = clean ? `Citypak: ${clean}` : null;
+          // Fetch current delivery_address to preserve other fields
+          const { data: current } = await supabase
+            .from('orders')
+            .select('delivery_address')
+            .eq('order_code', orderCode)
+            .maybeSingle();
+
+          if (current?.delivery_address && typeof current.delivery_address === 'object') {
+            updateData.delivery_address = {
+              ...current.delivery_address,
+              trackingNumber: clean
+            };
+          }
+
+          // Attempt to write to the dedicated tracking_number column first
+          const attempt = await supabase
+            .from('orders')
+            .update({ ...updateData, tracking_number: clean })
+            .eq('order_code', orderCode);
+
+          if (attempt.error && attempt.error.code === 'PGRST204') {
+            // Column does not exist yet – fall back to updating JSONB field only
+            await supabase
+              .from('orders')
+              .update(updateData)
+              .eq('order_code', orderCode);
+          }
+        } else {
+          // No tracking number argument supplied – just update status fields
+          await supabase
+            .from('orders')
+            .update(updateData)
+            .eq('order_code', orderCode);
+        }
     } catch (err) {
       console.error('Failed to update status in Supabase:', err);
     }
   }
-  return { orderCode, newStatus };
+  return { orderCode, newStatus, trackingNumber };
 }
 
 
@@ -697,7 +745,7 @@ export async function saveProduct(productData) {
 
       const orderedImages = Array.isArray(productData.images) && productData.images.length > 0
         ? productData.images
-        : [productData.image || '/images/hero_tshirt.jpg'];
+        : [productData.image || '/images/hero_tshirt.webp'];
 
       const configuredColors = Array.isArray(productData.colors) && productData.colors.length > 0
         ? productData.colors
@@ -924,7 +972,7 @@ function mapPromotionToOffer(p, productsMap = {}) {
     : Math.max(0, originalPrice - discountVal);
 
   const defaultVariant = targetProduct?.product_variants?.find(v => v.is_default) || targetProduct?.product_variants?.[0];
-  const galleryImage = targetProduct?.image || targetProduct?.images?.[0] || defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.jpg';
+  const galleryImage = targetProduct?.image || targetProduct?.images?.[0] || defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.webp';
 
   const sizes = targetProduct?.sizes || defaultVariant?.product_stock?.map(s => s.size_code) || [
     'S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'
@@ -948,8 +996,8 @@ function mapPromotionToOffer(p, productsMap = {}) {
     discountType: p.discount_type || 'fixed_amount',
     discountValue: discountVal,
     minOrderAmount: parseFloat(p.min_order_amount_lkr || 0),
-    remainingUnits: 6,
-    totalAllocation: 25,
+    remainingUnits: p.remaining_units !== undefined ? p.remaining_units : null,
+    totalAllocation: p.total_allocation !== undefined ? p.total_allocation : null,
     availableSizes: sizes,
     isActive: p.is_active !== false,
     endsAt: p.expires_at || p.ends_at || p.endsAt || null,
@@ -987,7 +1035,7 @@ export async function getOffers() {
             category: p.category,
             priceLKR: parseFloat(p.base_price_lkr),
             originalPriceLKR: parseFloat(p.original_price_lkr || p.base_price_lkr),
-            image: defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.jpg',
+            image: defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.webp',
             sizes: defaultVariant?.product_stock?.map(s => s.size_code) || ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)']
           };
         });
@@ -1442,7 +1490,7 @@ export async function getPopupAdSettings() {
 
         const parsed = {
           enabled: data.is_active !== false,
-          imageUrl: data.badge_label || '/images/editorial_brutalist.jpg',
+          imageUrl: data.badge_label || '/images/editorial_brutalist.webp',
           targetUrl: targetUrl || '/collection',
           altText: data.title || 'ELVANY Seasonal Advertisement',
           showOncePerSession: true,
@@ -1475,7 +1523,7 @@ export async function savePopupAdSettings(settings) {
   const apiUrl = getApiUrl();
   const cleanSettings = {
     enabled: settings.enabled !== false,
-    imageUrl: settings.imageUrl || '/images/editorial_brutalist.jpg',
+    imageUrl: settings.imageUrl || '/images/editorial_brutalist.webp',
     targetUrl: settings.targetUrl || '/collection',
     altText: settings.altText || 'ELVANY Seasonal Advertisement',
     showOncePerSession: settings.showOncePerSession !== false,
@@ -1570,7 +1618,7 @@ export async function uploadPopupAdImage(file) {
         return {
           secure_url: data.data.url,
           public_id: data.data.public_id || `ad_${Date.now()}`,
-          format: data.data.format || 'jpg'
+          format: data.data.format || 'webp'
         };
       }
     }
@@ -1585,7 +1633,7 @@ export async function uploadPopupAdImage(file) {
       resolve({
         secure_url: reader.result,
         public_id: `local_ad_${Date.now()}`,
-        format: file.type?.split('/')[1] || 'jpg'
+        format: file.type?.split('/')[1] || 'webp'
       });
     };
     reader.readAsDataURL(file);
@@ -1608,7 +1656,7 @@ export async function createRestockRequest(payload) {
     id: `req-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
     productId: payload.productId || null,
     productTitle: payload.productTitle || 'Haute Atelier Garment',
-    productImage: payload.productImage || '/images/hero_tshirt.jpg',
+    productImage: payload.productImage || '/images/hero_tshirt.webp',
     variantColor: payload.variantColor || 'Onyx Black',
     sizeCode: payload.sizeCode || 'M (40)',
     customerName: payload.customerName || 'VIP Client',
@@ -1819,9 +1867,7 @@ export async function saveBespokeDesign(designData) {
   return localPayload;
 }
 
-/**
- * Get all bespoke designs (real data from Supabase, API, Orders, and Local Storage)
- */
+// Bespoke designs registry handled through backend API and client store
 export async function getBespokeDesigns() {
   const apiUrl = getApiUrl();
   const map = new Map();
@@ -1835,54 +1881,7 @@ export async function getBespokeDesigns() {
     });
   } catch {}
 
-  // 2. Direct Supabase Query for bespoke_designs
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data: sbDesigns, error: sbErr } = await supabase
-        .from('bespoke_designs')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!sbErr && Array.isArray(sbDesigns)) {
-        sbDesigns.forEach(d => {
-          const code = d.design_code || d.designCode || d.id;
-          map.set(code, {
-            id: d.id,
-            designCode: code,
-            orderId: d.order_id || d.orderId || null,
-            fabricName: d.fabric_name || d.fabricName || 'Heavyweight Cotton (240 GSM)',
-            fabricGsm: d.fabric_gsm || d.fabricGsm || '240 GSM',
-            cutName: d.cut_name || d.cutName || 'Classic Regular Fit',
-            cutId: d.cut_id || d.cutId || 'tailored',
-            colorName: d.color_name || d.colorName || 'Pure Black',
-            colorHex: d.color_hex || d.colorHex || '#0a0a0b',
-            sleeveColorName: d.sleeve_color_name || d.sleeveColorName || null,
-            sleeveColorHex: d.sleeve_color_hex || d.sleeveColorHex || null,
-            size: d.size || 'L',
-            quantity: Number(d.quantity) || 1,
-            unitPrice: Number(d.unit_price || d.unitPrice || 18500),
-            totalPrice: Number(d.total_price || d.totalPrice || 18500),
-            artworks: d.artworks || {},
-            notes: d.notes || '',
-            tailorTuning: typeof d.tailor_tuning === 'boolean' ? d.tailor_tuning : (typeof d.tailorTuning === 'boolean' ? d.tailorTuning : true),
-            customerName: d.customer_name || d.customerName || 'VIP Guest',
-            customerEmail: d.customer_email || d.customerEmail || '',
-            customerPhone: d.customer_phone || d.customerPhone || '',
-            status: d.status || 'Saved / Ready to Order',
-            views: d.views || { front: d.preview_thumbnail || d.previewThumbnail, back: null, left: null, right: null, collage: d.preview_thumbnail || d.previewThumbnail },
-            blueprintImage: d.blueprint_image || d.blueprintImage || d.preview_thumbnail || d.previewThumbnail || null,
-            previewThumbnail: d.preview_thumbnail || d.previewThumbnail || null,
-            createdAt: d.created_at || d.createdAt || new Date().toISOString(),
-            updatedAt: d.updated_at || d.updatedAt || new Date().toISOString()
-          });
-        });
-      }
-    } catch (sbErr) {
-      console.warn('Supabase bespoke_designs direct query notice:', sbErr);
-    }
-  }
-
-  // 3. Try Backend API
+  // 2. Fetch from Backend API (reads database, orders, and local file storage)
   try {
     const res = await fetch(`${apiUrl}/bespoke`);
     if (res.ok) {
@@ -1895,7 +1894,7 @@ export async function getBespokeDesigns() {
       }
     }
   } catch (err) {
-    console.warn('Backend API getBespokeDesigns notice:', err);
+    // Graceful offline fallback
   }
 
   // 4. Also scan orders for any custom bespoke items placed by real customers

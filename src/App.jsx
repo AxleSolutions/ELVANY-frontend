@@ -23,6 +23,7 @@ import { AuthModal } from './components/AuthModal';
 import { LuxuryLoader } from './components/LuxuryLoader';
 import { PopupAdModal } from './components/PopupAdModal';
 import { PromotionsSection } from './components/PromotionsSection';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 
 // Code-split heavy routes for maximum performance & lightning-fast initial load
 const AdminApp = React.lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
@@ -544,6 +545,11 @@ export function App() {
 
     const qtySuffix = actualAdded > 1 ? ` (Qty: ${actualAdded})` : '';
     addToast(`Added "${productName}" (${chosenSize})${qtySuffix} to Shopping Bag`);
+
+    // Dispatch event for PWA high-intent installation prompt
+    try {
+      window.dispatchEvent(new CustomEvent('elvany_cart_item_added', { detail: { product, chosenSize } }));
+    } catch {}
   };
 
 
@@ -907,6 +913,7 @@ export function App() {
                 {/* 3. Direct Signature T-Shirt Showcase */}
                 <FeaturedTees
                   products={activeStorefrontProducts}
+                  offers={offers}
                   isLoading={isLoadingCatalog}
                   loggedInUser={loggedInUser}
                   userProfile={userProfile}
@@ -976,6 +983,7 @@ export function App() {
             element={
               <CollectionPage
                 products={activeStorefrontProducts}
+                offers={offers}
                 isLoading={isLoadingCatalog}
                 loggedInUser={loggedInUser}
                 userProfile={userProfile}
@@ -1018,6 +1026,7 @@ export function App() {
             element={
               <SearchPage
                 products={productsList}
+                offers={offers}
                 initialQuery={searchQuery}
                 onBackToHome={() => navigateToHome()}
                 onSelectProduct={navigateToProduct}
@@ -1138,7 +1147,7 @@ export function App() {
       />
 
       {/* Entrance Popup Visual Advertisement on Home */}
-      {!isAdminView && (
+      {currentView === 'home' && (
         <PopupAdModal
           popupAdSettings={popupAdSettings}
           isLoading={isLoadingCatalog}
@@ -1221,6 +1230,9 @@ export function App() {
           </div>
         ))}
       </div>
+
+      {/* Luxury Progressive Web App (PWA) Install Prompt */}
+      <PwaInstallPrompt />
     </div>
   );
 }

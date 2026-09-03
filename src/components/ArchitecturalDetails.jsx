@@ -15,7 +15,7 @@ export const ArchitecturalDetails = () => {
           {/* Left Large Hero Card */}
           <div className="craft-card-large">
             <img 
-              src="/images/pillar_heavyweight.jpg" 
+              src="/images/pillar_heavyweight.webp" 
               alt="Heavyweight Cotton Structure" 
               loading="lazy"
               decoding="async"

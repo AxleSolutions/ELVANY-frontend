@@ -1,0 +1,49 @@
+{
+  "name": "Maison ELVANY — Haute Luxury",
+  "short_name": "ELVANY",
+  "description": "Haute Luxury Heavyweight T-Shirts & Noble Cotton Essentials. Tailored in Florence & Colombo.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090a0c",
+  "theme_color": "#090a0c",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/logo/Main-4.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo/Main-4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo/Main-4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle", "luxury"],
+  "shortcuts": [
+    {
+      "name": "The Collection",
+      "short_name": "Collection",
+      "description": "Explore 280 GSM heavyweight tees and essentials",
+      "url": "/collection",
+      "icons": [{ "src": "/logo/Main-4.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bespoke Lab",
+      "short_name": "Bespoke Lab",
+      "description": "Interactive 3D custom garment laboratory",
+      "url": "/bespoke-lab",
+      "icons": [{ "src": "/logo/Main-4.png", "sizes": "192x192" }]
+    }
+  ]
+}

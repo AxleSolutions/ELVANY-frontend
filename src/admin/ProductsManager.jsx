@@ -121,10 +121,10 @@ export const ProductsManager = ({
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           <img 
-                            src={product.image || '/images/tshirt_white.jpg'} 
+                            src={product.image || '/images/tshirt_white.webp'} 
                             alt={title}
                             className="admin-product-thumb"
-                            onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                            onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                           />
                           <div>
                             <div className="admin-product-title">{title}</div>

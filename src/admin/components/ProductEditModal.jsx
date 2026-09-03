@@ -42,8 +42,8 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     price: 18500,
     gsm: 280,
     composition: '100% Long-Staple Combed Cotton',
-    image: '/images/hero_tshirt.jpg',
-    images: ['/images/hero_tshirt.jpg'],
+    image: '/images/hero_tshirt.webp',
+    images: ['/images/hero_tshirt.webp'],
     color: 'Onyx Black',
     colorHex: '#121316',
     colors: [
@@ -83,7 +83,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     if (product) {
       const productImages = Array.isArray(product.images) && product.images.length > 0
         ? product.images
-        : [product.image || '/images/hero_tshirt.jpg'];
+        : [product.image || '/images/hero_tshirt.webp'];
 
       // Extract colors
       let initialColors = [];
@@ -115,7 +115,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         ...product,
         price: product.price ?? product.priceLKR ?? 18500,
         gsm: product.gsm ?? 280,
-        image: product.image || productImages[0] || '/images/hero_tshirt.jpg',
+        image: product.image || productImages[0] || '/images/hero_tshirt.webp',
         images: productImages,
         color: product.color || defaultColorObj.name,
         colorHex: product.colorHex || defaultColorObj.hex,
@@ -139,8 +139,8 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         price: 18500,
         gsm: 280,
         composition: '100% Long-Staple Combed Cotton',
-        image: '/images/hero_tshirt.jpg',
-        images: ['/images/hero_tshirt.jpg'],
+        image: '/images/hero_tshirt.webp',
+        images: ['/images/hero_tshirt.webp'],
         color: 'Onyx Black',
         colorHex: '#121316',
         colors: [
@@ -192,7 +192,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         const currentImages = Array.isArray(formData.images) ? [...formData.images] : [];
         
         // Remove duplicate if exists, append new image to gallery
-        const filtered = currentImages.filter(img => img !== newUrl && img !== '/images/hero_tshirt.jpg');
+        const filtered = currentImages.filter(img => img !== newUrl && img !== '/images/hero_tshirt.webp');
         const nextImages = [newUrl, ...filtered];
 
         setFormData(prev => ({
@@ -421,7 +421,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     // Ensure primary image is sync'd
     const finalImages = Array.isArray(formData.images) && formData.images.length > 0 
       ? formData.images 
-      : [formData.image || '/images/hero_tshirt.jpg'];
+      : [formData.image || '/images/hero_tshirt.webp'];
     
     const finalColors = Array.isArray(formData.colors) && formData.colors.length > 0
       ? formData.colors
@@ -854,7 +854,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                         Upload Atelier Angle / Photo to Cloudinary
                       </span>
                       <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>
-                        JPG, PNG, WEBP — automatically placed in your ordered gallery
+                        webp, PNG, WEBP — automatically placed in your ordered gallery
                       </span>
                     </div>
                   )}
@@ -905,11 +905,11 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                     style={{ fontSize: '0.74rem', padding: '0.4rem', width: '100px' }}
                   >
                     <option value="">Presets...</option>
-                    <option value="/images/hero_tshirt.jpg">Onyx Hero</option>
-                    <option value="/images/tshirt_white.jpg">Optic White</option>
-                    <option value="/images/pillar_knitwear.jpg">Florentine Gold</option>
-                    <option value="/images/pillar_heavyweight.jpg">Fabric Detail</option>
-                    <option value="/images/model_tshirt.jpg">Model Fit</option>
+                    <option value="/images/hero_tshirt.webp">Onyx Hero</option>
+                    <option value="/images/tshirt_white.webp">Optic White</option>
+                    <option value="/images/pillar_knitwear.webp">Florentine Gold</option>
+                    <option value="/images/pillar_heavyweight.webp">Fabric Detail</option>
+                    <option value="/images/model_tshirt.webp">Model Fit</option>
                   </select>
                 </div>
 
@@ -967,7 +967,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                                 src={imgUrl} 
                                 alt="" 
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                                onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                               />
                             </div>
 

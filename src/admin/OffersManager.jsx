@@ -60,7 +60,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                 {/* Header with Item Thumbnail */}
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                   <img 
-                    src={offer.productImage || '/images/hero_tshirt.jpg'} 
+                    src={offer.productImage || '/images/hero_tshirt.webp'} 
                     alt={offer.productName} 
                     style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '2px', backgroundColor: '#090a0c', border: '1px solid var(--border-dark)' }}
                   />

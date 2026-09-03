@@ -21,6 +21,7 @@ export const Navbar = ({
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navRef = useRef(null);
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -32,6 +33,25 @@ export const Navbar = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close mobile navbar dropdown when user taps outside the navbar
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleOutsideInteraction = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideInteraction);
+    document.addEventListener('touchstart', handleOutsideInteraction, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideInteraction);
+      document.removeEventListener('touchstart', handleOutsideInteraction);
+    };
+  }, [mobileMenuOpen]);
 
   const handleHomeClick = (e) => {
     if (e) e.preventDefault();
@@ -78,7 +98,8 @@ export const Navbar = ({
   };
 
   return (
-    <header className="navbar">
+    <>
+      <header className="navbar" ref={navRef}>
       <div className="container">
         <div className="navbar-inner">
           {/* Left Navigation Links */}
@@ -363,6 +384,15 @@ export const Navbar = ({
       </div>
     </header>
 
-
+    {/* Backdrop for mobile navigation menu to close when tapping outside */}
+    {mobileMenuOpen && (
+      <div 
+        className="mobile-nav-backdrop"
+        onClick={() => setMobileMenuOpen(false)}
+        onTouchStart={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+    )}
+  </>
   );
 };

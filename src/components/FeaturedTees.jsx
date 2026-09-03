@@ -3,6 +3,7 @@ import { ArrowRight, Eye, ShoppingBag, Check, Ruler, Loader2, Bell } from 'lucid
 
 export const FeaturedTees = ({ 
   products = [], 
+  offers = [],
   isLoading = false,
   loggedInUser,
   userProfile,
@@ -89,6 +90,30 @@ export const FeaturedTees = ({
               const isJustAdded = addedItemId === product.id;
               const isOutOfStock = product.totalStock === 0 || (product.inventory && Object.values(product.inventory).every(v => Number(v) <= 0));
 
+              const activeOffer = (offers || []).find(
+                (o) => o.isActive !== false && (
+                  (o.productId && (o.productId === product.id || o.productId === product.slug)) ||
+                  (o.productName && (product.name || product.title) && o.productName.trim().toLowerCase() === (product.name || product.title).trim().toLowerCase())
+                )
+              );
+
+              const hasOffer = Boolean(activeOffer || (product.is_offer_applied && product.offerPriceLKR));
+              const originalPrice = activeOffer
+                ? (activeOffer.originalPriceLKR || product.originalPriceLKR || product.priceLKR || product.price || 18500)
+                : (product.originalPriceLKR || product.priceLKR || product.price || 18500);
+
+              const offerPrice = activeOffer
+                ? activeOffer.offerPriceLKR
+                : (product.offerPriceLKR || null);
+
+              const isDiscounted = Boolean(hasOffer && offerPrice && Number(offerPrice) < Number(originalPrice));
+              const savings = isDiscounted ? (Number(originalPrice) - Number(offerPrice)) : 0;
+              const badgeLabel = activeOffer?.badge || product.badge || 'SPECIAL OFFER';
+
+              const productToAdd = isDiscounted
+                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true }
+                : product;
+
               return (
                 <article 
                   key={product.id} 
@@ -101,16 +126,39 @@ export const FeaturedTees = ({
                       <span className="product-badge" style={{ backgroundColor: 'rgba(239,68,68,0.9)', color: '#ffffff', border: '1px solid #ef4444' }}>
                         SOLD OUT
                       </span>
-                    ) : product.badge ? (
+                    ) : product.badge && product.badge !== 'ATELIER LAUNCH PRIVILEGE' ? (
                       <span className="product-badge">{product.badge}</span>
                     ) : null}
+
+                    {/* Offer Discount Saving Pill */}
+                    {isDiscounted && savings > 0 && !isOutOfStock && (
+                      <span 
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          backgroundColor: '#b91c1c',
+                          color: '#ffffff',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '3px 7px',
+                          borderRadius: '2px',
+                          letterSpacing: '0.04em',
+                          zIndex: 3,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.5)'
+                        }}
+                      >
+                        SAVE LKR {savings.toLocaleString()}
+                      </span>
+                    )}
+
                     <img 
-                      src={product.image || '/images/hero_tshirt.jpg'} 
+                      src={product.image || '/images/hero_tshirt.webp'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
                       loading="lazy"
                       decoding="async"
-                      onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                      onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                     />
 
                     {/* Hover Quick Actions */}
@@ -132,7 +180,7 @@ export const FeaturedTees = ({
                               onSelectProduct(product);
                               return;
                             }
-                            onAddToCart(product, userProfileSize);
+                            onAddToCart(productToAdd, userProfileSize);
                           }}
                           style={{
                             backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
@@ -196,7 +244,18 @@ export const FeaturedTees = ({
                     <div>
                       <div className="product-title-row">
                         <h3 className="product-name" style={{ color: '#fff', fontSize: '1.1rem' }}>{product.name || product.title}</h3>
-                        <div className="product-price" style={{ color: 'var(--gold-bright)' }}>{formatLKR(product.priceLKR || product.price || 18500)}</div>
+                        {isDiscounted ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0 }}>
+                            <div className="product-price" style={{ color: 'var(--gold-bright)', fontWeight: 700 }}>
+                              {formatLKR(offerPrice)}
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textDecoration: 'line-through', opacity: 0.7 }}>
+                              {formatLKR(originalPrice)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="product-price" style={{ color: 'var(--gold-bright)' }}>{formatLKR(originalPrice)}</div>
+                        )}
                       </div>
                       <p className="product-tagline" style={{ color: 'var(--text-light-muted)' }}>{product.tagline || product.subtitle}</p>
                     </div>

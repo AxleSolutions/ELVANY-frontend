@@ -157,7 +157,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             boxShadow: 'inset 0 0 30px rgba(0, 0, 0, 0.8)'
           }}>
             <img 
-              src="/Size chart/sizechart.png" 
+              src="/Size chart/sizechart.webp" 
               alt="Maison ELVANY Official Garment Size Chart"
               style={{
                 width: '100%',
@@ -167,7 +167,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
                 borderRadius: '2px'
               }}
               onError={(e) => {
-                e.target.src = encodeURI('/Size chart/sizechart.png');
+                e.target.src = encodeURI('/Size chart/sizechart.webp');
               }}
             />
           </div>

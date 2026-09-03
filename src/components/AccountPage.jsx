@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download } from 'lucide-react';
+import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download, Truck, ExternalLink, Eye } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { getOrders } from '../services/dbService';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
@@ -233,7 +233,7 @@ export const AccountPage = ({
         color: item.color || 'Pure Black',
         qty: item.quantity || 1,
         quantity: item.quantity || 1,
-        image: item.image || '/images/hero_tshirt.jpg',
+        image: item.image || '/images/hero_tshirt.webp',
         isBespokeCustom: item.isBespokeCustom || false,
         designCode: item.designCode || '',
         fabric: item.fabric || '',
@@ -600,11 +600,17 @@ export const AccountPage = ({
 
                   const isDelivered = order.status === 'Delivered' || (order.status || '').toLowerCase().includes('delivered');
 
-                  const displayBadgeStatus = isRejected
-                    ? 'Slip Rejected — Reorder Required'
-                    : isCod
-                      ? (isDelivered ? 'Delivered' : order.status === 'Cancelled' ? 'Cancelled' : 'Order Confirmed (COD)')
-                      : order.status;
+                  // Show the true order status. For COD orders we only special‑case Delivered/Cancelled.
+                  let displayBadgeStatus;
+                  if (isRejected) {
+                    displayBadgeStatus = 'Slip Rejected — Reorder Required';
+                  } else if (order.status === 'Delivered') {
+                    displayBadgeStatus = 'Delivered';
+                  } else if (order.status === 'Cancelled') {
+                    displayBadgeStatus = 'Cancelled';
+                  } else {
+                    displayBadgeStatus = order.status;
+                  }
 
                   return (
                     <div
@@ -629,7 +635,7 @@ export const AccountPage = ({
                       }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-                            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#ffffff', fontWeight: 600 }}>
+                              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#ffffff', fontWeight: 600 }}>
                               #{order.orderId}
                             </span>
                             <span style={{
@@ -729,50 +735,7 @@ export const AccountPage = ({
                         </div>
                       )}
 
-                      {/* Cash on Delivery Status Info for Client */}
-                      {isCod && !isRejected && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
-                        <div style={{
-                          margin: '0 1.5rem 1rem 1.5rem',
-                          padding: '0.8rem 1.2rem',
-                          backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                          border: '1px solid var(--gold-border)',
-                          borderRadius: '2px',
-                          fontSize: '0.8rem',
-                          color: '#ffffff'
-                        }}>
-                          <strong style={{ color: 'var(--gold-bright)' }}>✓ Cash on Delivery Confirmed:</strong> Your luxury parcel is being tailored and prepared for express courier delivery. Payment of <strong>LKR {total.toLocaleString()}</strong> will be collected upon handover at your destination.
-                        </div>
-                      )}
 
-                      {/* Bank Transfer Slip Status Info for Client */}
-                      {isBankTransfer && !isRejected && order.status === 'Pending Slip Verification' && (
-                        <div style={{
-                          margin: '0 1.5rem 1rem 1.5rem',
-                          padding: '0.8rem 1.2rem',
-                          backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                          border: '1px solid var(--gold-border)',
-                          borderRadius: '2px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '1rem',
-                          flexWrap: 'wrap'
-                        }}>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--gold-bright)' }}>
-                            <strong>⏳ Payment Slip Verification Pending:</strong> Our concierge is reconciling your uploaded bank transfer receipt. Dispatch preparations begin immediately upon approval.
-                          </div>
-                          {order.paymentSlipUrl && (
-                            <a 
-                              href={order.paymentSlipUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              style={{ fontSize: '0.75rem', color: '#ffffff', textDecoration: 'underline', fontWeight: 600 }}
-                            >
-                              View Attached Slip
-                            </a>
-                          )}
-                        </div>
-                      )}
 
                       {isBankTransfer && !isRejected && order.status === 'Payment Verified — Processing Dispatch' && (
                         <div style={{
@@ -785,6 +748,73 @@ export const AccountPage = ({
                           color: '#ffffff'
                         }}>
                           <strong style={{ color: 'var(--gold-bright)' }}>✓ Bank Transfer Verified:</strong> Your payment receipt has been verified by the atelier. Parcel is currently being packed for express courier dispatch.
+                        </div>
+                      )}
+
+                      {/* Citypak Courier Express Tracking Banner & Auto-Search Button */}
+                      {((order.status || '').toLowerCase().includes('shipped') || (order.status || '').toLowerCase().includes('transit') || isDelivered) && (order.trackingNumber || order.tracking_number) && (
+                        <div style={{
+                          margin: '0 1.5rem 1.2rem 1.5rem',
+                          padding: '1.1rem 1.4rem',
+                          backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                          border: '1px solid var(--gold-bright)',
+                          borderRadius: '3px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '1.2rem',
+                          flexWrap: 'wrap'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              backgroundColor: 'rgba(197, 160, 89, 0.18)',
+                              border: '1px solid var(--gold-bright)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'var(--gold-bright)',
+                              flexShrink: 0
+                            }}>
+                              <Truck size={20} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '3px' }}>
+                                CITYPAK EXPRESS DISPATCH
+                              </div>
+                              <div style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 600 }}>
+                                Waybill / Consignment No: <span style={{ color: 'var(--gold-bright)', fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.06em', marginLeft: '4px' }}>{order.trackingNumber || order.tracking_number}</span>
+                              </div>
+                              <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
+                                Your luxury garments are dispatched in signature packaging. Click below to view live transit checkpoints.
+                              </div>
+                            </div>
+                          </div>
+
+                          <a
+                            href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(order.trackingNumber || order.tracking_number)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary-gold"
+                            style={{
+                              padding: '0.75rem 1.4rem',
+                              fontSize: '0.76rem',
+                              gap: '6px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 4px 14px rgba(197, 160, 89, 0.25)'
+                            }}
+                            title="Open live Citypak tracking search in a new tab"
+                          >
+                            <Truck size={14} />
+                            <span>TRACK ON CITYPAK</span>
+                            <ExternalLink size={12} />
+                          </a>
                         </div>
                       )}
 
@@ -1670,7 +1700,7 @@ export const AccountPage = ({
                 >
                   <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
                     <img 
-                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />

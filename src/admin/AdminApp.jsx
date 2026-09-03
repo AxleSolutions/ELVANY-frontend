@@ -485,18 +485,29 @@ export const AdminApp = ({
     setIsOrderModalOpen(true);
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus, trackingNumber = null) => {
     setOrders(prev => {
-      const next = prev.map(o => o.orderId === orderId ? { ...o, status: newStatus } : o);
+      const next = prev.map(o => o.orderId === orderId ? { 
+        ...o, 
+        status: newStatus,
+        trackingNumber: trackingNumber !== null ? trackingNumber : o.trackingNumber,
+        tracking_number: trackingNumber !== null ? trackingNumber : o.tracking_number
+      } : o);
       if (onUpdateOrders) onUpdateOrders(next);
       return next;
     });
     if (inspectingOrder && inspectingOrder.orderId === orderId) {
-      setInspectingOrder(prev => ({ ...prev, status: newStatus }));
+      setInspectingOrder(prev => ({ 
+        ...prev, 
+        status: newStatus,
+        trackingNumber: trackingNumber !== null ? trackingNumber : prev.trackingNumber,
+        tracking_number: trackingNumber !== null ? trackingNumber : prev.tracking_number
+      }));
     }
-    showToast(`Order #${orderId} status updated to: ${newStatus}`);
+    const trackText = trackingNumber ? ` (Citypak #${trackingNumber})` : '';
+    showToast(`Order #${orderId} status updated to: ${newStatus}${trackText}`);
     try {
-      await updateOrderStatus(orderId, newStatus);
+      await updateOrderStatus(orderId, newStatus, trackingNumber);
     } catch (err) {
       console.error('Failed to sync status to Supabase:', err);
     }

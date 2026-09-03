@@ -6,8 +6,8 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     id: null,
     productId: null,
     productName: '',
-    productImage: '/images/hero_tshirt.jpg',
-    badge: 'ATELIER LAUNCH PRIVILEGE',
+    productImage: '/images/hero_tshirt.webp',
+    badge: 'SPECIAL PRIVILEGE',
     title: '',
     subtitle: '',
     code: '',
@@ -67,8 +67,8 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
         id: null,
         productId: defaultProd?.id || null,
         productName: defaultProd?.title || defaultProd?.name || 'The 280 GSM Heavyweight Crewneck Tee',
-        productImage: defaultProd?.image || defaultProd?.images?.[0] || '/images/hero_tshirt.jpg',
-        badge: 'ATELIER LAUNCH PRIVILEGE',
+        productImage: defaultProd?.image || defaultProd?.images?.[0] || '/images/hero_tshirt.webp',
+        badge: 'SPECIAL PRIVILEGE',
         title: 'Signature Atelier Privilege Drop',
         subtitle: defaultProd?.subtitle || defaultProd?.description || 'Florence combed noble cotton finished with double-needle bound collar. Limited batch allocation.',
         code: 'ATELIERVIP',
@@ -221,7 +221,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                 <input
                   type="text"
                   required
-                  placeholder="/images/hero_tshirt.jpg or Cloudinary Image URL"
+                  placeholder="/images/hero_tshirt.webp or Cloudinary Image URL"
                   value={formData.productImage}
                   onChange={(e) => setFormData({ ...formData, productImage: e.target.value })}
                   className="form-input admin-input"
@@ -232,7 +232,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                     src={formData.productImage} 
                     alt="Preview" 
                     style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)', backgroundColor: '#000' }}
-                    onError={(e) => { e.target.src = '/images/hero_tshirt.jpg'; }}
+                    onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                   />
                 )}
               </div>
@@ -244,7 +244,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                 <input
                   type="text"
                   required
-                  placeholder="e.g. ATELIER LAUNCH PRIVILEGE"
+                  placeholder="e.g. SPECIAL PRIVILEGE"
                   value={formData.badge}
                   onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
                   className="form-input admin-input"

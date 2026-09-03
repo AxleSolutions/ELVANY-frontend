@@ -93,8 +93,15 @@ const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollection }) => {
   // Step Navigation: 1 (Style) | 2 (Artwork) | 3 (Review & Order)
   const [activeStep, setActiveStep] = useState(1);
+  const topRef = useRef(null);
 
-  // 1. Garment Style
+  // Automatically scroll to the top of the next step whenever activeStep changes
+  useEffect(() => {
+    if (topRef.current) {
+      topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [activeStep]);
   const [selectedFabric, setSelectedFabric] = useState(FABRICS[0]);
   const [selectedCut, setSelectedCut] = useState(CUTS[0]);
   const [selectedColor, setSelectedColor] = useState(COLORWAYS[0]);
@@ -298,7 +305,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
       console.warn('Mockup generation notice:', mockErr);
     }
 
-    const finalCollage = renderedAngles?.collage || artworks[activeZoneKey]?.dataUrl || '/images/hero_tshirt.jpg';
+    const finalCollage = renderedAngles?.collage || artworks[activeZoneKey]?.dataUrl || '/images/hero_tshirt.webp';
     const views = {
       front: renderedAngles?.front || finalCollage,
       back: renderedAngles?.back || finalCollage,
@@ -403,7 +410,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
   }, [isFullscreen]);
 
   return (
-    <div className={`custom-lab-page ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+    <div ref={topRef} className={`custom-lab-page ${isFullscreen ? 'fullscreen-mode' : ''}`}>
       {/* Top Breadcrumb Bar */}
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.8rem' }}>
@@ -426,7 +433,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
       <div className="container" style={{ paddingBottom: '5rem' }}>
         
         {/* Title Header & Live Summary Row (Aligned Together) */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem' }}>
+        <div className="cl-hero-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem' }}>
           
           {/* Left: Design Your Own Tee Title & Subtitle */}
           <div>
@@ -436,10 +443,10 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                 DESIGN YOUR OWN TEE
               </span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 2.4vw, 1.9rem)', margin: '0 0 0.35rem 0', fontWeight: 400, color: '#ffffff' }}>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.4rem, 2.4vw, 1.9rem)', margin: '0 0 0.35rem 0', fontWeight: 400, color: '#ffffff' }}>
               Bespoke Custom Studio
             </h1>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', margin: 0, maxWidth: '580px', lineHeight: 1.45 }}>
+            <p className="cl-hero-desc" style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', margin: 0, maxWidth: '580px', lineHeight: 1.45 }}>
               Choose your shirt fabric, pick your fit & color, and upload your design to any spot on the garment.
             </p>
           </div>
@@ -483,7 +490,8 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                 onClick={() => setActiveStep(1)}
               >
                 <span className="cl-step-num">{activeStep > 1 ? '✓' : '1'}</span>
-                <span>1. Shirt Style</span>
+                <span className="cl-step-text-desktop">1. Shirt Style</span>
+                <span className="cl-step-text-mobile">1. Style</span>
               </button>
 
               <button 
@@ -492,7 +500,8 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                 onClick={() => setActiveStep(2)}
               >
                 <span className="cl-step-num">{totalArtworksCount > 0 ? '✓' : '2'}</span>
-                <span>2. Add Artwork {totalArtworksCount > 0 ? `(${totalArtworksCount})` : ''}</span>
+                <span className="cl-step-text-desktop">2. Add Artwork {totalArtworksCount > 0 ? `(${totalArtworksCount})` : ''}</span>
+                <span className="cl-step-text-mobile">2. Art {totalArtworksCount > 0 ? `(${totalArtworksCount})` : ''}</span>
               </button>
 
               <button 
@@ -501,7 +510,8 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                 onClick={() => setActiveStep(3)}
               >
                 <span className="cl-step-num">3</span>
-                <span>3. Review & Order</span>
+                <span className="cl-step-text-desktop">3. Review & Order</span>
+                <span className="cl-step-text-mobile">3. Review</span>
               </button>
             </div>
 
@@ -726,7 +736,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                             Tap to upload your image for {currentZone.label}
                           </strong>
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', display: 'block', marginTop: '2px' }}>
-                            PNG with transparent background, JPG or WEBP
+                            PNG with transparent background, webp or WEBP
                           </span>
                         </label>
                       ) : (
@@ -1065,7 +1075,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   
                   {/* Backdrop Lighting Mode Switcher */}
-                  <div className="cl-backdrop-switcher" title="Change Studio Lighting">
+                  <div className="cl-backdrop-switcher cl-tool-desktop-only" title="Change Studio Lighting">
                     <button
                       type="button"
                       className={`cl-backdrop-btn ${backdropTheme === 'light' ? 'active' : ''}`}
@@ -1095,7 +1105,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                   <button
                     type="button"
                     onClick={() => setIsGridOn(!isGridOn)}
-                    className={`cl-stage-tool-btn ${isGridOn ? 'active' : ''}`}
+                    className={`cl-stage-tool-btn cl-tool-desktop-only ${isGridOn ? 'active' : ''}`}
                     title="Center Grid"
                   >
                     <Grid size={14} />
@@ -1104,7 +1114,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                   <button
                     type="button"
                     onClick={() => setZoomLevel(prev => Math.min(1.5, Math.round((prev + 0.15) * 100) / 100))}
-                    className="cl-stage-tool-btn"
+                    className="cl-stage-tool-btn cl-tool-desktop-only"
                     title="Zoom In"
                   >
                     <ZoomIn size={14} />
@@ -1114,7 +1124,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                     <button
                       type="button"
                       onClick={() => setZoomLevel(1)}
-                      className="cl-stage-tool-btn"
+                      className="cl-stage-tool-btn cl-tool-desktop-only"
                       style={{ width: 'auto', padding: '0 6px', fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700 }}
                       title="Reset Zoom to 100%"
                     >
@@ -1125,7 +1135,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                   <button
                     type="button"
                     onClick={() => setZoomLevel(prev => Math.max(0.85, Math.round((prev - 0.15) * 100) / 100))}
-                    className="cl-stage-tool-btn"
+                    className="cl-stage-tool-btn cl-tool-desktop-only"
                     title="Zoom Out"
                   >
                     <ZoomOut size={14} />
@@ -1135,7 +1145,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                     type="button"
                     onClick={handleDownloadMockup}
                     disabled={isDownloadingMockup}
-                    className="cl-stage-tool-btn"
+                    className="cl-stage-tool-btn cl-tool-desktop-only"
                     style={{ width: 'auto', padding: '0 8px', gap: '4px', fontSize: '0.7rem', color: 'var(--gold-bright)' }}
                     title="Download Customized T-Shirt High-Res Preview Photo"
                   >
@@ -1408,6 +1418,68 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Mobile Persistent Floating Bottom Action Bar */}
+      <div className="cl-mobile-bottom-bar">
+        <div className="cl-mobile-price-group">
+          <span className="cl-mobile-price-tag">
+            {selectedFabric.name.split('(')[0].trim()} • {selectedSize}
+          </span>
+          <div className="cl-mobile-price-amount">
+            LKR {totalPrice.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="cl-mobile-btn-group">
+          {activeStep === 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveStep(2);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="btn-primary-gold cl-mobile-action-btn"
+            >
+              <span>ADD ARTWORK</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+
+          {activeStep === 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveStep(3);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="btn-primary-gold cl-mobile-action-btn"
+            >
+              <span>REVIEW ORDER</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+
+          {activeStep === 3 && (
+            <button
+              type="button"
+              onClick={handleAddCustomToBag}
+              className="btn-primary-gold cl-mobile-action-btn"
+            >
+              {isAdded ? (
+                <>
+                  <Check size={14} />
+                  <span>ADDED!</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={14} />
+                  <span>ADD TO BAG</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

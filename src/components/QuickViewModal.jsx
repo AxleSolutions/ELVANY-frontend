@@ -14,7 +14,7 @@ export const QuickViewModal = ({
   if (!isOpen || !product) return null;
 
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || 'M (40)');
-  const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.jpg');
+  const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.webp');
   const [added, setAdded] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);

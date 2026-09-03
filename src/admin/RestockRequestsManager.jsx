@@ -56,7 +56,7 @@ export const RestockRequestsManager = ({
         title: r.productTitle || 'Haute Atelier Garment',
         color: r.variantColor || 'Onyx Black',
         size: r.sizeCode || 'M (40)',
-        image: r.productImage || '/images/hero_tshirt.jpg',
+        image: r.productImage || '/images/hero_tshirt.webp',
         count: 0
       };
     }
@@ -319,9 +319,9 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                 }}
               >
                 <img 
-                  src={d.image || '/images/hero_tshirt.jpg'} 
+                  src={d.image || '/images/hero_tshirt.webp'} 
                   alt={d.title} 
-                  onClick={() => setPreviewImage(d.image || '/images/hero_tshirt.jpg')}
+                  onClick={() => setPreviewImage(d.image || '/images/hero_tshirt.webp')}
                   style={{ width: '44px', height: '54px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)', cursor: 'pointer' }} 
                   title="Click to view image"
                 />
@@ -515,11 +515,11 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
                         <div 
                           style={{ position: 'relative', cursor: 'pointer', flexShrink: 0 }}
-                          onClick={() => setPreviewImage(req.productImage || '/images/hero_tshirt.jpg')}
+                          onClick={() => setPreviewImage(req.productImage || '/images/hero_tshirt.webp')}
                           title="Click to zoom garment image"
                         >
                           <img 
-                            src={req.productImage || '/images/hero_tshirt.jpg'} 
+                            src={req.productImage || '/images/hero_tshirt.webp'} 
                             alt={req.productTitle} 
                             style={{ width: '46px', height: '58px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} 
                           />

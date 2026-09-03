@@ -14,7 +14,7 @@ export const INITIAL_ORDERS = [
         color: 'Onyx Black',
         selectedSize: 'L (42)',
         priceLKR: 18500,
-        image: '/images/hero_tshirt.jpg'
+        image: '/images/hero_tshirt.webp'
       },
       {
         productId: 'prod-02',
@@ -22,7 +22,7 @@ export const INITIAL_ORDERS = [
         color: 'Optic White',
         selectedSize: 'L (42)',
         priceLKR: 22000,
-        image: '/images/tshirt_white.jpg'
+        image: '/images/tshirt_white.webp'
       }
     ]
   },
@@ -39,7 +39,7 @@ export const INITIAL_ORDERS = [
         color: 'Washed Charcoal',
         selectedSize: 'M (Relaxed)',
         priceLKR: 16500,
-        image: '/images/tshirt_oversized.jpg'
+        image: '/images/tshirt_oversized.webp'
       }
     ]
   },
@@ -56,7 +56,7 @@ export const INITIAL_ORDERS = [
         color: 'Midnight Navy',
         selectedSize: 'M (40)',
         priceLKR: 24000,
-        image: '/images/tshirt_silk.jpg'
+        image: '/images/tshirt_silk.webp'
       }
     ]
   }

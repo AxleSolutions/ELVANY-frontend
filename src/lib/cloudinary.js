@@ -96,7 +96,7 @@ export async function uploadGarmentImageToCloudinary(file) {
         return {
           secure_url: data.data.url,
           public_id: data.data.public_id || `cloud_${Date.now()}`,
-          format: data.data.format || 'jpg'
+          format: data.data.format || 'webp'
         };
       }
     }
@@ -141,7 +141,7 @@ export async function uploadGarmentImageToCloudinary(file) {
       resolve({
         secure_url: reader.result,
         public_id: `local_${Date.now()}`,
-        format: file.type?.split('/')[1] || 'jpg'
+        format: file.type?.split('/')[1] || 'webp'
       });
     };
     reader.readAsDataURL(file);
@@ -173,7 +173,7 @@ export async function uploadPopupAdImageToCloudinary(file) {
         return {
           secure_url: data.data.url,
           public_id: data.data.public_id || `ad_${Date.now()}`,
-          format: data.data.format || 'jpg'
+          format: data.data.format || 'webp'
         };
       }
     }
@@ -218,7 +218,7 @@ export async function uploadPopupAdImageToCloudinary(file) {
       resolve({
         secure_url: reader.result,
         public_id: `local_ad_${Date.now()}`,
-        format: file.type?.split('/')[1] || 'jpg'
+        format: file.type?.split('/')[1] || 'webp'
       });
     };
     reader.readAsDataURL(file);

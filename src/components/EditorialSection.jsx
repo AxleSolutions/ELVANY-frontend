@@ -50,7 +50,7 @@ export const EditorialSection = ({ onReadEditorial }) => {
       {/* Editorial Visual Panel */}
       <div className="editorial-image-panel">
         <img 
-          src="/images/tshirt_oversized.jpg" 
+          src="/images/tshirt_oversized.webp" 
           alt="ELVANY Luxury T-Shirt Editorial" 
           className="editorial-hero-img"
           loading="lazy"

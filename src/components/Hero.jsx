@@ -6,19 +6,19 @@ const HERO_SLIDES = [
     id: 'heavyweight',
     title: 'The perfect luxury T-shirt, engineered to hold its structure',
     description: 'Crafted in Florence with 280 GSM long-staple organic cotton and reinforced non-sag architectural collars.',
-    image: '/images/hero_tshirt.jpg'
+    image: '/images/hero_tshirt.webp'
   },
   {
     id: 'sea-island',
     title: 'Silk-like softness meeting architectural density',
     description: 'Woven from ultra-rare long-staple Sea Island cotton fibers with permanent drape memory and natural breathable luster.',
-    image: '/images/tshirt_white.jpg'
+    image: '/images/tshirt_white.webp'
   },
   {
     id: 'oversized',
     title: 'A sculpted drop-shoulder cut that never collapses',
     description: 'Precision-calibrated drape and proportioned sleeves designed for clean modern tailoring and effortless layering.',
-    image: '/images/tshirt_oversized.jpg'
+    image: '/images/tshirt_oversized.webp'
   }
 ];
 

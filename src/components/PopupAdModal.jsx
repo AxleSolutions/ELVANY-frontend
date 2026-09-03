@@ -22,6 +22,7 @@ export const PopupAdModal = ({
     if (popupAdSettings.showOncePerSession) {
       const alreadySeen = sessionStorage.getItem('elvany_popup_ad_dismissed');
       if (alreadySeen === 'true') {
+        setIsOpen(false);
         return;
       }
     }
@@ -34,6 +35,39 @@ export const PopupAdModal = ({
     return () => clearTimeout(timer);
   }, [popupAdSettings, isLoading]);
 
+  // Lock background scroll and listen for Escape key when popup is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  // Listen for live popup ad reset / update from Admin panel
+  useEffect(() => {
+    const handleSync = (e) => {
+      const ad = e.detail || popupAdSettings;
+      if (ad?.enabled && ad?.imageUrl) {
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener('elvany_popup_ad_updated', handleSync);
+    return () => window.removeEventListener('elvany_popup_ad_updated', handleSync);
+  }, [popupAdSettings]);
 
   const handleClose = (e) => {
     if (e) e.stopPropagation();
@@ -69,6 +103,7 @@ export const PopupAdModal = ({
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
+      data-lenis-prevent="true"
     >
       <div 
         className="popup-ad-dialog"
@@ -97,6 +132,11 @@ export const PopupAdModal = ({
             alt={popupAdSettings.altText || 'ELVANY Seasonal Advertisement'} 
             className="popup-ad-img"
             loading="eager"
+            onError={(e) => {
+              if (e.target.src !== window.location.origin + '/images/editorial_brutalist.webp') {
+                e.target.src = '/images/editorial_brutalist.webp';
+              }
+            }}
           />
         </div>
       </div>

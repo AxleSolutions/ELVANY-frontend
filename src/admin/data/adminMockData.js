@@ -40,7 +40,7 @@ export const INITIAL_ADMIN_ORDERS = [
         color: 'Onyx Black',
         priceLKR: 18500,
         quantity: 2,
-        image: '/images/tshirt_white.jpg'
+        image: '/images/tshirt_white.webp'
       }
     ]
   },
@@ -62,7 +62,7 @@ export const INITIAL_ADMIN_ORDERS = [
         color: 'Ivory Cream',
         priceLKR: 24500,
         quantity: 1,
-        image: '/images/tshirt_silk.jpg'
+        image: '/images/tshirt_silk.webp'
       }
     ]
   }

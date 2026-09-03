@@ -198,7 +198,7 @@ export const CartDrawer = ({
                     const currentAngle = activeAngles[itemKey] || 'front';
                     
                     // Determine image to display based on selected angle
-                    let displayImg = item.image || '/images/hero_tshirt.jpg';
+                    let displayImg = item.image || '/images/hero_tshirt.webp';
                     if (isBespoke && item.views) {
                       displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
                     }
@@ -476,7 +476,7 @@ export const CartDrawer = ({
                 >
                   <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
                     <img 
-                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />

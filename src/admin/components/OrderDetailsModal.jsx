@@ -21,7 +21,7 @@ const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }
 
   const [activeAngleId, setActiveAngleId] = useState(availableAngles[0]?.id || 'collage');
   const currentAngle = availableAngles.find(a => a.id === activeAngleId) || availableAngles[0];
-  const activeUrl = currentAngle?.url || frontImg || '/images/hero_tshirt.jpg';
+  const activeUrl = currentAngle?.url || frontImg || '/images/hero_tshirt.webp';
 
   return (
     <div style={{ textAlign: 'center', background: '#07080a', borderRadius: '4px', padding: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -93,12 +93,15 @@ const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }
 export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(order?.status || 'Pending Slip Verification');
+  const [trackingInput, setTrackingInput] = useState(order?.trackingNumber || order?.tracking_number || '');
+  const [trackingSavedSuccess, setTrackingSavedSuccess] = useState(false);
   const [bespokeDetailsMap, setBespokeDetailsMap] = useState({});
 
   useEffect(() => {
     if (order?.status) {
       setSelectedStatus(order.status);
     }
+    setTrackingInput(order?.trackingNumber || order?.tracking_number || '');
 
     // Load any linked bespoke custom details
     if (order?.items && order.items.length > 0) {
@@ -129,11 +132,38 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = (newStatus, customTracking = null) => {
     setSelectedStatus(newStatus);
+    const trackingToSave = customTracking !== null ? customTracking : trackingInput.trim();
     if (onUpdateStatus) {
-      onUpdateStatus(order.orderId, newStatus);
+      onUpdateStatus(order.orderId, newStatus, trackingToSave);
     }
+  };
+
+  const handleStatusSelectChange = (nextStatus) => {
+    if (nextStatus === selectedStatus) return;
+    const isShipped = nextStatus === 'Shipped (In Transit)';
+    const promptMsg = isShipped
+      ? `Advance Order #${order.orderId} to "${nextStatus}"?\n\nEnter or confirm Citypak Waybill tracking number (leave blank if none):`
+      : `Are you sure you wish to change Order #${order.orderId} status from "${selectedStatus}" to:\n"${nextStatus}"?`;
+
+    if (isShipped) {
+      const trackVal = window.prompt(promptMsg, trackingInput || '');
+      if (trackVal === null) return;
+      setTrackingInput(trackVal.trim());
+      handleStatusChange(nextStatus, trackVal.trim());
+    } else {
+      if (!window.confirm(promptMsg)) return;
+      handleStatusChange(nextStatus, trackingInput.trim());
+    }
+  };
+
+  const handleSaveTracking = (advanceToShipped = false) => {
+    const cleanTracking = trackingInput.trim();
+    const nextStatus = advanceToShipped ? 'Shipped (In Transit)' : selectedStatus;
+    handleStatusChange(nextStatus, cleanTracking);
+    setTrackingSavedSuccess(true);
+    setTimeout(() => setTrackingSavedSuccess(false), 3000);
   };
 
   const statuses = [
@@ -202,7 +232,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               <label style={{ fontSize: '0.74rem', color: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : 'var(--gold-bright)', fontWeight: 600 }}>CHANGE STATUS:</label>
               <select
                 value={selectedStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
+                onChange={(e) => handleStatusSelectChange(e.target.value)}
                 className="admin-status-select"
                 style={{
                   borderColor: selectedStatus.toLowerCase().includes('reject') ? '#ef4444' : undefined,
@@ -292,6 +322,140 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
             </div>
           )}
 
+          {/* Citypak Courier Tracking & Dispatch Integration Card */}
+          <div style={{
+            backgroundColor: '#0c0d12',
+            border: (selectedStatus === 'Shipped (In Transit)' || trackingInput) ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
+            borderRadius: '2px',
+            padding: '1.4rem',
+            marginTop: '1.2rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--gold-bright)', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em' }}>
+                <Truck size={16} />
+                <span>CITYPAK COURIER EXPRESS DISPATCH & TRACKING</span>
+              </div>
+              <span style={{
+                fontSize: '0.68rem',
+                backgroundColor: trackingInput ? 'rgba(197, 160, 89, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                color: trackingInput ? 'var(--gold-bright)' : 'var(--text-light-muted)',
+                border: trackingInput ? '1px solid var(--gold-border)' : '1px solid var(--border-dark)',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '1px'
+              }}>
+                {trackingInput ? '✓ TRACKING ACTIVE ON CUSTOMER PORTAL' : 'AWAITING TRACKING WAYBILL'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '260px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-light-secondary)', marginBottom: '0.4rem', letterSpacing: '0.06em' }}>
+                  CITYPAK WAYBILL / TRACKING NUMBER
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={trackingInput}
+                    onChange={(e) => setTrackingInput(e.target.value)}
+                    placeholder="e.g. CPK1088294 or 12345"
+                    className="admin-input"
+                    style={{
+                      flex: 1,
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.06em',
+                      fontWeight: 600,
+                      borderColor: trackingSavedSuccess ? '#4ade80' : undefined
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    className="btn-primary-gold"
+                    onClick={() => handleSaveTracking(false)}
+                    style={{ padding: '0.65rem 1.1rem', fontSize: '0.74rem', whiteSpace: 'nowrap' }}
+                  >
+                    <Check size={13} />
+                    <span>{trackingSavedSuccess ? 'SAVED' : 'SAVE TRACKING'}</span>
+                  </button>
+
+                  {trackingInput && (
+                    <button
+                      type="button"
+                      className="btn-secondary-outline"
+                      onClick={() => {
+                        if (window.confirm(`Remove Citypak tracking number from Order #${order.orderId}?`)) {
+                          setTrackingInput('');
+                          handleStatusChange(selectedStatus, '');
+                        }
+                      }}
+                      style={{ padding: '0.65rem 0.8rem', fontSize: '0.72rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', whiteSpace: 'nowrap' }}
+                      title="Clear tracking number from this order"
+                    >
+                      <X size={12} />
+                      <span>CLEAR</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons for Start Shipping & Live Test */}
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-end', flexWrap: 'wrap', paddingTop: '1.2rem' }}>
+                {(selectedStatus === 'Payment Verified — Processing Dispatch' || selectedStatus === 'In Production' || selectedStatus === 'Packed & Inspected' || selectedStatus === 'Pending Confirmation') && (
+                  <button
+                    type="button"
+                    className="btn-primary-gold"
+                    onClick={() => {
+                      if (window.confirm(`Advance Order #${order.orderId} to "Shipped (In Transit)" with tracking number "${trackingInput.trim() || 'None'}"?`)) {
+                        handleSaveTracking(true);
+                      }
+                    }}
+                    style={{
+                      padding: '0.65rem 1.2rem',
+                      fontSize: '0.74rem',
+                      gap: '5px',
+                      backgroundColor: 'linear-gradient(135deg, #c5a059 0%, #dfba73 50%, #9e7d3b 100%)',
+                      color: '#000000',
+                      fontWeight: 800
+                    }}
+                    title="Mark order as Shipped and activate Citypak tracking for the client"
+                  >
+                    <Truck size={14} />
+                    <span>START TO SHIP (DISPATCH ORDER)</span>
+                  </button>
+                )}
+
+                {trackingInput && (
+                  <a
+                    href={`https://track.citypak.lk/track?tracking_number=${encodeURIComponent(trackingInput.trim())}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary-outline"
+                    style={{
+                      padding: '0.65rem 1.1rem',
+                      fontSize: '0.74rem',
+                      gap: '5px',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      borderColor: 'var(--gold-border)',
+                      color: 'var(--gold-bright)'
+                    }}
+                    title="Open live Citypak tracking search in a new tab"
+                  >
+                    <span>TEST ON CITYPAK</span>
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '0.8rem', fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
+              ✦ Once added and status is updated to <strong>Shipped (In Transit)</strong>, the customer's "My Orders" portal displays a prominent <strong>TRACK WITH CITYPAK</strong> button that automatically opens their delivery progress.
+            </div>
+          </div>
+
           {/* Client & Destination Overview Grid */}
           <div className="admin-client-info-grid">
             <div className="admin-info-card">
@@ -344,7 +508,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 return (
                   <div key={idx} className="admin-parcel-item-row" style={{ borderLeft: isBespoke ? '2px solid var(--gold-bright)' : 'none', paddingLeft: isBespoke ? '10px' : '0' }}>
                     <img 
-                      src={item.image || item.product_image_url || '/images/tshirt_white.jpg'} 
+                      src={item.image || item.product_image_url || '/images/tshirt_white.webp'} 
                       alt={item.title} 
                       className="admin-parcel-item-thumb" 
                       style={{ width: '56px', height: '56px', objectFit: 'contain', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -403,7 +567,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                   const fabric = customItem.fabric || linkedBespoke.fabricName || '240 GSM Luxury Cotton';
                   const cut = customItem.cut || linkedBespoke.cutName || 'Classic Regular Fit';
                   const notes = customItem.customNotes || linkedBespoke.notes || '';
-                  const previewImg = customItem.image || customItem.product_image_url || linkedBespoke.previewThumbnail || '/images/hero_tshirt.jpg';
+                  const previewImg = customItem.image || customItem.product_image_url || linkedBespoke.previewThumbnail || '/images/hero_tshirt.webp';
                   const artworks = customItem.artworks || linkedBespoke.artworks || {};
                   const artworkList = Object.entries(artworks);
 

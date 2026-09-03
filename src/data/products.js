@@ -12,10 +12,10 @@ export const PRODUCTS = [
     colorHex: '#121316',
     colorsAvailable: ['#121316', '#F4F4F4', '#474A51'],
     sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
-    image: '/images/hero_tshirt.jpg',
+    image: '/images/hero_tshirt.webp',
     images: [
-      '/images/hero_tshirt.jpg',
-      '/images/pillar_heavyweight.jpg'
+      '/images/hero_tshirt.webp',
+      '/images/pillar_heavyweight.webp'
     ],
     fabricProvenance: '280 GSM 100% Long-Staple Combed Cotton, Florence Knit Atelier',
     details: [
@@ -89,10 +89,10 @@ export const PRODUCTS = [
     colorHex: '#F7F7F7',
     colorsAvailable: ['#F7F7F7', '#121316', '#2D323E'],
     sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
-    image: '/images/tshirt_white.jpg',
+    image: '/images/tshirt_white.webp',
     images: [
-      '/images/tshirt_white.jpg',
-      '/images/pillar_heavyweight.jpg'
+      '/images/tshirt_white.webp',
+      '/images/pillar_heavyweight.webp'
     ],
     fabricProvenance: 'Rare Sea Island Cotton, Italian Yarn Spinning',
     details: [
@@ -151,10 +151,10 @@ export const PRODUCTS = [
     colorHex: '#4A4E57',
     colorsAvailable: ['#4A4E57', '#1E1F22', '#D8D4CC'],
     sizes: ['S (Relaxed)', 'M (Relaxed)', 'L (Relaxed)', 'XL (Relaxed)'],
-    image: '/images/tshirt_oversized.jpg',
+    image: '/images/tshirt_oversized.webp',
     images: [
-      '/images/tshirt_oversized.jpg',
-      '/images/pillar_oversized.jpg'
+      '/images/tshirt_oversized.webp',
+      '/images/pillar_oversized.webp'
     ],
     fabricProvenance: '260 GSM French Terry Backed Jersey',
     details: [
@@ -213,10 +213,10 @@ export const PRODUCTS = [
     colorHex: '#1B273D',
     colorsAvailable: ['#1B273D', '#121316', '#EDEBE6'],
     sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
-    image: '/images/tshirt_silk.jpg',
+    image: '/images/tshirt_silk.webp',
     images: [
-      '/images/tshirt_silk.jpg',
-      '/images/pillar_silk.jpg'
+      '/images/tshirt_silk.webp',
+      '/images/pillar_silk.webp'
     ],
     fabricProvenance: '80% Double-Mercerized Cotton / 20% Mulberry Silk, Como Atelier',
     details: [
@@ -271,7 +271,7 @@ export const CATEGORIES = [
     subtitle: '280 GSM combed organic cotton crewnecks',
     actionText: 'VIEW HEAVYWEIGHT (12)',
     count: 12,
-    image: '/images/pillar_heavyweight.jpg',
+    image: '/images/pillar_heavyweight.webp',
     categoryKey: 'heavyweight'
   },
   {
@@ -280,7 +280,7 @@ export const CATEGORIES = [
     subtitle: 'Ultra-fine luster yarns with fluid drape',
     actionText: 'VIEW SILK-COTTON (8)',
     count: 8,
-    image: '/images/pillar_silk.jpg',
+    image: '/images/pillar_silk.webp',
     categoryKey: 'silk-cotton'
   },
   {
@@ -289,7 +289,7 @@ export const CATEGORIES = [
     subtitle: 'Drop-shoulder architectural relaxed cuts',
     actionText: 'VIEW BOXY TEES (6)',
     count: 6,
-    image: '/images/pillar_oversized.jpg',
+    image: '/images/pillar_oversized.webp',
     categoryKey: 'oversized'
   }
 ];

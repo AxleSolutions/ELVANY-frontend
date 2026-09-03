@@ -30,9 +30,17 @@ import {
   ChevronUp,
   RefreshCw,
   Loader2,
-  Maximize2
+  Maximize2,
+  CreditCard
 } from 'lucide-react';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
+import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
+import { 
+  getPayHereParameters, 
+  launchPayHerePayment, 
+  confirmCardPayment, 
+  getPaymentGatewayConfig 
+} from '../services/payhereService';
 
 import { CITIES_LIST } from './AccountPage';
 
@@ -156,13 +164,30 @@ export const CheckoutPage = ({
     }
   };
 
-  // Form State - Step 2: Payment Method (QR or Bank Transfer)
-  const [paymentMethod, setPaymentMethod] = useState('qr'); // 'qr' | 'bank'
+  // Form State - Step 2: Payment Method (Card, QR, or Bank Transfer)
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'qr' | 'bank'
   const [paymentSlipFile, setPaymentSlipFile] = useState(null);
   const [paymentSlipPreview, setPaymentSlipPreview] = useState(null);
   const [slipUploadError, setSlipUploadError] = useState(false);
   const [copiedAmount, setCopiedAmount] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
+
+  // PayHere Payment Gateway State
+  const [paymentConfig, setPaymentConfig] = useState({ isSandbox: true, testCards: [] });
+  const [copiedTestCard, setCopiedTestCard] = useState(null);
+  const [cardPaymentError, setCardPaymentError] = useState(null);
+  const [isTestingCardsOpen, setIsTestingCardsOpen] = useState(true);
+  const [isDownloadingPassport, setIsDownloadingPassport] = useState(false);
+
+  // Load gateway configuration on mount
+  useEffect(() => {
+    getPaymentGatewayConfig().then((cfg) => {
+      if (cfg && cfg.success) {
+        setPaymentConfig(cfg);
+      }
+    });
+  }, []);
+
 
   // Financial calculations
   const getPrice = (item) => item.priceLKR || item.price || 18500;
@@ -231,8 +256,10 @@ export const CheckoutPage = ({
     e.preventDefault();
     if (cart.length === 0) return;
 
-    // Strict Enforcement: Payment slip is mandatory for both QR and Bank Transfer
-    if (!paymentSlipFile) {
+    setCardPaymentError(null);
+
+    // Strict Enforcement: Payment slip is mandatory ONLY for QR and Bank Transfer
+    if (paymentMethod !== 'card' && !paymentSlipFile) {
       setSlipUploadError(true);
       const slipElem = document.getElementById('payment-slip-upload-section');
       if (slipElem) {
@@ -244,10 +271,10 @@ export const CheckoutPage = ({
     setIsSubmitting(true);
     setSlipUploadError(false);
 
-
     try {
       const orderId = `ELV-${Math.floor(10000 + Math.random() * 90000)}`;
       const fullLocation = `${address}${apartment ? `, ${apartment}` : ''}, ${city}, ${postalCode}, ${country}`;
+      const isCard = paymentMethod === 'card';
 
       const newOrder = {
         orderId,
@@ -271,9 +298,9 @@ export const CheckoutPage = ({
           deliveryFeeLKR: deliveryFee
         },
         orderDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        status: 'Pending Slip Verification',
-        paymentMethod: paymentMethod === 'qr' ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
-        hasSlipAttached: !!paymentSlipFile,
+        status: isCard ? 'Payment Verified — Processing Dispatch' : 'Pending Slip Verification',
+        paymentMethod: isCard ? 'PayHere Secure Online Card Payment' : paymentMethod === 'qr' ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
+        hasSlipAttached: isCard ? false : !!paymentSlipFile,
         subtotalLKR: subtotal,
         deliveryFeeLKR: deliveryFee,
         shippingFeeLKR: deliveryFee,
@@ -303,8 +330,8 @@ export const CheckoutPage = ({
           fabric: c.fabric || '',
           cut: c.cut || '',
           quantity: c.qty || c.quantity || 1,
-          image: c.image || '/images/hero_tshirt.jpg',
-          previewThumbnail: c.previewThumbnail || c.image || '/images/hero_tshirt.jpg',
+          image: c.image || '/images/hero_tshirt.webp',
+          previewThumbnail: c.previewThumbnail || c.image || '/images/hero_tshirt.webp',
           artworks: c.artworks || {}
         }))
       };
@@ -341,6 +368,62 @@ export const CheckoutPage = ({
         localStorage.setItem('elvany_last_order_code', newOrder.orderId);
       } catch {}
 
+      // ========================================================
+      // PATH A: PAYHERE CARD PAYMENT GATEWAY POPUP
+      // ========================================================
+      if (isCard) {
+        try {
+          const payHereParams = await getPayHereParameters(newOrder);
+
+          await launchPayHerePayment(payHereParams, {
+            onCompleted: async (completedOrderId) => {
+              try {
+                await confirmCardPayment(completedOrderId || newOrder.orderId);
+                const verifiedOrder = {
+                  ...newOrder,
+                  orderId: completedOrderId || newOrder.orderId,
+                  status: 'Payment Verified — Processing Dispatch',
+                  paymentMethod: 'PayHere Secure Online Card Payment'
+                };
+
+                if (onConfirmOrder) {
+                  await onConfirmOrder(verifiedOrder, null);
+                }
+                if (onClearCart) {
+                  onClearCart();
+                }
+
+                try {
+                  window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: verifiedOrder }));
+                } catch {}
+
+                setConfirmedOrder(verifiedOrder);
+              } catch (finishErr) {
+                console.error('Post card completion error:', finishErr);
+                setConfirmedOrder(newOrder);
+              } finally {
+                setIsSubmitting(false);
+              }
+            },
+            onDismissed: () => {
+              setIsSubmitting(false);
+              setCardPaymentError('PayHere payment modal closed. Your order details are retained so you can try again anytime.');
+            },
+            onError: (err) => {
+              setIsSubmitting(false);
+              setCardPaymentError(typeof err === 'string' ? err : 'Card gateway error. Please verify card details or retry.');
+            }
+          });
+        } catch (gatewayErr) {
+          setIsSubmitting(false);
+          setCardPaymentError(gatewayErr.message || 'Could not initiate PayHere payment. Please retry or choose another payment method.');
+        }
+        return;
+      }
+
+      // ========================================================
+      // PATH B: BANK TRANSFER OR LANKAQR WITH SLIP
+      // ========================================================
       if (onConfirmOrder) {
         await onConfirmOrder(newOrder, paymentSlipFile);
       }
@@ -358,7 +441,9 @@ export const CheckoutPage = ({
       console.error('Order placement error:', err);
       alert('We encountered an issue registering your order. Please retry.');
     } finally {
-      setIsSubmitting(false);
+      if (paymentMethod !== 'card') {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -379,18 +464,17 @@ export const CheckoutPage = ({
             textAlign: 'center',
             boxShadow: '0 20px 60px rgba(0,0,0,0.85)'
           }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--gold-bright)',
-              color: '#000000',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.5rem auto'
-            }}>
-              <Check size={32} strokeWidth={3} />
+            {/* Maison ELVANY Official Brand Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+              <img 
+                src="/logo/Main.png" 
+                alt="ELVANY" 
+                style={{ 
+                  maxHeight: '56px', 
+                  maxWidth: '220px', 
+                  objectFit: 'contain'
+                }} 
+              />
             </div>
 
             <div style={{
@@ -475,103 +559,77 @@ export const CheckoutPage = ({
               </div>
             </div>
 
+            {/* Return & Exchange Policy Guidelines */}
+            <div style={{
+              backgroundColor: '#0a0b0e',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderLeft: '3px solid var(--gold-bright)',
+              borderRadius: '2px',
+              padding: '1.25rem 1.5rem',
+              textAlign: 'left',
+              marginBottom: '2rem'
+            }}>
+              <div style={{
+                color: 'var(--gold-bright)',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: '0.6rem'
+              }}>
+                Return & Exchange Guidelines
+              </div>
+              <ul style={{
+                margin: 0,
+                paddingLeft: '1.1rem',
+                fontSize: '0.8rem',
+                color: 'var(--text-light-secondary)',
+                lineHeight: 1.65,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.35rem'
+              }}>
+                <li>Garments can be returned or exchanged within <strong>7 days</strong> from delivery handover in original, unworn condition.</li>
+                <li><strong>Return Delivery Fees:</strong> If you are returning the item, delivery fees should be handled by you.</li>
+                <li><strong>Damaged Goods:</strong> If return is due to damage or defect only, ELVANY will handle and cover the delivery fees.</li>
+                <li><strong>Exchange Delivery Fees:</strong> If you are exchanging the item, both delivery fees (return courier & replacement dispatch) should be handled by you.</li>
+                <li><strong>Refund Processing:</strong> Any funds or refunds will be received after the package is safely received and verified by our atelier.</li>
+              </ul>
+            </div>
+
             {/* Action CTAs */}
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button 
                 type="button"
-                className="btn-outline-gold"
-                onClick={() => {
-                  const printWin = window.open('', '_blank');
-                  if (!printWin) {
-                    window.print();
-                    return;
+                className="btn-primary-gold"
+                disabled={isDownloadingPassport}
+                onClick={async () => {
+                  try {
+                    setIsDownloadingPassport(true);
+                    await downloadOrderInvoice(confirmedOrder);
+                  } finally {
+                    setIsDownloadingPassport(false);
                   }
-                  const itemsHtml = confirmedOrder.items.map(item => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #222;">
-                      <div>
-                        <div style="font-weight:600; color:#111; font-size:14px;">${item.name || item.title}</div>
-                        <div style="color:#666; font-size:12px; margin-top:2px;">Size: ${item.selectedSize || item.size} &bull; Color: ${item.color} &bull; Qty: ${item.quantity || 1}</div>
-                      </div>
-                      <div style="font-weight:bold; color:#000; font-size:14px;">
-                        LKR ${((item.priceLKR || 18500) * (item.quantity || 1)).toLocaleString()}
-                      </div>
-                    </div>
-                  `).join('');
-
-                  printWin.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <title>Maison ELVANY — Order Passport #${confirmedOrder.orderId}</title>
-                      <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;600;700&display=swap');
-                        body { background-color: #f7f7f8; color: #111; font-family: 'Inter', sans-serif; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
-                        .passport-box { width: 100%; max-width: 640px; background: #fff; border: 2px solid #c5a059; padding: 36px; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-                        .title { font-family: 'Cinzel', serif; font-size: 24px; letter-spacing: 0.15em; color: #111; text-align: center; margin: 0 0 6px 0; text-transform: uppercase; }
-                        .sub { text-align: center; font-size: 11px; letter-spacing: 0.2em; color: #888; text-transform: uppercase; margin-bottom: 25px; }
-                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: #fafafa; border: 1px solid #eee; padding: 14px; margin-bottom: 20px; }
-                        .field-label { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
-                        .field-value { font-size: 13px; color: #111; font-weight: 600; }
-                        .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; margin-top: 14px; border-top: 2px solid #c5a059; }
-                        .footer-note { text-align: center; font-size: 11px; color: #666; margin-top: 25px; line-height: 1.5; }
-                      </style>
-                    </head>
-                    <body>
-                      <div class="passport-box">
-                        <h1 class="title">MAISON ELVANY</h1>
-                        <div class="sub">Official Garment Acquisition Passport & Authenticity Certificate</div>
-                        <div class="grid">
-                          <div>
-                            <div class="field-label">Order Reference</div>
-                            <div class="field-value" style="color:#c5a059;">#${confirmedOrder.orderId}</div>
-                          </div>
-                          <div>
-                            <div class="field-label">Registration Date</div>
-                            <div class="field-value">${confirmedOrder.orderDate || new Date().toLocaleDateString()}</div>
-                          </div>
-                          <div>
-                            <div class="field-label">Acquired By</div>
-                            <div class="field-value">${confirmedOrder.customerName}</div>
-                          </div>
-                          <div>
-                            <div class="field-label">Payment Method</div>
-                            <div class="field-value">${confirmedOrder.paymentMethod}</div>
-                          </div>
-                          <div style="grid-column: span 2;">
-                            <div class="field-label">Courier Destination</div>
-                            <div class="field-value">${confirmedOrder.customerLocation}</div>
-                          </div>
-                        </div>
-                        <div>
-                          <div class="field-label" style="margin-bottom: 6px;">Certified Capsule Garments</div>
-                          ${itemsHtml}
-                        </div>
-                        <div class="total-row">
-                          <span style="font-size: 13px; font-weight: 700; text-transform: uppercase;">Total Settlement</span>
-                          <span style="font-size: 18px; font-weight: 700; color: #c5a059;">LKR ${(confirmedOrder.totalLKR || 0).toLocaleString()}</span>
-                        </div>
-                        <div class="footer-note">
-                          This document certifies authentic origin from Maison ELVANY wear.<br/>
-                          Express Courier Island-Wide Delivery Guaranteed.
-                        </div>
-                      </div>
-                      <script>
-                        window.onload = function() { window.print(); }
-                      </script>
-                    </body>
-                    </html>
-                  `);
-                  printWin.document.close();
                 }}
                 style={{ padding: '1rem 1.8rem' }}
+                title="Download official offline passport PDF"
               >
-                <Download size={16} />
-                <span>DOWNLOAD ORDER PASSPORT</span>
+                {isDownloadingPassport ? (
+                  <>
+                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                    <span>GENERATING PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} />
+                    <span>DOWNLOAD ORDER PASSPORT</span>
+                  </>
+                )}
               </button>
 
               <button 
                 type="button"
-                className="btn-primary-gold"
+                className="btn-outline-gold"
                 onClick={() => navigate('/account?tab=orders')}
                 style={{ padding: '1rem 2rem' }}
               >
@@ -709,7 +767,7 @@ export const CheckoutPage = ({
               const itemKey = `mobile-${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
               const isBespoke = Boolean(item.isBespokeCustom || item.designCode || (item.title || item.name || '').includes('Bespoke') || (item.title || item.name || '').includes('Custom'));
               const currentAngle = activeAngles[itemKey] || 'front';
-              let displayImg = item.image || '/images/hero_tshirt.jpg';
+              let displayImg = item.image || '/images/hero_tshirt.webp';
               if (isBespoke && item.views) {
                 displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
               }
@@ -1121,33 +1179,146 @@ export const CheckoutPage = ({
                     </h3>
                   </div>
 
-                  {/* Payment Tabs: LankaQR and Bank Transfer */}
+                  {/* Payment Tabs: Card, LankaQR, and Bank Transfer */}
                   <div className="checkout-payment-tabs">
+                    {/* Credit / Debit Card (PayHere) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod('card');
+                        setSlipUploadError(false);
+                        setCardPaymentError(null);
+                      }}
+                      className={`checkout-payment-tab-btn ${paymentMethod === 'card' ? 'active' : ''}`}
+                    >
+                      <CreditCard size={20} />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+                        CREDIT / DEBIT CARD
+                      </span>
+                    </button>
+
                     {/* LankaQR / Direct QR Option */}
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('qr')}
+                      onClick={() => {
+                        setPaymentMethod('qr');
+                        setCardPaymentError(null);
+                      }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
                     >
-                      <span className="checkout-tab-badge">FAST & INSTANT</span>
-                      <QrCode size={22} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.06em' }}>
-                        LANKAQR / DIRECT QR
+                      <QrCode size={20} />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+                        LANKAQR TRANSFER
                       </span>
                     </button>
 
                     {/* Bank Transfer Option */}
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('bank')}
+                      onClick={() => {
+                        setPaymentMethod('bank');
+                        setCardPaymentError(null);
+                      }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
                     >
-                      <Building2 size={22} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.06em' }}>
-                        DIRECT BANK TRANSFER
+                      <Building2 size={20} />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+                        BANK TRANSFER
                       </span>
                     </button>
                   </div>
+
+                  {/* 0. Credit / Debit Card Payment View (Professional & Clean) */}
+                  {paymentMethod === 'card' && (
+                    <div style={{
+                      backgroundColor: '#0c0d12',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '4px',
+                      padding: '1.25rem 1.4rem',
+                      marginBottom: '1.5rem'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
+                        marginBottom: '0.85rem'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CreditCard size={17} color="var(--gold-bright)" />
+                          <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 600 }}>
+                            Credit / Debit Card
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>VISA</span>
+                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>MASTERCARD</span>
+                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>AMEX</span>
+                        </div>
+                      </div>
+
+                      <p style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--text-light-secondary)',
+                        margin: 0,
+                        lineHeight: 1.5
+                      }}>
+                        After clicking <strong>Pay with Card</strong>, you will be redirected to the secure PayHere payment gateway to enter your card details and complete the transaction.
+                      </p>
+
+                      {paymentConfig.isSandbox && (
+                        <div style={{
+                          marginTop: '0.85rem',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '0.5rem',
+                          fontSize: '0.74rem',
+                          color: 'var(--text-light-muted)'
+                        }}>
+                          <span>Test Card: <strong style={{ color: '#ffffff' }}>4916 2175 0161 1292</strong> (Exp: 12/28, CVV: 123)</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('4916217501611292');
+                              setCopiedTestCard('4916217501611292');
+                              setTimeout(() => setCopiedTestCard(null), 2000);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: copiedTestCard ? '#4ade80' : 'var(--gold-bright)',
+                              cursor: 'pointer',
+                              fontSize: '0.74rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            {copiedTestCard ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      )}
+
+                      {cardPaymentError && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          padding: '0.65rem 0.85rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '3px',
+                          color: '#f87171',
+                          fontSize: '0.76rem'
+                        }}>
+                          {cardPaymentError}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+
 
                   {/* 1. LankaQR Payment Method Details */}
                   {paymentMethod === 'qr' && (
@@ -1250,7 +1421,7 @@ export const CheckoutPage = ({
                           <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
                             <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
                             <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Screenshot</span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
@@ -1377,7 +1548,7 @@ export const CheckoutPage = ({
                           <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
                             <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
                             <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Slip</span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>JPG, PNG, WEBP, PDF (Max 10MB)</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
@@ -1459,18 +1630,27 @@ export const CheckoutPage = ({
 
                   <button
                     type="submit"
-                    disabled={isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || !paymentSlipFile}
+                    disabled={
+                      isSubmitting || 
+                      (paymentMethod === 'bank' && !loggedInUser) || 
+                      (paymentMethod !== 'card' && !paymentSlipFile)
+                    }
                     className="btn-primary-gold checkout-confirm-action-btn"
                     style={{
-                      opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || !paymentSlipFile) ? 0.6 : 1,
-                      cursor: isSubmitting ? 'wait' : (!paymentSlipFile || (paymentMethod === 'bank' && !loggedInUser)) ? 'not-allowed' : 'pointer'
+                      opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || (paymentMethod !== 'card' && !paymentSlipFile)) ? 0.6 : 1,
+                      cursor: isSubmitting ? 'wait' : (paymentMethod !== 'card' && !paymentSlipFile) || (paymentMethod === 'bank' && !loggedInUser) ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {isSubmitting ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} />
-                        <span>AUTHENTICATING & PROCESSING ACQUISITION...</span>
+                        <span>{paymentMethod === 'card' ? 'OPENING SECURE PAYMENT WINDOW...' : 'AUTHENTICATING & PROCESSING ACQUISITION...'}</span>
                       </span>
+                    ) : paymentMethod === 'card' ? (
+                      <>
+                        <Lock size={16} />
+                        <span>PAY WITH CARD • {formatLKR(grandTotal)}</span>
+                      </>
                     ) : (paymentMethod === 'bank' && !loggedInUser) ? (
                       <>
                         <Lock size={16} />
@@ -1516,7 +1696,7 @@ export const CheckoutPage = ({
                   const itemKey = `desktop-${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
                   const isBespoke = Boolean(item.isBespokeCustom || item.designCode || (item.title || item.name || '').includes('Bespoke') || (item.title || item.name || '').includes('Custom'));
                   const currentAngle = activeAngles[itemKey] || 'front';
-                  let displayImg = item.image || '/images/hero_tshirt.jpg';
+                  let displayImg = item.image || '/images/hero_tshirt.webp';
                   if (isBespoke && item.views) {
                     displayImg = item.views[currentAngle] || item.views.front || item.image || item.previewThumbnail;
                   }
@@ -1725,7 +1905,7 @@ export const CheckoutPage = ({
                 >
                   <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
                     <img 
-                      src={panel.img || '/images/hero_tshirt.jpg'} 
+                      src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />

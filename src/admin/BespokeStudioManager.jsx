@@ -267,7 +267,7 @@ export const BespokeStudioManager = ({ onToast }) => {
           {filteredDesigns.map((design) => {
             const artworksList = Object.entries(design.artworks || {});
             const totalPrints = artworksList.length;
-            const previewImg = design.previewThumbnail || design.image || '/images/hero_tshirt.jpg';
+            const previewImg = design.previewThumbnail || design.image || '/images/hero_tshirt.webpwebp';
 
             return (
               <div 
@@ -578,7 +578,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                 ].filter(a => !!a.url && typeof a.url === 'string');
 
                 const currentAngleObj = modalAvailableAngles.find(a => a.id === modalAngle) || modalAvailableAngles[0];
-                const activeMockupUrl = currentAngleObj?.url || modalFront || '/images/hero_tshirt.jpg';
+                const activeMockupUrl = currentAngleObj?.url || modalFront || '/images/hero_tshirt.webp';
 
                 return (
                   <div style={{ marginBottom: '1.5rem' }}>

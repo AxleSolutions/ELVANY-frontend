@@ -125,7 +125,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
           {/* Large Atelier Showcase */}
           <div className="craft-grid" style={{ marginBottom: '5rem' }}>
             <div className="craft-card-large" style={{ minHeight: '440px' }}>
-              <img src="/images/pillar_heavyweight.jpg" alt="T-Shirt Atelier" />
+              <img src="/images/pillar_heavyweight.webp" alt="T-Shirt Atelier" />
               <div className="craft-card-large-overlay">
                 <div className="craft-card-tag" style={{ color: 'var(--gold-bright)' }}>
                   KNITTED IN FLORENCE

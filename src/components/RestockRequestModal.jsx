@@ -58,7 +58,7 @@ export const RestockRequestModal = ({
       const payload = {
         productId: product.id,
         productTitle: product.name || product.title,
-        productImage: product.image || product.images?.[0] || '/images/hero_tshirt.jpg',
+        productImage: product.image || product.images?.[0] || '/images/hero_tshirt.webp',
         variantColor: color,
         sizeCode: size,
         customerName: name.trim() || 'VIP Client',
@@ -203,7 +203,7 @@ export const RestockRequestModal = ({
               marginBottom: '1.4rem'
             }}>
               <img 
-                src={product.image || product.images?.[0] || '/images/hero_tshirt.jpg'} 
+                src={product.image || product.images?.[0] || '/images/hero_tshirt.webp'} 
                 alt={product.name || product.title} 
                 style={{ width: '54px', height: '65px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }}
               />
