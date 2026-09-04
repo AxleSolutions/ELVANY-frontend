@@ -296,6 +296,7 @@ export const ProductDetailPage = ({
           <div className="pdp-gallery-column">
             <div className="pdp-main-image-wrap">
               <img 
+                key={images[activeImageIndex] || activeImageIndex}
                 src={images[activeImageIndex]} 
                 alt={product.name} 
                 className="pdp-main-img" 

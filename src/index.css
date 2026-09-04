@@ -283,8 +283,12 @@ img {
   z-index: 1000;
   background-color: rgba(11, 11, 12, 0.96);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-dark);
-  padding: 1.15rem 0;
+  padding-top: calc(1.15rem + env(safe-area-inset-top, 0px));
+  padding-bottom: 1.15rem;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   transition: var(--transition-smooth);
 }
 
@@ -536,7 +540,7 @@ img {
   -webkit-backdrop-filter: blur(28px);
   border-top: 1px solid var(--gold-border);
   border-bottom: 1px solid var(--border-dark);
-  padding: 1.8rem 1.8rem 2.2rem 1.8rem;
+  padding: 1.8rem calc(1.8rem + env(safe-area-inset-right, 0px)) calc(2.2rem + env(safe-area-inset-bottom, 0px)) calc(1.8rem + env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
@@ -2430,14 +2434,30 @@ img {
   object-fit: cover;
   object-position: center top;
   display: block;
-  transition: transform 0.35s ease;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  animation: pdpImageFade 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
+}
+
+@keyframes pdpImageFade {
+  0% {
+    opacity: 0.15;
+    transform: scale(1.025);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
 }
 
 .pdp-thumbnails-strip {
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
 }
 
 .pdp-thumb-btn {
@@ -2450,21 +2470,33 @@ img {
   background: #121316;
   cursor: pointer;
   padding: 0;
-  opacity: 0.6;
-  transition: var(--transition-smooth);
+  opacity: 0.55;
+  transform: scale(0.97);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pdp-thumb-btn.active,
-.pdp-thumb-btn:hover {
+.pdp-thumb-btn.active {
   opacity: 1;
   border-color: var(--gold-bright);
-  box-shadow: 0 0 10px rgba(197, 160, 89, 0.25);
+  transform: scale(1.03);
+  box-shadow: 0 0 14px rgba(197, 160, 89, 0.32), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.pdp-thumb-btn:hover:not(.active) {
+  opacity: 0.9;
+  border-color: rgba(197, 160, 89, 0.55);
+  transform: scale(1);
 }
 
 .pdp-thumb-btn img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pdp-thumb-btn:hover img {
+  transform: scale(1.06);
 }
 
 .pdp-buybox-column {
@@ -3833,8 +3865,16 @@ img {
   }
 
   /* Navbar on Mobile */
+  .navbar {
+    padding-top: calc(0.6rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0.6rem;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
   .navbar-inner {
-    height: 60px;
+    height: auto;
+    min-height: 54px;
     padding: 0 1rem;
   }
 
@@ -5872,8 +5912,8 @@ img {
 
   /* 2. Header & Navigation */
   .navbar-inner {
-    padding: 0.75rem 1.15rem !important;
-    min-height: 60px !important;
+    padding: 0.35rem 1.15rem !important;
+    min-height: 52px !important;
   }
 
   .nav-logo-img {

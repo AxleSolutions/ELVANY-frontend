@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Ruler, Sparkles, MessageSquare } from 'lucide-react';
+import { X, Ruler, Sparkles, MessageSquare, Info } from 'lucide-react';
 
 export const SizeChartModal = ({ isOpen, onClose }) => {
   useEffect(() => {
@@ -36,9 +36,11 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
         zIndex: 99999,
         overflowY: 'auto',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: '1.5rem 1rem',
+        padding: '2.5rem 1rem',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
         animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
@@ -49,16 +51,14 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '620px',
-          maxHeight: '90vh',
-          margin: 'auto',
+          maxWidth: '960px',
+          margin: '0 auto',
           backgroundColor: '#0c0d12',
           border: '1px solid var(--gold-border)',
           borderRadius: '4px',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(197, 160, 89, 0.15)',
-          overflow: 'hidden',
           animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
       >
@@ -130,30 +130,24 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           </h2>
         </div>
 
-        {/* Modal Body: 1:1 Aspect Ratio Size Chart Container */}
+        {/* Modal Body: Full-Width Size Chart Image & Notes */}
         <div 
           data-lenis-prevent="true"
           style={{
             padding: '1.25rem 1.5rem',
-            overflowY: 'auto',
-            flex: 1,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            gap: '1.25rem'
           }}
         >
           <div style={{
             width: '100%',
-            maxWidth: '560px',
-            aspectRatio: '1 / 1',
             backgroundColor: '#07080a',
-            border: '1px solid rgba(197, 160, 89, 0.25)',
+            border: '1px solid rgba(197, 160, 89, 0.2)',
             borderRadius: '4px',
-            padding: '0.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
+            padding: '0.5rem',
+            overflowX: 'auto',
             boxShadow: 'inset 0 0 30px rgba(0, 0, 0, 0.8)'
           }}>
             <img 
@@ -161,8 +155,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
               alt="Maison ELVANY Official Garment Size Chart"
               style={{
                 width: '100%',
-                height: '100%',
-                objectFit: 'contain',
+                height: 'auto',
                 display: 'block',
                 borderRadius: '2px'
               }}
@@ -170,6 +163,22 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
                 e.target.src = encodeURI('/Size chart/sizechart.webp');
               }}
             />
+          </div>
+
+          {/* Sizing & Baggy Fit Clean Text Notes (No Gold Box) */}
+          <div style={{
+            width: '100%',
+            padding: '0.25rem 0.35rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.35rem'
+          }}>
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.86rem', lineHeight: 1.6, margin: 0 }}>
+              * <strong style={{ color: '#ffffff' }}>Note:</strong> These measurements are for <strong>real t-shirts</strong>, not for your body measurements.
+            </p>
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.86rem', lineHeight: 1.6, margin: 0 }}>
+              * When purchasing <strong>baggy t-shirts</strong>, please use your <strong>normal t-shirt size</strong>. We are adjusting the baggy t-shirt size for you.
+            </p>
           </div>
         </div>
 

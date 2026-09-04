@@ -318,7 +318,10 @@ export function App() {
       });
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsAuthOpen(true);
+          window.dispatchEvent(new CustomEvent('elvany_password_recovery'));
+        } else if (event === 'SIGNED_IN' && session?.user) {
           const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Client';
           const email = session.user.email || '';
           const phone = session.user.phone || '';

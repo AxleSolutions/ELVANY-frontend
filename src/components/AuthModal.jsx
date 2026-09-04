@@ -1,22 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, ArrowRight, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Mail, ArrowRight, Check, AlertCircle, Loader2, MailCheck, RefreshCw, KeyRound, Lock, ArrowLeft } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { initFacebookSdk, loginWithFacebookDirect } from '../lib/facebookAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [isRegister, setIsRegister] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isPasswordResetMode, setIsPasswordResetMode] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
   const [clientDisplayName, setClientDisplayName] = useState('');
   const [authError, setAuthError] = useState(null);
   const [socialProvider, setSocialProvider] = useState(null);
 
+  // Email verification state
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState(null);
+
   useEffect(() => {
     initFacebookSdk();
+
+    const handlePasswordRecoveryEvent = () => {
+      setIsPasswordResetMode(true);
+      setIsForgotPassword(false);
+      setIsRegister(false);
+      setAuthError(null);
+    };
+    window.addEventListener('elvany_password_recovery', handlePasswordRecoveryEvent);
+    return () => {
+      window.removeEventListener('elvany_password_recovery', handlePasswordRecoveryEvent);
+    };
   }, []);
 
   const handleGoogleAuthSuccess = async (tokenResponse) => {
@@ -115,6 +140,9 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
       setAuthError(null);
       setSubmitted(false);
       setIsLoading(false);
+      setAwaitingVerification(false);
+      setResendMessage(null);
+      setResetSuccess(false);
     } else {
       document.body.style.overflow = '';
     }
@@ -125,10 +153,130 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
   if (!isOpen) return null;
 
+  const handleResendVerification = async (targetEmail) => {
+    const emailToUse = targetEmail || verificationEmail || email;
+    if (!emailToUse || !supabase) return;
+    setResendLoading(true);
+    setResendMessage(null);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: emailToUse,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      });
+      if (error) {
+        setResendMessage({ type: 'error', text: error.message });
+      } else {
+        setResendMessage({ type: 'success', text: 'Verification link resent successfully. Please check your inbox.' });
+      }
+    } catch (err) {
+      setResendMessage({ type: 'error', text: err.message || 'Failed to resend verification email.' });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      setAuthError('Please enter a valid email address.');
+      return;
+    }
+    setIsLoading(true);
+    setAuthError(null);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: window.location.origin
+        });
+        if (error) {
+          setIsLoading(false);
+          setAuthError(error.message);
+          return;
+        }
+        setIsLoading(false);
+        setResetSuccess(true);
+        return;
+      } catch (err) {
+        setIsLoading(false);
+        setAuthError(err.message || 'Failed to dispatch password recovery link.');
+        return;
+      }
+    }
+
+    // Mock fallback
+    setIsLoading(false);
+    setResetSuccess(true);
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setAuthError('New password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setAuthError('New password and confirmation do not match.');
+      return;
+    }
+    setIsLoading(true);
+    setAuthError(null);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) {
+          setIsLoading(false);
+          setAuthError(error.message);
+          return;
+        }
+        setIsLoading(false);
+        setIsPasswordResetMode(false);
+        setClientDisplayName('Client');
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          onClose();
+        }, 1500);
+        return;
+      } catch (err) {
+        setIsLoading(false);
+        setAuthError(err.message || 'Failed to update password.');
+        return;
+      }
+    }
+
+    setIsLoading(false);
+    setIsPasswordResetMode(false);
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      onClose();
+    }, 1500);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setAuthError(null);
+    setResendMessage(null);
+
+    // Password validation for Registration
+    if (isRegister) {
+      if (!password || password.length < 6) {
+        setIsLoading(false);
+        setAuthError('Password must be at least 6 characters.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setIsLoading(false);
+        setAuthError('Passwords do not match. Please re-enter.');
+        return;
+      }
+    }
 
     const displayName = isRegister ? (name || email.split('@')[0]) : email.split('@')[0];
 
@@ -136,18 +284,57 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
       try {
         if (isRegister) {
           const { data, error } = await supabase.auth.signUp({
-            email,
+            email: email.trim(),
             password,
             options: {
               data: {
                 full_name: name || email.split('@')[0]
-              }
+              },
+              emailRedirectTo: window.location.origin
             }
           });
 
           if (error) {
             setIsLoading(false);
             setAuthError(error.message);
+            return;
+          }
+
+          // Check if user is already registered (Supabase returns empty identities to protect privacy)
+          if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            setIsLoading(false);
+            setAuthError(
+              <span>
+                An account with this email is already registered.{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(false);
+                    setAuthError(null);
+                  }}
+                  style={{
+                    color: 'var(--gold-bright)',
+                    textDecoration: 'underline',
+                    fontWeight: 600,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: 'inherit'
+                  }}
+                >
+                  Log in here
+                </button>
+              </span>
+            );
+            return;
+          }
+
+          // If Supabase email confirmation is enabled, session will be null:
+          if (data?.user && !data.session) {
+            setIsLoading(false);
+            setVerificationEmail(email);
+            setAwaitingVerification(true);
             return;
           }
 
@@ -176,7 +363,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
           try {
             const { data, error } = await supabase.auth.signInWithPassword({
-              email,
+              email: email.trim(),
               password
             });
             if (!error && data?.user) {
@@ -207,6 +394,37 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               setSubmitted(false);
               onClose();
             }, 1200);
+            return;
+          }
+
+          // Check if error is due to unverified email
+          if (supabaseError?.message && supabaseError.message.toLowerCase().includes('email not confirmed')) {
+            setIsLoading(false);
+            setVerificationEmail(email);
+            setAuthError(
+              <span>
+                Your email has not been verified yet.{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAwaitingVerification(true);
+                    handleResendVerification(email);
+                  }}
+                  style={{
+                    color: 'var(--gold-bright)',
+                    textDecoration: 'underline',
+                    fontWeight: 600,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: 'inherit'
+                  }}
+                >
+                  Resend verification link
+                </button>
+              </span>
+            );
             return;
           }
 
@@ -353,7 +571,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               <Check size={28} />
             </div>
             <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '0.4rem', color: '#fff' }}>
-              {isRegister ? 'Welcome to the Maison' : 'Welcome Back'}
+              {isPasswordResetMode ? 'Password Updated' : (isRegister ? 'Welcome to the Maison' : 'Welcome Back')}
               {clientDisplayName ? `, ${clientDisplayName}` : ''}
             </h3>
             {socialProvider && (
@@ -364,6 +582,367 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
               Accessing your private atelier passport & bespoke preferences...
             </p>
+          </div>
+        ) : isPasswordResetMode ? (
+          /* Set New Password Screen (Triggered by Recovery link) */
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
+              <div style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                border: '1px solid var(--gold-bright)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem auto',
+                color: 'var(--gold-bright)'
+              }}>
+                <KeyRound size={24} />
+              </div>
+              <div style={{
+                color: 'var(--gold-bright)',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                marginBottom: '0.4rem'
+              }}>
+                SECURITY CHECKPOINT
+              </div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.85rem', fontWeight: 500 }}>
+                Set New Password
+              </h2>
+              <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', marginTop: '0.4rem' }}>
+                Please choose a secure new password for your account.
+              </p>
+            </div>
+
+            <form onSubmit={handleUpdatePassword}>
+              {authError && (
+                <div style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.45)',
+                  color: '#fca5a5',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '2px',
+                  marginBottom: '1.2rem',
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.65rem'
+                }}>
+                  <AlertCircle size={17} color="#ef4444" style={{ flexShrink: 0 }} />
+                  <div>{authError}</div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="•••••••••••• (min. 6 chars)"
+                  className="form-input"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••••••"
+                  className="form-input"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary-gold"
+                style={{ 
+                  width: '100%', 
+                  justifyContent: 'center', 
+                  marginTop: '1rem', 
+                  padding: '1rem',
+                  opacity: isLoading ? 0.7 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                {isLoading && <Loader2 size={16} className="spin-animation" />}
+                <span>{isLoading ? 'UPDATING PASSWORD...' : 'UPDATE & SIGN IN'}</span>
+                {!isLoading && <ArrowRight size={14} />}
+              </button>
+            </form>
+          </div>
+        ) : isForgotPassword ? (
+          /* Forgot Password View */
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
+              <div style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                border: '1px solid var(--gold-bright)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem auto',
+                color: 'var(--gold-bright)'
+              }}>
+                <KeyRound size={24} />
+              </div>
+              <div style={{
+                color: 'var(--gold-bright)',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                marginBottom: '0.4rem'
+              }}>
+                ACCOUNT RECOVERY
+              </div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.85rem', fontWeight: 500 }}>
+                Reset Your Password
+              </h2>
+            </div>
+
+            {resetSuccess ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+                  A private password reset link has been dispatched to:
+                </p>
+                <div style={{
+                  color: 'var(--gold-bright)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.02em',
+                  marginBottom: '1.25rem',
+                  wordBreak: 'break-all'
+                }}>
+                  {email}
+                </div>
+                <p style={{ color: 'var(--text-light-muted)', fontSize: '0.82rem', lineHeight: 1.5, marginBottom: '1.75rem' }}>
+                  Please check your email <strong style={{ color: '#ffffff' }}>inbox</strong> and <strong style={{ color: '#ffffff' }}>spam</strong> folder, and click the reset link to choose a new password.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setResetSuccess(false);
+                    setAuthError(null);
+                  }}
+                  className="btn-primary-gold"
+                  style={{ width: '100%', justifyContent: 'center', padding: '0.9rem' }}
+                >
+                  <ArrowLeft size={14} />
+                  <span>RETURN TO LOG IN</span>
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', lineHeight: 1.6, marginBottom: '1.5rem', textAlign: 'center' }}>
+                  Enter the email address registered with your Maison ELVANY account. We will dispatch a secure recovery link to your inbox.
+                </p>
+
+                {authError && (
+                  <div style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.45)',
+                    color: '#fca5a5',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '2px',
+                    marginBottom: '1.2rem',
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.65rem'
+                  }}>
+                    <AlertCircle size={17} color="#ef4444" style={{ flexShrink: 0 }} />
+                    <div>{authError}</div>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label className="form-label">Registered Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="client@domain.com"
+                    className="form-input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary-gold"
+                  style={{ 
+                    width: '100%', 
+                    justifyContent: 'center', 
+                    marginTop: '1rem', 
+                    padding: '1rem',
+                    opacity: isLoading ? 0.7 : 1,
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {isLoading && <Loader2 size={16} className="spin-animation" />}
+                  <span>{isLoading ? 'DISPATCHING LINK...' : 'SEND RECOVERY LINK'}</span>
+                  {!isLoading && <ArrowRight size={14} />}
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.78rem', color: 'var(--text-light-muted)' }}>
+                  Remember your credentials?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setAuthError(null);
+                    }}
+                    style={{ color: 'var(--gold-bright)', textDecoration: 'underline', fontWeight: 600, background: 'none' }}
+                  >
+                    Back to Log In
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        ) : awaitingVerification ? (
+          /* Email Verification Confirmation State */
+          <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(197, 160, 89, 0.12)',
+              border: '1px solid var(--gold-bright)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem auto',
+              color: 'var(--gold-bright)',
+              boxShadow: '0 0 25px rgba(197, 160, 89, 0.25)'
+            }}>
+              <MailCheck size={32} />
+            </div>
+            
+            <div style={{
+              color: 'var(--gold-bright)',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              marginBottom: '0.4rem'
+            }}>
+              VERIFICATION REQUIRED
+            </div>
+
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.85rem', fontWeight: 500, marginBottom: '0.85rem', color: '#fff' }}>
+              Verify Your Email
+            </h2>
+
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+              We have dispatched a private confirmation email to:
+            </p>
+
+            <div style={{
+              color: 'var(--gold-bright)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              marginBottom: '1rem',
+              wordBreak: 'break-all'
+            }}>
+              {verificationEmail}
+            </div>
+
+            <p style={{ color: 'var(--text-light-muted)', fontSize: '0.82rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              Please check your email <strong style={{ color: '#ffffff' }}>inbox</strong> and <strong style={{ color: '#ffffff' }}>spam</strong> folder, and click the confirmation link to activate your Maison ELVANY atelier passport.
+            </p>
+
+            {resendMessage && (
+              <p style={{
+                color: resendMessage.type === 'success' ? '#86efac' : '#fca5a5',
+                fontSize: '0.82rem',
+                lineHeight: 1.4,
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                {resendMessage.text}
+              </p>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setAwaitingVerification(false);
+                  setIsRegister(false);
+                }}
+                className="btn-primary-gold"
+                style={{ width: '100%', justifyContent: 'center', padding: '0.9rem' }}
+              >
+                <span>LOG IN TO YOUR ACCOUNT</span>
+                <ArrowRight size={14} />
+              </button>
+
+              <button
+                type="button"
+                disabled={resendLoading}
+                onClick={() => handleResendVerification(verificationEmail)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  background: 'transparent',
+                  border: '1px solid var(--border-dark)',
+                  color: 'var(--text-light-secondary)',
+                  padding: '0.75rem',
+                  borderRadius: '2px',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  cursor: resendLoading ? 'not-allowed' : 'pointer',
+                  transition: 'var(--transition-smooth)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--gold-bright)';
+                  e.currentTarget.style.color = 'var(--gold-bright)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-dark)';
+                  e.currentTarget.style.color = 'var(--text-light-secondary)';
+                }}
+              >
+                {resendLoading ? (
+                  <>
+                    <Loader2 size={14} className="spin-animation" />
+                    <span>Resending Link...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={14} />
+                    <span>Resend Verification Email</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -400,9 +979,8 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               </h2>
             </div>
 
-            {/* Social Logins (Google active; Facebook & Instagram temporarily hidden) */}
+            {/* Social Logins (Google active) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.8rem' }}>
-              {/* Google Button */}
               <button
                 type="button"
                 className="social-auth-btn"
@@ -416,8 +994,6 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 </svg>
                 <span>Continue with Google</span>
               </button>
-
-              {/* Facebook & Instagram Logins temporarily disabled as requested */}
             </div>
 
             {/* Elegant Divider */}
@@ -450,7 +1026,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   gap: '0.65rem'
                 }}>
                   <AlertCircle size={17} color="#ef4444" style={{ flexShrink: 0 }} />
-                  <span>{authError}</span>
+                  <div>{authError}</div>
                 </div>
               )}
 
@@ -483,16 +1059,54 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Password</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                  {!isRegister && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForgotPassword(true);
+                        setAuthError(null);
+                        setResetSuccess(false);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--gold-bright)',
+                        fontSize: '0.74rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <input
                   type="password"
                   required
-                  placeholder="••••••••••••"
+                  placeholder={isRegister ? "•••••••••••• (min. 6 chars)" : "••••••••••••"}
                   className="form-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+
+              {isRegister && (
+                <div className="form-group">
+                  <label className="form-label">Confirm Password</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    className="form-input"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -523,7 +1137,11 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 {isRegister ? 'Already have a private account? ' : 'Do not have an account? '}
                 <button
                   type="button"
-                  onClick={() => setIsRegister(!isRegister)}
+                  onClick={() => {
+                    setIsRegister(!isRegister);
+                    setIsForgotPassword(false);
+                    setAuthError(null);
+                  }}
                   style={{ color: 'var(--gold-bright)', textDecoration: 'underline', fontWeight: 600, background: 'none' }}
                 >
                   {isRegister ? 'Log In' : 'Register'}
