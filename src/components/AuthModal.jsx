@@ -4,6 +4,15 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { initFacebookSdk, loginWithFacebookDirect } from '../lib/facebookAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
+const getAuthRedirectUrl = () => {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    if (!window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')) {
+      return window.location.origin;
+    }
+  }
+  return import.meta.env.VITE_SITE_URL || 'https://elvany.vercel.app';
+};
+
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -163,7 +172,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         type: 'signup',
         email: emailToUse,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: getAuthRedirectUrl()
         }
       });
       if (error) {
@@ -190,7 +199,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: window.location.origin
+          redirectTo: getAuthRedirectUrl()
         });
         if (error) {
           setIsLoading(false);
@@ -290,7 +299,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               data: {
                 full_name: name || email.split('@')[0]
               },
-              emailRedirectTo: window.location.origin
+              emailRedirectTo: getAuthRedirectUrl()
             }
           });
 
@@ -494,7 +503,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: provider.toLowerCase(),
           options: {
-            redirectTo: window.location.origin
+            redirectTo: getAuthRedirectUrl()
           }
         });
 
