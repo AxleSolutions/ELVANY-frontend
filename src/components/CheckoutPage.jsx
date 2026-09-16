@@ -41,6 +41,20 @@ import {
   confirmCardPayment, 
   getPaymentGatewayConfig 
 } from '../services/payhereService';
+import { 
+  launchKokoPayment, 
+  calculateKokoAmounts, 
+  verifyKokoOrderStatus,
+  KOKO_SURCHARGE_PERCENT 
+} from '../services/kokoService';
+import { 
+  VisaMastercardLogo,
+  VisaLogo, 
+  MastercardLogo, 
+  AmexLogo, 
+  KokoLogo, 
+  LankaQrLogo 
+} from './PaymentLogos';
 
 import { CITIES_LIST } from './AccountPage';
 
@@ -164,8 +178,8 @@ export const CheckoutPage = ({
     }
   };
 
-  // Form State - Step 2: Payment Method (Card, QR, or Bank Transfer)
-  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'qr' | 'bank'
+  // Form State - Step 2: Payment Method (Card, Koko BNPL, QR, or Bank Transfer)
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'koko' | 'qr' | 'bank'
   const [paymentSlipFile, setPaymentSlipFile] = useState(null);
   const [paymentSlipPreview, setPaymentSlipPreview] = useState(null);
   const [slipUploadError, setSlipUploadError] = useState(false);
@@ -179,13 +193,86 @@ export const CheckoutPage = ({
   const [isTestingCardsOpen, setIsTestingCardsOpen] = useState(true);
   const [isDownloadingPassport, setIsDownloadingPassport] = useState(false);
 
-  // Load gateway configuration on mount
+  // Load gateway configuration and handle Koko return & verification on mount
   useEffect(() => {
     getPaymentGatewayConfig().then((cfg) => {
       if (cfg && cfg.success) {
         setPaymentConfig(cfg);
       }
     });
+
+    // Check if returning from Koko Gateway redirect
+    const queryParams = new URLSearchParams(window.location.search);
+    const kokoVerify = queryParams.get('koko_verify') || queryParams.get('koko_return');
+    const kokoCancel = queryParams.get('koko_cancel') || queryParams.get('koko_status') === 'cancel';
+    const orderIdParam = queryParams.get('orderId');
+    const statusParam = (queryParams.get('status') || '').toUpperCase();
+    const trnIdParam = queryParams.get('trnId');
+
+    if (kokoCancel || statusParam === 'CANCELLED' || statusParam === 'CANCELED' || statusParam === 'FAILURE') {
+      // Payment was not completed or was cancelled: Keep items in cart so user loses nothing
+      setPaymentMethod('koko');
+      setCurrentStep(2);
+      setCardPaymentError('Koko BNPL transaction was not completed or was cancelled. Your items remain safely in your bag. You can retry or choose another payment method.');
+      setIsSubmitting(false);
+      try {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch {}
+      return;
+    }
+
+    if ((kokoVerify || statusParam === 'SUCCESS') && orderIdParam) {
+      setIsSubmitting(true);
+      setPaymentMethod('koko');
+
+      verifyKokoOrderStatus(orderIdParam).then(async (verifyRes) => {
+        // Confirm whether Koko officially verified the order
+        const isVerifiedSuccess = statusParam === 'SUCCESS' || verifyRes?.data?.status === 'SUCCESS' || verifyRes?.success;
+
+        if (isVerifiedSuccess) {
+          let pendingOrder = null;
+          try {
+            const saved = localStorage.getItem('elvany_pending_koko_order');
+            if (saved) pendingOrder = JSON.parse(saved);
+          } catch {}
+
+          const finalizedOrder = {
+            ...(pendingOrder || {}),
+            orderId: orderIdParam,
+            status: 'Payment Verified — Processing Dispatch',
+            paymentMethod: 'Koko Buy Now Pay Later (3 Instalments)',
+            koko_status: 'SUCCESS',
+            koko_trn_id: trnIdParam || verifyRes?.data?.trnId || 'KOKO-CONFIRMED'
+          };
+
+          // Register verified order in store & database
+          if (onConfirmOrder) {
+            await onConfirmOrder(finalizedOrder, null);
+          }
+          // Now safely clear cart only AFTER payment is verified
+          if (onClearCart) {
+            onClearCart();
+          }
+
+          try {
+            window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: finalizedOrder }));
+          } catch {}
+
+          localStorage.removeItem('elvany_pending_koko_order');
+          setConfirmedOrder(finalizedOrder);
+        } else {
+          setCardPaymentError('Koko payment could not be confirmed by the payment gateway. Please verify your transaction in your Koko app or choose another payment method.');
+        }
+      }).catch((err) => {
+        console.error('Koko verification error:', err);
+        setCardPaymentError('We could not confirm your Koko payment with the gateway. Please retry or contact concierge support.');
+      }).finally(() => {
+        setIsSubmitting(false);
+        try {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch {}
+      });
+    }
   }, []);
 
 
@@ -200,7 +287,17 @@ export const CheckoutPage = ({
 
   // Dynamic Delivery Fee Calculation
   const deliveryFee = calculateDeliveryFee(subtotal, city);
-  const grandTotal = subtotal + deliveryFee;
+  const baseOrderTotal = subtotal + deliveryFee;
+
+  // Koko BNPL 12% Surcharge Calculations
+  const isKoko = paymentMethod === 'koko';
+  const isCard = paymentMethod === 'card';
+  const isOnlinePayment = isCard || isKoko;
+
+  const kokoCalc = calculateKokoAmounts(baseOrderTotal, KOKO_SURCHARGE_PERCENT);
+  const kokoSurchargeLKR = isKoko ? kokoCalc.surchargeAmount : 0;
+  const grandTotal = baseOrderTotal + kokoSurchargeLKR;
+  const kokoInstalmentLKR = kokoCalc.instalmentAmount;
 
   const handleCopyAmount = () => {
     navigator.clipboard.writeText(grandTotal.toString());
@@ -259,7 +356,7 @@ export const CheckoutPage = ({
     setCardPaymentError(null);
 
     // Strict Enforcement: Payment slip is mandatory ONLY for QR and Bank Transfer
-    if (paymentMethod !== 'card' && !paymentSlipFile) {
+    if (!isOnlinePayment && !paymentSlipFile) {
       setSlipUploadError(true);
       const slipElem = document.getElementById('payment-slip-upload-section');
       if (slipElem) {
@@ -274,7 +371,6 @@ export const CheckoutPage = ({
     try {
       const orderId = `ELV-${Math.floor(10000 + Math.random() * 90000)}`;
       const fullLocation = `${address}${apartment ? `, ${apartment}` : ''}, ${city}, ${postalCode}, ${country}`;
-      const isCard = paymentMethod === 'card';
 
       const newOrder = {
         orderId,
@@ -298,12 +394,24 @@ export const CheckoutPage = ({
           deliveryFeeLKR: deliveryFee
         },
         orderDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        status: isCard ? 'Payment Verified — Processing Dispatch' : 'Pending Slip Verification',
-        paymentMethod: isCard ? 'PayHere Secure Online Card Payment' : paymentMethod === 'qr' ? 'LankaQR Instant Transfer' : 'Direct Bank Transfer',
-        hasSlipAttached: isCard ? false : !!paymentSlipFile,
+        status: isCard
+          ? 'Payment Verified — Processing Dispatch'
+          : isKoko
+          ? 'Pending Koko Payment'
+          : 'Pending Slip Verification',
+        paymentMethod: isCard
+          ? 'PayHere Secure Online Card Payment'
+          : isKoko
+          ? 'Koko Buy Now Pay Later (3 Instalments)'
+          : paymentMethod === 'qr'
+          ? 'LankaQR Instant Transfer'
+          : 'Direct Bank Transfer',
+        hasSlipAttached: isOnlinePayment ? false : !!paymentSlipFile,
         subtotalLKR: subtotal,
         deliveryFeeLKR: deliveryFee,
         shippingFeeLKR: deliveryFee,
+        surchargeLKR: kokoSurchargeLKR,
+        paymentSurchargePercent: isKoko ? KOKO_SURCHARGE_PERCENT : 0,
         totalLKR: grandTotal,
         grandTotalLKR: grandTotal,
         savingsLKR: totalSavings,
@@ -422,7 +530,39 @@ export const CheckoutPage = ({
       }
 
       // ========================================================
-      // PATH B: BANK TRANSFER OR LANKAQR WITH SLIP
+      // PATH B: KOKO BUY NOW PAY LATER (3 INSTALMENTS)
+      // ========================================================
+      if (isKoko) {
+        try {
+          // Persist pending order to local storage (DO NOT clear cart until verified)
+          try {
+            localStorage.setItem('elvany_pending_koko_order', JSON.stringify(newOrder));
+          } catch {}
+
+          const returnUrl = `${window.location.origin}/checkout?koko_verify=true&orderId=${newOrder.orderId}`;
+          const cancelUrl = `${window.location.origin}/checkout?koko_cancel=true&orderId=${newOrder.orderId}`;
+
+          // Launch Koko Checkout Portal & Auto-Submit Form
+          await launchKokoPayment({
+            orderId: newOrder.orderId,
+            amount: grandTotal,
+            firstName,
+            lastName,
+            email,
+            description: `Maison ELVANY Order ${newOrder.orderId}`,
+            returnUrl,
+            cancelUrl,
+            items: cart
+          });
+        } catch (kokoErr) {
+          setIsSubmitting(false);
+          setCardPaymentError(kokoErr.message || 'Could not connect to Koko Payment Gateway. Please try again.');
+        }
+        return;
+      }
+
+      // ========================================================
+      // PATH C: BANK TRANSFER OR LANKAQR WITH SLIP
       // ========================================================
       if (onConfirmOrder) {
         await onConfirmOrder(newOrder, paymentSlipFile);
@@ -441,7 +581,7 @@ export const CheckoutPage = ({
       console.error('Order placement error:', err);
       alert('We encountered an issue registering your order. Please retry.');
     } finally {
-      if (paymentMethod !== 'card') {
+      if (!isOnlinePayment) {
         setIsSubmitting(false);
       }
     }
@@ -847,10 +987,22 @@ export const CheckoutPage = ({
                 {deliveryFee === 0 ? 'COMPLIMENTARY' : formatLKR(deliveryFee)}
               </span>
             </div>
+            {isKoko && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                <span>Koko BNPL Surcharge (12%):</span>
+                <span>+{formatLKR(kokoSurchargeLKR)}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ffffff', fontWeight: 700, fontSize: '0.92rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <span>Total:</span>
               <span style={{ color: 'var(--gold-bright)' }}>{formatLKR(grandTotal)}</span>
             </div>
+            {isKoko && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-muted)', fontSize: '0.74rem' }}>
+                <span>3x Instalments:</span>
+                <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1179,7 +1331,7 @@ export const CheckoutPage = ({
                     </h3>
                   </div>
 
-                  {/* Payment Tabs: Card, LankaQR, and Bank Transfer */}
+                  {/* Payment Tabs: Card, Koko BNPL, LankaQR, and Bank Transfer with Authentic Vector Logos */}
                   <div className="checkout-payment-tabs">
                     {/* Credit / Debit Card (PayHere) */}
                     <button
@@ -1190,10 +1342,32 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'card' ? 'active' : ''}`}
+                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <CreditCard size={20} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
-                        CREDIT / DEBIT CARD
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                        <VisaMastercardLogo />
+                      </div>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                        CARD PAYMENT
+                      </span>
+                    </button>
+
+                    {/* Koko: Buy Now Pay Later (3 Instalments) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod('koko');
+                        setSlipUploadError(false);
+                        setCardPaymentError(null);
+                      }}
+                      className={`checkout-payment-tab-btn ${paymentMethod === 'koko' ? 'active' : ''}`}
+                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                        <KokoLogo />
+                      </div>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                        3X INSTALMENTS
                       </span>
                     </button>
 
@@ -1205,9 +1379,12 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
+                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <QrCode size={20} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                        <LankaQrLogo />
+                      </div>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
                         LANKAQR TRANSFER
                       </span>
                     </button>
@@ -1220,9 +1397,21 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
+                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <Building2 size={20} />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        width: '76px', 
+                        height: '34px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '6px'
+                      }}>
+                        <Building2 size={20} color="var(--gold-bright)" />
+                      </div>
+                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
                         BANK TRANSFER
                       </span>
                     </button>
@@ -1246,15 +1435,13 @@ export const CheckoutPage = ({
                         marginBottom: '0.85rem'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <CreditCard size={17} color="var(--gold-bright)" />
-                          <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 600 }}>
-                            Credit / Debit Card
+                          <CreditCard size={18} color="var(--gold-bright)" />
+                          <span style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 700 }}>
+                            Credit / Debit Card (PayHere)
                           </span>
                         </div>
-                        <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>VISA</span>
-                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>MASTERCARD</span>
-                          <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', border: '1px solid rgba(255,255,255,0.12)', padding: '2px 6px', borderRadius: '3px', fontWeight: 600 }}>AMEX</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <VisaMastercardLogo />
                         </div>
                       </div>
 
@@ -1318,11 +1505,164 @@ export const CheckoutPage = ({
                     </div>
                   )}
 
+                  {/* 1. Koko Buy Now Pay Later (3x Instalments) Panel */}
+                  {paymentMethod === 'koko' && (
+                    <div style={{
+                      backgroundColor: '#0c0d12',
+                      border: '1px solid rgba(197, 160, 89, 0.35)',
+                      borderRadius: '4px',
+                      padding: '1.4rem',
+                      marginBottom: '1.5rem',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
+                        marginBottom: '1rem'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <KokoLogo style={{ height: '26px' }} />
+                          <span style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em' }}>
+                            Buy Now, Pay Later (3 Instalments)
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '0.68rem',
+                          backgroundColor: 'rgba(255, 0, 122, 0.15)',
+                          color: '#ff77b9',
+                          border: '1px solid rgba(255, 0, 122, 0.4)',
+                          padding: '2px 9px',
+                          borderRadius: '999px',
+                          fontWeight: 700
+                        }}>
+                        </span>
+                      </div>
+
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginBottom: '1.1rem' }}>
+                        Split your purchase into 3 equal monthly payments using your Koko account or debit/credit card.
+                      </p>
+
+                      {/* 3 Instalments Visual Plan Cards */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                        gap: '0.75rem',
+                        marginBottom: '1.25rem'
+                      }}>
+                        <div style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(197, 160, 89, 0.3)',
+                          borderRadius: '4px',
+                          padding: '0.85rem',
+                          textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                            1st Instalment
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                            Due Today
+                          </div>
+                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                            {formatLKR(kokoInstalmentLKR)}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '4px',
+                          padding: '0.85rem',
+                          textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-light-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                            2nd Instalment
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                            in 30 Days
+                          </div>
+                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                            {formatLKR(kokoInstalmentLKR)}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '4px',
+                          padding: '0.85rem',
+                          textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-light-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                            3rd Instalment
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                            in 60 Days
+                          </div>
+                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                            {formatLKR(kokoInstalmentLKR)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Important Surcharge Disclosure Banner */}
+                      <div style={{
+                        backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                        border: '1px solid rgba(197, 160, 89, 0.35)',
+                        borderRadius: '4px',
+                        padding: '0.9rem 1.1rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.75rem'
+                      }}>
+                        <AlertCircle size={17} color="var(--gold-bright)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ fontSize: '0.78rem', lineHeight: 1.5, color: '#e5e7eb' }}>
+                          <strong style={{ color: 'var(--gold-bright)', display: 'block', marginBottom: '2px' }}>
+                            Koko BNPL Processing Surcharge (+12%) Notice:
+                          </strong>
+                          An additional <strong>12% merchant processing fee (+{formatLKR(kokoSurchargeLKR)})</strong> is applied at checkout for Koko Buy Now Pay Later handling. 
+                          Your total payable amount is <strong>{formatLKR(grandTotal)}</strong>, divided into 3 equal monthly payments of <strong>{formatLKR(kokoInstalmentLKR)}</strong>.
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                        <ShieldCheck size={14} color="var(--gold-bright)" />
+                        <span>Instant digital verification via Koko portal. No manual slip or deposit receipt needed.</span>
+                      </div>
+
+                      {cardPaymentError && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          padding: '0.65rem 0.85rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '3px',
+                          color: '#f87171',
+                          fontSize: '0.76rem'
+                        }}>
+                          {cardPaymentError}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
 
 
                   {/* 1. LankaQR Payment Method Details */}
                   {paymentMethod === 'qr' && (
                     <div className="checkout-qr-card">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <LankaQrLogo style={{ height: '24px' }} />
+                          <span style={{ fontSize: '0.86rem', color: '#ffffff', fontWeight: 700 }}>National LankaQR Instant Transfer</span>
+                        </div>
+                        <span style={{ fontSize: '0.66rem', color: '#4ade80', backgroundColor: 'rgba(74, 222, 128, 0.12)', border: '1px solid rgba(74, 222, 128, 0.3)', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                          ZERO FEES • INSTANT
+                        </span>
+                      </div>
                       
                       {/* QR Hero: Presentation & Total Due */}
                       <div className="checkout-qr-hero">
@@ -1633,23 +1973,28 @@ export const CheckoutPage = ({
                     disabled={
                       isSubmitting || 
                       (paymentMethod === 'bank' && !loggedInUser) || 
-                      (paymentMethod !== 'card' && !paymentSlipFile)
+                      (!isOnlinePayment && !paymentSlipFile)
                     }
                     className="btn-primary-gold checkout-confirm-action-btn"
                     style={{
-                      opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || (paymentMethod !== 'card' && !paymentSlipFile)) ? 0.6 : 1,
-                      cursor: isSubmitting ? 'wait' : (paymentMethod !== 'card' && !paymentSlipFile) || (paymentMethod === 'bank' && !loggedInUser) ? 'not-allowed' : 'pointer'
+                      opacity: (isSubmitting || (paymentMethod === 'bank' && !loggedInUser) || (!isOnlinePayment && !paymentSlipFile)) ? 0.6 : 1,
+                      cursor: isSubmitting ? 'wait' : (!isOnlinePayment && !paymentSlipFile) || (paymentMethod === 'bank' && !loggedInUser) ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {isSubmitting ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} />
-                        <span>{paymentMethod === 'card' ? 'OPENING SECURE PAYMENT WINDOW...' : 'AUTHENTICATING & PROCESSING ACQUISITION...'}</span>
+                        <span>{paymentMethod === 'card' ? 'OPENING SECURE PAYMENT WINDOW...' : paymentMethod === 'koko' ? 'REDIRECTING TO KOKO BNPL GATEWAY...' : 'AUTHENTICATING & PROCESSING ACQUISITION...'}</span>
                       </span>
                     ) : paymentMethod === 'card' ? (
                       <>
                         <Lock size={16} />
                         <span>PAY WITH CARD • {formatLKR(grandTotal)}</span>
+                      </>
+                    ) : paymentMethod === 'koko' ? (
+                      <>
+                        <Sparkles size={16} color="#000000" />
+                        <span>PAY IN 3 WITH KOKO • {formatLKR(grandTotal)}</span>
                       </>
                     ) : (paymentMethod === 'bank' && !loggedInUser) ? (
                       <>
@@ -1817,6 +2162,13 @@ export const CheckoutPage = ({
                   </span>
                 </div>
 
+                {isKoko && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                    <span>Koko BNPL Surcharge (12%):</span>
+                    <span style={{ fontWeight: 700 }}>+{formatLKR(kokoSurchargeLKR)}</span>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
                   <span>Import Taxes & Atelier VAT:</span>
                   <span style={{ color: '#ffffff' }}>INCLUDED</span>
@@ -1828,6 +2180,23 @@ export const CheckoutPage = ({
                     {formatLKR(grandTotal)}
                   </span>
                 </div>
+
+                {isKoko && (
+                  <div style={{
+                    marginTop: '0.4rem',
+                    padding: '0.55rem 0.75rem',
+                    backgroundColor: 'rgba(197, 160, 89, 0.1)',
+                    border: '1px solid rgba(197, 160, 89, 0.3)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.74rem'
+                  }}>
+                    <span style={{ color: 'var(--text-light-secondary)' }}>3x Monthly Payments:</span>
+                    <span style={{ color: 'var(--gold-bright)', fontWeight: 700 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
+                  </div>
+                )}
               </div>
 
               {/* Trust Assurances */}
@@ -1921,7 +2290,7 @@ export const CheckoutPage = ({
             <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
                 <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Luxury Heavyweight Cotton'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Heavyweight Cotton'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
                 <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>

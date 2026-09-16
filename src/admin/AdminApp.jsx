@@ -466,7 +466,7 @@ export const AdminApp = ({
   };
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm('Are you sure you want to remove this luxury garment permanently from the catalog?')) {
+    if (window.confirm('Are you sure you want to remove this garment permanently from the catalog?')) {
       setProducts(prev => {
         const next = prev.filter(p => p.id !== productId && String(p.id) !== String(productId));
         if (onUpdateProducts) onUpdateProducts(next);

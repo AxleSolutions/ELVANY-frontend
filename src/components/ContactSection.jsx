@@ -342,7 +342,7 @@ export const ContactSection = () => {
                     <textarea
                       required
                       rows={4}
-                      placeholder="Please describe how we can assist you with your luxury acquisition..."
+                      placeholder="Please describe how we can assist you with your garment acquisition..."
                       className="form-input"
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}

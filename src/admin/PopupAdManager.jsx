@@ -442,7 +442,7 @@ export const PopupAdManager = ({
                     onChange={() => setFormData(prev => ({ ...prev, showOncePerSession: true }))}
                     style={{ accentColor: 'var(--gold-bright)' }}
                   />
-                  <span>Show once per browsing session (Recommended luxury experience)</span>
+                  <span>Show once per browsing session (Recommended session experience)</span>
                 </label>
 
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff', fontSize: '0.84rem', cursor: 'pointer' }}>
@@ -625,7 +625,7 @@ export const PopupAdManager = ({
             </div>
 
             <div style={{ marginTop: '1rem', fontSize: '0.74rem', color: 'var(--text-light-muted)', textAlign: 'center' }}>
-              ✦ Visual appears immediately upon landing with smooth fade and luxury blur.
+              ✦ Visual appears immediately upon landing with smooth fade and ambient blur.
             </div>
 
           </div>

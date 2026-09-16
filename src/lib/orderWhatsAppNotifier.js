@@ -46,7 +46,7 @@ export const generateShippingWhatsAppMessage = (order, trackingNumber = null, cu
         const sizeStr = size ? ` [Size ${size}]` : '';
         return `• ${title}${sizeStr} × ${qty}`;
       }).join('\n')
-    : '• ELVANY Luxury Capsule Garment';
+    : '• ELVANY Signature Capsule Garment';
 
   const destination = order.customerLocation || order.shippingAddress?.city || 'Sri Lanka';
   const totalLKR = order.totalLKR || order.total || order.items?.reduce((a, b) => a + (b.priceLKR || 18500) * (b.quantity || 1), 0) || 0;

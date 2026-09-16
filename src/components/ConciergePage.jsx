@@ -28,7 +28,7 @@ export const ConciergePage = () => {
       a: 'Yes. Contact our primary or secondary advisors directly via WhatsApp or phone to coordinate bespoke sizing or private capsule appointments.'
     },
     {
-      q: 'What is the return and exchange policy for luxury garments?',
+      q: 'What is the return and exchange policy for Maison garments?',
       a: 'We offer a 7-day complimentary exchange window for unworn garments in original architectural packaging with security tags intact.'
     }
   ];

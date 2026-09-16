@@ -78,7 +78,7 @@ export const PRODUCTS = [
   },
   {
     id: 'prod-02',
-    name: 'Sea Island Long-Staple Luxury Tee',
+    name: 'Sea Island Long-Staple Signature Tee',
     tagline: 'Ultra-soft handfeel with pristine bright white finish',
     priceLKR: 22000,
     priceEUR: 70,
@@ -115,7 +115,7 @@ export const PRODUCTS = [
         sizePurchased: 'M (40)',
         colorPurchased: 'Optic White',
         title: 'Completely opaque white tee with cashmere-like softness',
-        content: 'Finding a white luxury tee that is completely non-see-through without feeling heavy is nearly impossible. The rare Sea Island cotton provides unbelievable softness and a clean, luminous optic white tone.',
+        content: 'Finding an optic white artisanal tee that is completely non-see-through without feeling heavy is nearly impossible. The rare Sea Island cotton provides unbelievable softness and a clean, luminous optic white tone.',
         fitScore: 'True to Size',
         qualityScore: 'Silky Long-Staple Cotton',
         collarScore: 'Permanent Shape Retention',
@@ -223,7 +223,7 @@ export const PRODUCTS = [
       'Double-mercerized finish for permanent luster and rich dark navy shade',
       'Mulberry silk blend delivering cool-touch breathability',
       'Ultra-fine gauge knit with zero seam irritation',
-      'Refined collar band with luxury sartorial edge'
+      'Refined collar band with bespoke sartorial edge'
     ],
     fitAdvice: 'Streamlined tailored fit. True to size.',
     inStock: true,

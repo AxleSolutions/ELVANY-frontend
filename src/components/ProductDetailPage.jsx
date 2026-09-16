@@ -5,6 +5,7 @@ import { PRODUCTS } from '../data/products';
 import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
 import { SizeChartModal } from './SizeChartModal';
+import { KokoLogo } from './PaymentLogos';
 
 /**
  * Intelligent Atelier Recommendation Engine
@@ -427,6 +428,24 @@ export const ProductDetailPage = ({
               )}
 
               <span className="pdp-vat-tag">INCL. TAXES & COMPLIMENTARY COURIER</span>
+            </div>
+
+            {/* Koko BNPL 3-Instalment Teaser */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: 'rgba(197, 160, 89, 0.08)',
+              border: '1px solid rgba(197, 160, 89, 0.25)',
+              borderRadius: '4px',
+              padding: '4px 10px',
+              fontSize: '0.74rem',
+              color: 'var(--text-light-secondary)',
+              marginBottom: '1rem'
+            }}>
+              <Sparkles size={12} color="var(--gold-bright)" />
+              <span>or 3 interest-free instalments of <strong style={{ color: 'var(--gold-bright)' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
+              <KokoLogo style={{ padding: '1px 5px', height: '18px' }} imgStyle={{ height: '14px' }} />
             </div>
 
             <p className="pdp-description">

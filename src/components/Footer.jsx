@@ -17,7 +17,7 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
               />
             </div>
             <p className="footer-brand-desc" style={{ marginBottom: '1.2rem' }}>
-              Haute luxury heavyweight T-shirts and noble cotton essentials. Architectural cuts, 280 GSM Sea Island cotton, and bespoke craftsmanship.
+              Haute couture heavyweight T-shirts and noble cotton essentials. Architectural cuts, 280 GSM Sea Island cotton, and bespoke craftsmanship.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-light-muted)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

@@ -100,12 +100,12 @@ export const ProductsManager = ({
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-light-muted)' }}>
-                    No luxury garments found matching your filters.
+                    No garments found matching your filters.
                   </td>
                 </tr>
               ) : (
                 filteredProducts.map((product, idx) => {
-                  const title = product.title || product.name || 'Luxury Atelier Garment';
+                  const title = product.title || product.name || 'Signature Atelier Garment';
                   const gsm = product.gsm || (product.category === 'heavyweight' ? 280 : 220);
                   const composition = product.composition || product.fabricProvenance || '100% Organic Long-Staple Cotton';
                   const price = product.price || product.priceLKR || 18500;

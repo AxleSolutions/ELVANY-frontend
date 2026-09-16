@@ -1,5 +1,5 @@
-// Maison ELVANY — Luxury Progressive Web App Service Worker
-const CACHE_NAME = 'elvany-pwa-v2';
+// Maison ELVANY — Haute Couture Progressive Web App Service Worker
+const CACHE_NAME = 'elvany-pwa-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

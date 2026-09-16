@@ -24,6 +24,7 @@ import { LuxuryLoader } from './components/LuxuryLoader';
 import { PopupAdModal } from './components/PopupAdModal';
 import { PromotionsSection } from './components/PromotionsSection';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { OfflineGate } from './components/OfflineGate';
 
 // Code-split heavy routes for maximum performance & lightning-fast initial load
 const AdminApp = React.lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
@@ -1242,6 +1243,9 @@ export function App() {
 
       {/* Luxury Progressive Web App (PWA) Install Prompt */}
       <PwaInstallPrompt />
+
+      {/* Haute Luxury Offline Mode Access Restriction Gate */}
+      <OfflineGate />
     </div>
   );
 }

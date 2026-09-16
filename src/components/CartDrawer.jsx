@@ -112,7 +112,7 @@ export const CartDrawer = ({
                 EXPRESS COURIER LOGISTICS
               </div>
               <p className="cart-confirmed-box-desc">
-                Your luxury Florence garment parcel has been registered for tailoring reconciliation and express courier delivery. You can monitor live fulfillment telemetry from your account.
+                Your Maison Florence garment parcel has been registered for tailoring reconciliation and express courier delivery. You can monitor live fulfillment telemetry from your account.
               </p>
 
               <button
@@ -186,7 +186,7 @@ export const CartDrawer = ({
                 <div className="cart-items-list">
                   {cartItems.map((item, idx) => {
                     const itemKey = `${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
-                    const itemName = item.name || item.title || 'Luxury Atelier T-Shirt';
+                    const itemName = item.name || item.title || 'Signature Atelier T-Shirt';
                     const itemSize = item.selectedSize || item.size || 'M (40)';
                     const itemPrice = getPrice(item);
                     const itemQty = item.qty || 1;
@@ -492,7 +492,7 @@ export const CartDrawer = ({
             <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
                 <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Luxury Heavyweight Cotton'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Heavyweight Cotton'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
                 <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>

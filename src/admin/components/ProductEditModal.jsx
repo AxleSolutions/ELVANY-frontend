@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { uploadGarmentImageToCloudinary } from '../../lib/cloudinary';
 
-const PRESET_LUXURY_COLORS = [
+const PRESET_ATELIER_COLORS = [
   { name: 'Onyx Black', hex: '#121316' },
   { name: 'Optic White', hex: '#F7F7F7' },
   { name: 'Florentine Gold', hex: '#C5A059' },
@@ -457,7 +457,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
           <div>
             <div className="admin-dialog-subtitle">GARMENT ATELIER & STOCK MANAGER</div>
             <h2 className="admin-dialog-title">
-              {product ? `Edit Garment: ${product.title || product.name}` : 'Add New Luxury Garment'}
+              {product ? `Edit Garment: ${product.title || product.name}` : 'Add New Atelier Garment'}
             </h2>
           </div>
           <button className="admin-close-btn" onClick={onClose} type="button">
@@ -492,7 +492,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                     className="form-input admin-input"
                   >
                     <option value="heavyweight">Heavyweight (280 GSM)</option>
-                    <option value="luxury-cotton">Sea Island / Luxury Cotton</option>
+                    <option value="luxury-cotton">Sea Island / Signature Cotton</option>
                     <option value="oversized">Boxy Drop-Shoulder</option>
                     <option value="mercerized">Mercerized Silk-Cotton</option>
                   </select>
@@ -615,7 +615,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                     Click to Add Curated Atelier Shades:
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {PRESET_LUXURY_COLORS.map((preset) => {
+                    {PRESET_ATELIER_COLORS.map((preset) => {
                       const isAdded = (formData.colors || []).some(c => c.name === preset.name);
                       return (
                         <button

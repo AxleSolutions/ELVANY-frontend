@@ -765,7 +765,7 @@ export const BespokeStudioManager = ({ onToast }) => {
 
                   {Object.keys(selectedDesign.artworks || {}).length === 0 ? (
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)', textAlign: 'center', padding: '2rem 0' }}>
-                      No graphic artworks placed (Blank Luxury Garment).
+                      No graphic artworks placed (Blank Atelier Garment).
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

@@ -37,9 +37,9 @@ const FABRICS = [
   },
   {
     id: 'french_terry_280',
-    name: 'Luxury French Terry (280 GSM)',
+    name: 'Signature French Terry (280 GSM)',
     badge: 'EXTRA HEAVYWEIGHT',
-    shortDesc: 'Ultra-soft, heavy luxury knit with maximum comfort and structured drape.',
+    shortDesc: 'Ultra-soft, heavyweight artisanal knit with maximum comfort and structured drape.',
     basePrice: 22500
   },
   {

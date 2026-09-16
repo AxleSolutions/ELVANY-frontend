@@ -3,62 +3,91 @@
  * Allows direct Facebook Popup login without third-party OAuth intermediaries.
  */
 
-export function initFacebookSdk() {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined') return resolve(null);
+let fbInitPromise = null;
 
-    if (window.FB) {
-      resolve(window.FB);
-      return;
-    }
+export function initFacebookSdk() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.FB) return Promise.resolve(window.FB);
+  if (fbInitPromise) return fbInitPromise;
+
+  fbInitPromise = new Promise((resolve) => {
+    const appId = (import.meta.env.VITE_FACEBOOK_APP_ID || '').trim();
 
     window.fbAsyncInit = function() {
-      const appId = import.meta.env.VITE_FACEBOOK_APP_ID || '';
-      window.FB.init({
-        appId: appId || '1049736189768',
-        cookie: true,
-        xfbml: true,
-        version: 'v18.0'
-      });
+      if (window.FB && appId) {
+        window.FB.init({
+          appId: appId,
+          cookie: true,
+          xfbml: true,
+          version: 'v19.0'
+        });
+      }
       resolve(window.FB);
     };
 
-    // Load Facebook SDK asynchronously
-    (function(d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s); js.id = id;
-      js.src = "https://connect.facebook.net/en_US/sdk.js";
+    // Load Facebook SDK script asynchronously if not already injected
+    if (!document.getElementById('facebook-jssdk')) {
+      const js = document.createElement('script');
+      js.id = 'facebook-jssdk';
+      js.src = 'https://connect.facebook.net/en_US/sdk.js';
       js.async = true;
       js.defer = true;
-      js.crossOrigin = "anonymous";
-      if (fjs && fjs.parentNode) {
-        fjs.parentNode.insertBefore(js, fjs);
-      } else {
-        document.head.appendChild(js);
-      }
-    }(document, 'script', 'facebook-jssdk'));
+      js.crossOrigin = 'anonymous';
+      js.onerror = () => {
+        console.warn('Facebook SDK failed to load from connect.facebook.net');
+        resolve(null);
+      };
+      document.head.appendChild(js);
+    }
   });
+
+  return fbInitPromise;
 }
 
-export function loginWithFacebookDirect() {
+export async function loginWithFacebookDirect() {
+  const appId = (import.meta.env.VITE_FACEBOOK_APP_ID || '').trim();
+
+  // Ensure FB SDK is initialized
+  if (!window.FB) {
+    await initFacebookSdk();
+  }
+
+  if (!window.FB || !appId) {
+    // If no App ID or blocked by ad-blocker, return simulated atelier client for preview
+    return {
+      name: 'Arthur Vance',
+      email: 'arthur.vance@clientele.elvany.com'
+    };
+  }
+
   return new Promise((resolve, reject) => {
-    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
-
-    if (!appId || !window.FB) {
-      // Graceful fallback for local development without App ID
-      resolve({ name: 'Arthur Vance', email: 'arthur.vance@clientele.elvany.com' });
-      return;
+    try {
+      // Request name and email
+      window.FB.login((response) => {
+        if (response && response.authResponse) {
+          // Fetch only Name and Email fields from Facebook Graph API
+          window.FB.api('/me', { fields: 'name,email' }, (profile) => {
+            if (profile && !profile.error) {
+              const clientName = profile.name || 'Maison Client';
+              const clientEmail = profile.email || `${clientName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@facebook.com`;
+              resolve({
+                name: clientName,
+                email: clientEmail
+              });
+            } else {
+              resolve({
+                name: 'Facebook Client',
+                email: `user.${response.authResponse.userID}@facebook.com`
+              });
+            }
+          });
+        } else {
+          reject(new Error('Facebook authentication was cancelled or closed.'));
+        }
+      }, { scope: 'public_profile,email', return_scopes: true });
+    } catch (err) {
+      console.warn('Facebook login execution error:', err);
+      reject(err);
     }
-
-    window.FB.login((response) => {
-      if (response.authResponse) {
-        window.FB.api('/me', { fields: 'name,email,picture' }, (profile) => {
-          resolve(profile);
-        });
-      } else {
-        reject(new Error('Facebook authentication was cancelled.'));
-      }
-    }, { scope: 'public_profile,email' });
   });
 }

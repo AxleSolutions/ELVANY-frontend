@@ -638,7 +638,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 {order.items.filter(i => i.isBespokeCustom || i.designCode || (i.title || '').includes('Bespoke') || (i.title || '').includes('Custom')).map((customItem, cIdx) => {
                   const itemCode = customItem.designCode || (customItem.title || customItem.name || '').match(/BL-[A-Z0-9]{4,6}/)?.[0] || `BL-${cIdx + 1}`;
                   const linkedBespoke = bespokeDetailsMap[itemCode] || {};
-                  const fabric = customItem.fabric || linkedBespoke.fabricName || '240 GSM Luxury Cotton';
+                  const fabric = customItem.fabric || linkedBespoke.fabricName || '240 GSM Signature Cotton';
                   const cut = customItem.cut || linkedBespoke.cutName || 'Classic Regular Fit';
                   const notes = customItem.customNotes || linkedBespoke.notes || '';
                   const previewImg = customItem.image || customItem.product_image_url || linkedBespoke.previewThumbnail || '/images/hero_tshirt.webp';

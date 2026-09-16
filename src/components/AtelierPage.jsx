@@ -74,7 +74,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
 
           <div className="atelier-header-content">
             <span className="atelier-tagline">KNITWEAR ATELIER FLORENCE</span>
-            <h1 className="atelier-page-title">The Art of the Luxury T-Shirt</h1>
+            <h1 className="atelier-page-title">The Art of the Signature T-Shirt</h1>
             <p className="atelier-page-desc">
               We treat the classic crewneck T-shirt with the same rigor as bespoke suiting—engineering high-density 280 GSM weights, non-sag collar geometry, and blind-hem stitching.
             </p>

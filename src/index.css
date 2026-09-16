@@ -5309,12 +5309,19 @@ img {
 /* Payment Method Tabs (Clean Atelier Style) */
 .checkout-payment-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+  .checkout-payment-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 540px) {
   .checkout-payment-tabs {
     grid-template-columns: 1fr;
     gap: 0.65rem;
@@ -6512,33 +6519,35 @@ img {
     gap: 0.75rem;
     max-width: 520px;
     margin: 0 auto;
+    width: 100%;
   }
 
   /* Clean Comfortable Pill Stepper */
   .pdp-sticky-stepper-wrap {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 9999px;
     height: 48px;
     width: 108px;
     padding: 0 4px;
     flex-shrink: 0;
+    box-sizing: border-box;
     transition: all 0.2s ease;
   }
 
   .pdp-sticky-stepper-wrap:focus-within,
   .pdp-sticky-stepper-wrap:hover {
-    border-color: rgba(197, 160, 89, 0.4);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(197, 160, 89, 0.45);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .pdp-stepper-btn {
     width: 34px;
     height: 34px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     background: none;
@@ -6547,6 +6556,9 @@ img {
     color: #e5e7eb;
     cursor: pointer;
     padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+    line-height: 1;
     transition: all 0.15s ease;
   }
 
@@ -6565,11 +6577,15 @@ img {
   }
 
   .pdp-stepper-val {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #ffffff;
-    font-family: var(--font-display);
-    min-width: 18px;
+    font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+    min-width: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     user-select: none;
   }
@@ -6577,8 +6593,9 @@ img {
   /* Primary Spacious Luxury Add to Bag Button */
   .pdp-sticky-main-btn {
     flex: 1;
+    min-width: 0;
     height: 48px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #dfbc77 0%, #c49e54 100%);
@@ -6586,6 +6603,7 @@ img {
     border: 1px solid rgba(255, 235, 175, 0.45);
     border-radius: 9999px;
     cursor: pointer;
+    box-sizing: border-box;
     box-shadow: 0 4px 18px rgba(197, 160, 89, 0.35);
     transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     padding: 0 1.25rem;
@@ -6615,16 +6633,18 @@ img {
   }
 
   .pdp-btn-content {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    font-family: var(--font-body);
+    font-family: var(--font-sans), sans-serif;
     font-weight: 700;
     font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1;
+    width: 100%;
   }
 
   .pdp-btn-title {
@@ -6632,14 +6652,84 @@ img {
   }
 
   .pdp-btn-dot {
-    opacity: 0.4;
+    opacity: 0.45;
     font-size: 0.85rem;
     margin: 0 1px;
+    line-height: 1;
   }
 
   .pdp-btn-price {
     font-weight: 700;
     letter-spacing: 0.03em;
+  }
+}
+
+/* Specific compact screen adjustments (iPhone X, SE, 12/13 Mini, etc.) */
+@media (max-width: 414px) {
+  .pdp-mobile-sticky-bar {
+    padding: 0.65rem 0.85rem calc(0.65rem + env(safe-area-inset-bottom, 0px)) 0.85rem !important;
+  }
+
+  .pdp-sticky-bar-inner {
+    gap: 0.55rem !important;
+  }
+
+  .pdp-sticky-stepper-wrap {
+    width: 98px !important;
+    height: 46px !important;
+    padding: 0 3px !important;
+  }
+
+  .pdp-stepper-btn {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .pdp-stepper-val {
+    font-size: 0.88rem !important;
+    min-width: 18px !important;
+  }
+
+  .pdp-sticky-main-btn {
+    height: 46px !important;
+    padding: 0 0.85rem !important;
+  }
+
+  .pdp-btn-content {
+    gap: 0.35rem !important;
+    font-size: 0.76rem !important;
+    letter-spacing: 0.05em !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .pdp-mobile-sticky-bar {
+    padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom, 0px)) 0.6rem !important;
+  }
+
+  .pdp-sticky-bar-inner {
+    gap: 0.4rem !important;
+  }
+
+  .pdp-sticky-stepper-wrap {
+    width: 90px !important;
+    height: 44px !important;
+  }
+
+  .pdp-stepper-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .pdp-sticky-main-btn {
+    height: 44px !important;
+    padding: 0 0.6rem !important;
+  }
+
+  .pdp-btn-content {
+    gap: 0.25rem !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.03em !important;
   }
 }
 

@@ -33,7 +33,7 @@ export const CollectionPage = ({
     all: {
       title: "The Complete T-Shirt Capsule",
       tagline: 'ALL T-SHIRTS',
-      desc: 'Explore heavyweight 280 GSM organic cotton crewnecks, silk-mercerized luxury tees, and boxy drop-shoulder silhouettes.'
+      desc: 'Explore heavyweight 280 GSM organic cotton crewnecks, silk-mercerized artisanal tees, and boxy drop-shoulder silhouettes.'
     },
     heavyweight: {
       title: 'Heavyweight Structured Tees',

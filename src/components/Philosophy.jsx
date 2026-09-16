@@ -8,7 +8,7 @@ export const Philosophy = () => {
         <div className="philosophy-accent-line" />
 
         <blockquote className="philosophy-quote">
-          “The luxury T-shirt is the foundation of modern elegance—defined by precise collar geometry, heavyweight drape, and pure cotton integrity.”
+          “The artisanal heavyweight T-shirt is the foundation of modern elegance—defined by precise collar geometry, structural drape, and pure cotton integrity.”
         </blockquote>
 
         <div className="pillars-grid">

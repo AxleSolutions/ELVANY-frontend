@@ -3,8 +3,8 @@ import { INITIAL_ORDERS } from '../../data/orders';
 
 export const INITIAL_ADMIN_PRODUCTS = PRODUCTS.map((p, idx) => ({
   ...p,
-  title: p.name || p.title || 'Luxury Atelier Garment',
-  name: p.name || p.title || 'Luxury Atelier Garment',
+  title: p.name || p.title || 'Signature Atelier Garment',
+  name: p.name || p.title || 'Signature Atelier Garment',
   price: p.priceLKR || p.price || 18500,
   gsm: p.gsm || (p.category === 'heavyweight' ? 280 : p.category === 'oversized' ? 260 : 220),
   composition: p.fabricProvenance || '100% Organic Long-Staple Combed Cotton',
@@ -48,7 +48,7 @@ export const INITIAL_ADMIN_ORDERS = [
     orderId: 'ELV-41805',
     orderDate: 'February 2, 2026',
     customerName: 'Senaka De Silva',
-    customerEmail: 'senaka.desilva@luxury.lk',
+    customerEmail: 'senaka.desilva@atelier.lk',
     customerPhone: '071 882 1104',
     customerLocation: 'Kandy, Sri Lanka',
     status: 'Pending Confirmation',
@@ -87,7 +87,7 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-98421',
     customerName: 'Julian Sterling',
     location: 'Milano / Colombo',
-    productTitle: 'Sea Island Long-Staple Luxury Tee',
+    productTitle: 'Sea Island Long-Staple Signature Tee',
     rating: 5,
     fitRating: 'True to Size',
     comment: 'Exceptional drape and skin-feel. The luster of Sea Island cotton is immediately apparent compared to conventional jersey tees.',
@@ -176,7 +176,7 @@ export const INITIAL_ADMIN_CUSTOMERS = [
   {
     id: 'cust-4',
     name: 'Senaka De Silva',
-    email: 'senaka.desilva@luxury.lk',
+    email: 'senaka.desilva@atelier.lk',
     phone: '071 882 1104',
     city: 'Kandy',
     tier: 'Patron',

@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 const HERO_SLIDES = [
   {
     id: 'heavyweight',
-    title: 'The perfect luxury T-shirt, engineered to hold its structure',
+    title: 'The signature heavyweight T-shirt, engineered to hold its structure',
     description: 'Crafted in Florence with 280 GSM long-staple organic cotton and reinforced non-sag architectural collars.',
     image: '/images/hero_tshirt.webp'
   },

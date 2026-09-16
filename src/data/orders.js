@@ -18,7 +18,7 @@ export const INITIAL_ORDERS = [
       },
       {
         productId: 'prod-02',
-        name: 'Sea Island Long-Staple Luxury Tee',
+        name: 'Sea Island Long-Staple Signature Tee',
         color: 'Optic White',
         selectedSize: 'L (42)',
         priceLKR: 22000,

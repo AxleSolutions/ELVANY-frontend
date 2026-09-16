@@ -79,17 +79,17 @@ export const MobileStickyBuyBar = ({
         >
           {!isAvailable ? (
             <div className="pdp-btn-content">
-              <Bell size={16} />
+              <Bell size={15} className="shrink-0" />
               <span>REQUEST RE-ISSUE</span>
             </div>
           ) : isJustAdded ? (
             <div className="pdp-btn-content">
-              <Check size={17} className="animate-check" />
+              <Check size={16} className="animate-check shrink-0" />
               <span>ADDED TO BAG</span>
             </div>
           ) : (
             <div className="pdp-btn-content">
-              <ShoppingBag size={16} />
+              <ShoppingBag size={15} className="shrink-0" />
               <span className="pdp-btn-title">ADD TO BAG</span>
               <span className="pdp-btn-dot">•</span>
               <span className="pdp-btn-price">{formatLKR(effectivePrice * Math.max(1, qty))}</span>

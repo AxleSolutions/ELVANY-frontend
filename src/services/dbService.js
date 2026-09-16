@@ -1856,7 +1856,7 @@ export async function saveBespokeDesign(designData) {
   const localPayload = {
     id: `bl-${Date.now()}`,
     designCode: designData.designCode || fallbackCode,
-    fabricName: designData.fabricName || '240 GSM Luxury Supima Cotton',
+    fabricName: designData.fabricName || '240 GSM Signature Supima Cotton',
     fabricGsm: designData.fabricGsm || '240 GSM',
     cutName: designData.cutName || 'Classic Regular Fit',
     cutId: designData.cutId || 'tailored',
