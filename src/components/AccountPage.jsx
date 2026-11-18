@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download, Truck, ExternalLink, Eye, FileText, Receipt, Loader2, CreditCard } from 'lucide-react';
+import { Home, Package, User, Sliders, LogOut, Check, ArrowRight, ArrowLeft, KeyRound, Mail, Phone, Lock, Link2, Unlink, Plus, Trash2, MapPin, AlertTriangle, X, Star, Clock, ShieldCheck, RefreshCw, ShoppingBag, Maximize2, Sparkles, Download, Truck, ExternalLink, Eye, FileText, Receipt, Loader2, CreditCard, Ruler } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { getOrders } from '../services/dbService';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
+import { SizeChartModal } from './SizeChartModal';
 
 import { INITIAL_ORDERS } from '../data/orders';
 
@@ -275,8 +276,18 @@ export const AccountPage = ({
   };
 
   // Sizing State
-  const [savedSize, setSavedSize] = useState('L (42)');
+  const [savedSize, setSavedSize] = useState(() => {
+    const raw = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M';
+    if (raw.startsWith('XS')) return 'XS';
+    if (raw.startsWith('S')) return 'S';
+    if (raw.startsWith('M')) return 'M';
+    if (raw.startsWith('L')) return 'L';
+    if (raw.startsWith('XL')) return 'XL';
+    if (raw.startsWith('2XL') || raw.startsWith('XXL')) return '2XL';
+    return raw || 'M';
+  });
   const [sizingSuccess, setSizingSuccess] = useState(false);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
   // Multiple Shipping Addresses State (Starts empty, connects to storage & database)
   const [shippingAddresses, setShippingAddresses] = useState(() => {
@@ -298,9 +309,14 @@ export const AccountPage = ({
   });
 
   // Sizing Handler
-
   const handleSaveSizing = (e) => {
     e.preventDefault();
+    try {
+      localStorage.setItem('elvany_saved_size', savedSize);
+      if (userProfile) {
+        userProfile.savedSize = savedSize;
+      }
+    } catch {}
     setSizingSuccess(true);
     setTimeout(() => setSizingSuccess(false), 2500);
   };
@@ -458,15 +474,16 @@ export const AccountPage = ({
     if (onLogout) onLogout();
   };
 
-  const sizeOptions = ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'];
+  const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 
-  // Architectural Size Guide Specifications
+  // Official Garment Measurement Specifications (from Official Size Chart in Inches)
   const sizeSpecs = [
-    { size: 'S (38)', chest: '104 cm / 41.0"', length: '71 cm / 28.0"', shoulder: '47 cm / 18.5"', sleeve: '22 cm / 8.7"' },
-    { size: 'M (40)', chest: '109 cm / 43.0"', length: '73 cm / 28.7"', shoulder: '49 cm / 19.3"', sleeve: '23 cm / 9.0"' },
-    { size: 'L (42)', chest: '114 cm / 45.0"', length: '75 cm / 29.5"', shoulder: '51 cm / 20.0"', sleeve: '24 cm / 9.4"' },
-    { size: 'XL (44)', chest: '120 cm / 47.2"', length: '77 cm / 30.3"', shoulder: '53 cm / 20.8"', sleeve: '25 cm / 9.8"' },
-    { size: 'XXL (46)', chest: '126 cm / 49.6"', length: '79 cm / 31.1"', shoulder: '55 cm / 21.6"', sleeve: '26 cm / 10.2"' }
+    { size: 'XS', chest: '33"', length: '23.5"', shoulder: '13.75"' },
+    { size: 'S', chest: '35"', length: '25.5"', shoulder: '14.75"' },
+    { size: 'M', chest: '38.5"', length: '27"', shoulder: '15.75"' },
+    { size: 'L', chest: '41"', length: '28"', shoulder: '17"' },
+    { size: 'XL', chest: '44"', length: '28.5"', shoulder: '18.25"' },
+    { size: '2XL', chest: '48"', length: '30.5"', shoulder: '19.25"' }
   ];
 
   return (
@@ -1012,13 +1029,35 @@ export const AccountPage = ({
             ========================================================================= */}
         {activeTab === 'profile' && (
           <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '2.2rem 1.8rem', borderRadius: '2px' }}>
-            <div style={{ marginBottom: '1.8rem' }}>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#fff', marginBottom: '0.3rem' }}>
-                Preferred T-Shirt Sizing Profile
-              </h2>
-              <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem' }}>
-                Select your standard size and reference the garment measurement specifications.
-              </p>
+            <div style={{ marginBottom: '1.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  Preferred T-Shirt Sizing Profile
+                </h2>
+                <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem', margin: 0 }}>
+                  Select your standard size and reference the official garment measurement blueprint.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSizeChartOpen(true)}
+                className="btn-secondary-dark"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.65rem 1.1rem',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.08em',
+                  fontWeight: 600,
+                  color: 'var(--gold-bright)',
+                  borderColor: 'var(--gold-border)'
+                }}
+              >
+                <Ruler size={13} />
+                <span>OPEN SIZE CHART DIAGRAM</span>
+              </button>
             </div>
 
             {/* Size Pill Selector */}
@@ -1026,7 +1065,7 @@ export const AccountPage = ({
               <label className="form-label" style={{ marginBottom: '0.8rem', display: 'block' }}>
                 Select Preferred Size
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.6rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '0.6rem' }}>
                 {sizeOptions.map((s) => (
                   <button
                     type="button"
@@ -1039,8 +1078,8 @@ export const AccountPage = ({
                       color: savedSize === s ? 'var(--gold-bright)' : 'var(--text-light-secondary)',
                       borderRadius: '2px',
                       cursor: 'pointer',
-                      fontWeight: 600,
-                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
                       transition: 'var(--transition-fast)',
                       textAlign: 'center'
                     }}
@@ -1061,35 +1100,38 @@ export const AccountPage = ({
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.4rem' }}>
                 <div style={{ fontSize: '0.74rem', color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
-                  MEASUREMENT BLUEPRINT (280 GSM CUT)
+                  OFFICIAL GARMENT MEASUREMENTS (INCHES)
                 </div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
-                  Flat garment measurements
+                  Flat garment measurements • Inches
                 </span>
               </div>
 
               <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left', minWidth: '460px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left', minWidth: '420px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-dark)', color: 'var(--gold-primary)' }}>
                       <th style={{ padding: '0.7rem 0.8rem', position: 'sticky', left: 0, background: '#090a0c', zIndex: 2 }}>SIZE</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>CHEST</th>
+                      <th style={{ padding: '0.7rem 0.8rem' }}>CHEST (Around)</th>
                       <th style={{ padding: '0.7rem 0.8rem' }}>LENGTH</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>SHOULDER</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>SLEEVE</th>
+                      <th style={{ padding: '0.7rem 0.8rem' }}>SHOULDERS</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sizeSpecs.map((spec) => {
-                      const isSelected = savedSize === spec.size;
+                      const isSelected = savedSize === spec.size || 
+                        savedSize?.startsWith(spec.size + ' ') || 
+                        (spec.size === '2XL' && (savedSize === 'XXL' || savedSize === 'XXL (46)'));
                       return (
                         <tr 
                           key={spec.size}
+                          onClick={() => setSavedSize(spec.size)}
                           style={{
                             borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
                             backgroundColor: isSelected ? 'rgba(197, 160, 89, 0.08)' : 'transparent',
                             color: isSelected ? '#ffffff' : 'var(--text-light-secondary)',
-                            fontWeight: isSelected ? 600 : 400
+                            fontWeight: isSelected ? 600 : 400,
+                            cursor: 'pointer'
                           }}
                         >
                           <td style={{
@@ -1098,19 +1140,38 @@ export const AccountPage = ({
                             position: 'sticky',
                             left: 0,
                             background: isSelected ? '#161512' : '#090a0c',
-                            zIndex: 2
+                            zIndex: 2,
+                            fontWeight: 700
                           }}>
                             {spec.size} {isSelected && '★'}
                           </td>
                           <td style={{ padding: '0.75rem 0.8rem' }}>{spec.chest}</td>
                           <td style={{ padding: '0.75rem 0.8rem' }}>{spec.length}</td>
                           <td style={{ padding: '0.75rem 0.8rem' }}>{spec.shoulder}</td>
-                          <td style={{ padding: '0.75rem 0.8rem' }}>{spec.sleeve}</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Sizing & Baggy Fit Guidance Notes */}
+              <div style={{
+                marginTop: '1.2rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+                fontSize: '0.82rem',
+                color: 'var(--text-light-secondary)'
+              }}>
+                <p style={{ margin: 0 }}>
+                  * <strong style={{ color: '#ffffff' }}>Note:</strong> These measurements are for <strong>real t-shirts (in inches)</strong>, not for your body measurements.
+                </p>
+                <p style={{ margin: 0 }}>
+                  * When purchasing <strong>baggy t-shirts</strong>, please use your <strong>normal t-shirt size</strong>. We adjust the baggy t-shirt cut automatically for you.
+                </p>
               </div>
             </div>
 
@@ -1761,7 +1822,7 @@ export const AccountPage = ({
             <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
                 <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Heavyweight Cotton'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
                 <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
@@ -2158,6 +2219,12 @@ export const AccountPage = ({
           </div>
         </div>
       )}
+
+      {/* Size Chart Modal */}
+      <SizeChartModal
+        isOpen={isSizeChartOpen}
+        onClose={() => setIsSizeChartOpen(false)}
+      />
 
       </div>
     </div>

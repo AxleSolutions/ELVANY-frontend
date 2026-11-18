@@ -5,13 +5,13 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
   const steps = [
     {
       step: '01',
-      title: 'Fiber Selection',
-      desc: 'Sourcing certified long-staple organic cotton and rare Sea Island cotton with zero synthetic blends.'
+      title: 'Yarn Selection',
+      desc: 'Sourcing premium durable yarns designed for breathability, softness, and everyday wear.'
     },
     {
       step: '02',
-      title: 'High-Density Interlock Knitting',
-      desc: 'Knitted on specialized 28-gauge circular knitting machines in Florence for dense 280 GSM opacity.'
+      title: 'Precision Knitting',
+      desc: 'Knitted on specialized circular machines for consistent drape, comfort, and shape retention.'
     },
     {
       step: '03',
@@ -20,8 +20,8 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
     },
     {
       step: '04',
-      title: 'Blind-Hem Finishing',
-      desc: 'Artisan hand-guiding blind stitch hem and sleeves for a seamless, clean architectural drape.'
+      title: 'Clean Hem Finishing',
+      desc: 'Artisan guidance for blind stitch hem and sleeves for a seamless, clean architectural drape.'
     }
   ];
 
@@ -76,7 +76,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
             <span className="atelier-tagline">KNITWEAR ATELIER FLORENCE</span>
             <h1 className="atelier-page-title">The Art of the Signature T-Shirt</h1>
             <p className="atelier-page-desc">
-              We treat the classic crewneck T-shirt with the same rigor as bespoke suiting—engineering high-density 280 GSM weights, non-sag collar geometry, and blind-hem stitching.
+              We treat the classic crewneck T-shirt with the same rigor as bespoke tailoring—engineering durable fabric structure, non-sag collar geometry, and clean stitching.
             </p>
           </div>
         </div>
@@ -94,10 +94,10 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
             <div className="pillar-item">
               <h3 className="pillar-title">
                 <Compass size={18} color="var(--gold-primary)" />
-                280 GSM Heavyweight
+                Durable Jersey Knit
               </h3>
               <p className="pillar-text">
-                Heavyweight organic cotton jersey that hangs cleanly without clinging or losing its architectural drape.
+                Comfortable jersey fabric that hangs cleanly without clinging or losing its shape.
               </p>
             </div>
 
@@ -117,7 +117,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
                 Pre-Shrunk Longevity
               </h3>
               <p className="pillar-text">
-                Pre-washed Italian combed cotton ensuring exact size consistency and color retention.
+                Treated fabric ensuring exact size consistency, soft touch, and lasting color retention.
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
                   The Precision Knit
                 </h3>
                 <p className="craft-card-desc" style={{ color: '#d0d2d8' }}>
-                  Each batch is knitted in limited quantities with combed long-staple cotton to ensure zero pilling and permanent color depth.
+                  Each batch is crafted in limited quantities with high-grade resilient yarns to ensure low pilling and permanent color depth.
                 </p>
               </div>
             </div>
@@ -142,9 +142,9 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
             <div className="craft-stack-right">
               <div className="craft-card-small">
                 <div className="craft-card-tag">FIBER</div>
-                <h3 className="craft-card-title">Combed Organic Cotton</h3>
+                <h3 className="craft-card-title">Resilient Comfort Yarn</h3>
                 <p className="craft-card-desc">
-                  Long fibers combed to remove impurities, creating a dense, ultra-smooth surface with natural breathability.
+                  Selected yarns chosen to remove impurities, creating a smooth surface with natural everyday breathability.
                 </p>
               </div>
 

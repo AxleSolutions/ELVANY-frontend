@@ -24,6 +24,8 @@ export const FeaturedTees = ({
     return `LKR ${val.toLocaleString()}`;
   };
 
+  // Limit curated capsule to one row (4 items) on homepage
+  const displayedProducts = (products || []).slice(0, 4);
 
   return (
     <section className="featured-tees-section" style={{ padding: '5.5rem 0 4rem 0', backgroundColor: '#0b0b0c', color: '#fff' }}>
@@ -86,7 +88,7 @@ export const FeaturedTees = ({
               <p style={{ fontSize: '0.82rem' }}>New architectural silhouettes are being crafted in the atelier.</p>
             </div>
           ) : (
-            products.map((product) => {
+            displayedProducts.map((product) => {
               const isJustAdded = addedItemId === product.id;
               const isOutOfStock = product.totalStock === 0 || (product.inventory && Object.values(product.inventory).every(v => Number(v) <= 0));
 

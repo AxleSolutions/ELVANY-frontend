@@ -17,7 +17,7 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
               />
             </div>
             <p className="footer-brand-desc" style={{ marginBottom: '1.2rem' }}>
-              Haute couture heavyweight T-shirts and noble cotton essentials. Architectural cuts, 280 GSM Sea Island cotton, and bespoke craftsmanship.
+              Premium everyday T-shirts and contemporary essentials. Precision cuts, durable comfort knit fabrics, and refined craftsmanship.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-light-muted)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -32,43 +32,11 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
                   071 909 2726
                 </a>
                 <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                <a href="tel:0727226991" style={{ color: 'var(--text-light-secondary)' }}>
-                  072 722 6991
+                <a href="tel:0712529942" style={{ color: 'var(--text-light-secondary)' }}>
+                  071 252 9942
                 </a>
               </div>
             </div>
-          </div>
-
-          {/* Quick Collections Navigation */}
-          <div>
-            <h4 className="footer-col-title">T-SHIRT EDITIONS</h4>
-            <ul className="footer-links-list">
-              <li className="footer-link-item">
-                <a href="#custom-lab" onClick={(e) => { e.preventDefault(); if (onNavigateToCustomLab) onNavigateToCustomLab(); }}>
-                  <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>★ Bespoke Custom Lab (Design Tee)</span>
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#offerings" onClick={(e) => { e.preventDefault(); if (onNavigateToCollection) onNavigateToCollection('heavyweight'); }}>
-                  Heavyweight (280 GSM)
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#offerings" onClick={(e) => { e.preventDefault(); if (onNavigateToCollection) onNavigateToCollection('silk-cotton'); }}>
-                  Silk & Mercerized Tees
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#offerings" onClick={(e) => { e.preventDefault(); if (onNavigateToCollection) onNavigateToCollection('oversized'); }}>
-                  Minimalist Boxy Cuts
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#offerings" onClick={(e) => { e.preventDefault(); if (onNavigateToCollection) onNavigateToCollection('all'); }}>
-                  Complete T-Shirt Capsule
-                </a>
-              </li>
-            </ul>
           </div>
 
           {/* Social Media Links */}
@@ -77,7 +45,7 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
             <ul className="footer-links-list">
               <li className="footer-link-item">
                 <a 
-                  href="https://instagram.com" 
+                  href="https://www.instagram.com/elvanywear?igsi=YTNrZmRnYjQ5MHpy" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
@@ -93,7 +61,7 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
               </li>
               <li className="footer-link-item">
                 <a 
-                  href="https://facebook.com" 
+                  href="https://www.facebook.com/share/1DJMXG87jp/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
@@ -103,63 +71,6 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
                   </svg>
                   <span>Facebook</span>
                   <ArrowUpRight size={11} style={{ opacity: 0.5 }} />
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-bright)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
-                    <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
-                  </svg>
-                  <span>X (Twitter)</span>
-                  <ArrowUpRight size={11} style={{ opacity: 0.5 }} />
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a 
-                  href="https://youtube.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-bright)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
-                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
-                  </svg>
-                  <span>YouTube</span>
-                  <ArrowUpRight size={11} style={{ opacity: 0.5 }} />
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Customer Care & Policies */}
-          <div>
-            <h4 className="footer-col-title">CUSTOMER CARE</h4>
-            <ul className="footer-links-list">
-              <li className="footer-link-item">
-                <a href="#concierge" onClick={(e) => { e.preventDefault(); if (onNavigateToConcierge) onNavigateToConcierge(); }}>
-                  Private Client Concierge
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#concierge" onClick={(e) => { e.preventDefault(); if (onNavigateToConcierge) onNavigateToConcierge(); }}>
-                  Shipping & Deliveries
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#concierge" onClick={(e) => { e.preventDefault(); if (onNavigateToConcierge) onNavigateToConcierge(); }}>
-                  T-Shirt Sizing Guidance
-                </a>
-              </li>
-              <li className="footer-link-item">
-                <a href="#concierge" onClick={(e) => { e.preventDefault(); if (onNavigateToConcierge) onNavigateToConcierge(); }}>
-                  Bespoke Appointments
                 </a>
               </li>
             </ul>

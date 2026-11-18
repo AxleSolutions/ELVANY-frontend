@@ -209,19 +209,19 @@ export const ContactSection = () => {
               }}>
                 <div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>SECONDARY ADVISOR</div>
-                  <a href="tel:0727226991" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
-                    072 722 6991
+                  <a href="tel:0712529942" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
+                    071 252 9942
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <a
-                    href="tel:0727226991"
+                    href="tel:0712529942"
                     style={{ padding: '4px 10px', fontSize: '0.7rem', color: '#fff', border: '1px solid var(--border-dark)', borderRadius: '2px', textDecoration: 'none' }}
                   >
                     Call
                   </a>
                   <a
-                    href="https://wa.me/94727226991"
+                    href="https://wa.me/94712529942"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ padding: '4px 10px', fontSize: '0.7rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.1)', border: '1px solid var(--gold-border)', borderRadius: '2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}

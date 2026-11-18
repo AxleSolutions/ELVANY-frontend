@@ -16,13 +16,13 @@ export const EditorialSection = ({ onReadEditorial }) => {
 
         <p className="editorial-copy">
           Designed for those who understand that simplicity demands the highest precision. 
-          Heavyweight drape, flawless collar retention, and zero synthetic blends.
+          Clean structured drape, flawless collar retention, and all-day everyday comfort.
         </p>
 
         <div className="editorial-metrics-list">
           <div className="editorial-metric-item">
             <span className="metric-number">01</span>
-            <span>280 GSM long-staple combed cotton</span>
+            <span>Premium shape-retention yarn construction</span>
           </div>
 
           <div className="editorial-metric-item">

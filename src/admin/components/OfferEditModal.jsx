@@ -70,7 +70,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
         productImage: defaultProd?.image || defaultProd?.images?.[0] || '/images/hero_tshirt.webp',
         badge: 'SPECIAL PRIVILEGE',
         title: 'Signature Atelier Privilege Drop',
-        subtitle: defaultProd?.subtitle || defaultProd?.description || 'Florence combed noble cotton finished with double-needle bound collar. Limited batch allocation.',
+        subtitle: defaultProd?.subtitle || defaultProd?.description || 'Durable comfort knit finished with double-needle bound collar. Limited batch allocation.',
         code: 'ATELIERVIP',
         originalPriceLKR: defOrigPrice,
         offerPriceLKR: defOfferPrice,
@@ -282,7 +282,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
               <textarea
                 rows={3}
                 required
-                placeholder="e.g. Florence combed organic cotton with double-needle bound non-sag collar. Claim your private allocation."
+                placeholder="e.g. Durable comfort knit with double-needle bound non-sag collar. Claim your private allocation."
                 value={formData.subtitle}
                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                 className="form-input admin-input"

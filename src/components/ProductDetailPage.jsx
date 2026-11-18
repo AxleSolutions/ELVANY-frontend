@@ -84,19 +84,15 @@ function getCuratedRecommendations(currentProduct, allProducts = []) {
 
     // 4. Fabric Synergy & Textile Pairing (e.g. Combed Cotton, Mulberry Silk, French Terry)
     const fabricTokens = [
-      { key: 'sea island', label: 'Sea Island Cotton' },
-      { key: 'silk', label: 'Mulberry Silk' },
-      { key: 'mercerized', label: 'Mercerized Cotton' },
       { key: 'french terry', label: 'French Terry' },
-      { key: '280 gsm', label: '280 GSM Heavyweight' },
-      { key: 'cotton', label: 'Long-Staple Cotton' },
-      { key: 'wool', label: 'Fine Wool' }
+      { key: 'jersey', label: 'Classic Jersey' },
+      { key: 'knit', label: 'Structured Knit' }
     ];
 
     for (const token of fabricTokens) {
       if (curFabric.includes(token.key) && pFabric.includes(token.key)) {
         score += 15;
-        if (!reasons.some(r => r.includes('Fabric') || r.includes('Woven') || r.includes('Cotton') || r.includes('Silk'))) {
+        if (!reasons.some(r => r.includes('Fabric') || r.includes('Woven') || r.includes('Knit'))) {
           reasons.push(`Matching ${token.label}`);
         }
         break;
@@ -161,7 +157,15 @@ export const ProductDetailPage = ({
   const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.priceLKR || 18500) : null;
   const savings = isOfferActive ? (originalPrice - effectivePrice) : 0;
 
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[1] || product?.sizes?.[0] || 'M (40)');
+  const [selectedSize, setSelectedSize] = useState(() => {
+    const preferred = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
+    if (preferred && product?.sizes?.includes(preferred)) return preferred;
+    if (preferred && Array.isArray(product?.sizes)) {
+      const matched = product.sizes.find(s => s === preferred || s.startsWith(preferred + ' ') || preferred.startsWith(s + ' '));
+      if (matched) return matched;
+    }
+    return product?.sizes?.[1] || product?.sizes?.[0] || 'M';
+  });
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
@@ -444,12 +448,12 @@ export const ProductDetailPage = ({
               marginBottom: '1rem'
             }}>
               <Sparkles size={12} color="var(--gold-bright)" />
-              <span>or 3 interest-free instalments of <strong style={{ color: 'var(--gold-bright)' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
+              <span>or 3 instalments of <strong style={{ color: 'var(--gold-bright)' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
               <KokoLogo style={{ padding: '1px 5px', height: '18px' }} imgStyle={{ height: '14px' }} />
             </div>
 
             <p className="pdp-description">
-              {product.tagline}. Knitted with tightly spun long-staple combed cotton yarns to produce an opaque, structured fabric that drapes cleanly and never loses its collar shape.
+              {product.tagline || 'Essential everyday tee'}. Knitted with tightly spun resilient yarns to produce an opaque, structured fabric that drapes cleanly and holds its collar shape.
             </p>
 
             <div className="pdp-divider" />
@@ -706,15 +710,15 @@ export const ProductDetailPage = ({
               <div className="pdp-tab-pane">
                 <div className="spec-row">
                   <span className="spec-label">Fabric Composition:</span>
-                  <span className="spec-value">{product.fabricProvenance}</span>
+                  <span className="spec-value">{product.fabricProvenance || product.composition || product.fabric || 'Durable Comfort Knit Blend'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Fabric Weight / Density:</span>
-                  <span className="spec-value">{product.density}</span>
+                  <span className="spec-value">{product.density || (product.gsm ? `${product.gsm} GSM` : product.weight) || '240 GSM'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Provenance / Origin:</span>
-                  <span className="spec-value">Florentine Sartorial Mills, Italy</span>
+                  <span className="spec-value">{product.origin || 'Sri Lanka Atelier'}</span>
                 </div>
               </div>
             )}
@@ -723,15 +727,15 @@ export const ProductDetailPage = ({
               <div className="pdp-tab-pane">
                 <div className="spec-row">
                   <span className="spec-label">Silhouette Structure:</span>
-                  <span className="spec-value">{product.silhouette}</span>
+                  <span className="spec-value">{product.silhouette || product.fit || 'Tailored Regular Fit'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Collar Construction:</span>
-                  <span className="spec-value">Reinforced 1x1 Ribbed Collar (Zero deformation after wash cycles)</span>
+                  <span className="spec-value">{product.collarSpec || 'Reinforced 1x1 non-sag ribbing'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Hem & Finish:</span>
-                  <span className="spec-value">Blind-stitched edge with signature gold bullion atelier thread</span>
+                  <span className="spec-value">{product.hemSpec || 'Reinforced precision hem stitch'}</span>
                 </div>
               </div>
             )}
@@ -744,7 +748,7 @@ export const ProductDetailPage = ({
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Drying:</span>
-                  <span className="spec-value">Flat dry in shade to preserve cotton staple elasticity.</span>
+                  <span className="spec-value">Flat dry in shade to preserve fabric elasticity and color depth.</span>
                 </div>
               </div>
             )}

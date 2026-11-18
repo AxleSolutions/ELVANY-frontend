@@ -3046,7 +3046,7 @@ img {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr auto;
   gap: 3.5rem;
   margin-bottom: 5.5rem;
   position: relative;
@@ -3065,7 +3065,7 @@ img {
   font-size: 0.84rem;
   line-height: 1.7;
   color: var(--text-light-muted);
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .footer-col-title {

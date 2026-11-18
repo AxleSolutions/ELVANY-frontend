@@ -18,6 +18,7 @@ import {
   Check
 } from 'lucide-react';
 import { uploadGarmentImageToCloudinary } from '../../lib/cloudinary';
+import { getAllCategories, addCustomCategory } from '../../services/categoryService';
 
 const PRESET_ATELIER_COLORS = [
   { name: 'Onyx Black', hex: '#121316' },
@@ -34,14 +35,18 @@ const PRESET_ATELIER_COLORS = [
   { name: 'Midnight Indigo', hex: '#151C28' }
 ];
 
-export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
+export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingProducts = [] }) => {
+  const [categoriesList, setCategoriesList] = useState(() => getAllCategories(existingProducts));
+  const [isAddingNewCat, setIsAddingNewCat] = useState(false);
+  const [newCatLabel, setNewCatLabel] = useState('');
+
   const [formData, setFormData] = useState({
     id: null,
     title: '',
     category: 'heavyweight',
     price: 18500,
     gsm: 280,
-    composition: '100% Long-Staple Combed Cotton',
+    composition: 'Durable Comfort Knit Blend',
     image: '/images/hero_tshirt.webp',
     images: ['/images/hero_tshirt.webp'],
     color: 'Onyx Black',
@@ -54,15 +59,16 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     description: '',
     status: 'Active',
     inventory: {
-      'S (38)': 10,
-      'M (40)': 15,
-      'L (42)': 20,
-      'XL (44)': 12,
-      'XXL (46)': 6
+      'XS': 5,
+      'S': 10,
+      'M': 15,
+      'L': 20,
+      'XL': 12,
+      '2XL': 6
     },
     collarSpec: 'Double-needle non-sag 1x1 ribbing',
     fit: 'Tailored Architectural Regular Fit',
-    origin: 'Florence, Italy'
+    origin: 'Sri Lanka'
   });
 
   const [newSizeName, setNewSizeName] = useState('');
@@ -79,6 +85,11 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // Refresh dynamic category list
+    setCategoriesList(getAllCategories(existingProducts));
+    setIsAddingNewCat(false);
+    setNewCatLabel('');
 
     if (product) {
       const productImages = Array.isArray(product.images) && product.images.length > 0
@@ -138,7 +149,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         category: 'heavyweight',
         price: 18500,
         gsm: 280,
-        composition: '100% Long-Staple Combed Cotton',
+        composition: 'Durable Comfort Knit Blend',
         image: '/images/hero_tshirt.webp',
         images: ['/images/hero_tshirt.webp'],
         color: 'Onyx Black',
@@ -151,15 +162,16 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
         description: '',
         status: 'Active',
         inventory: {
-          'S (38)': 10,
-          'M (40)': 15,
-          'L (42)': 20,
-          'XL (44)': 12,
-          'XXL (46)': 6
+          'XS': 5,
+          'S': 10,
+          'M': 15,
+          'L': 20,
+          'XL': 12,
+          '2XL': 6
         },
         collarSpec: 'Double-needle non-sag 1x1 ribbing',
         fit: 'Tailored Architectural Regular Fit',
-        origin: 'Florence, Italy'
+        origin: 'Sri Lanka'
       });
     }
 
@@ -414,6 +426,19 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
     setQuickTotalQty('');
   };
 
+  const handleAddNewCategory = (e) => {
+    e?.preventDefault();
+    if (!newCatLabel.trim()) return;
+    const clean = newCatLabel.trim();
+    const created = addCustomCategory(clean);
+    if (created) {
+      setCategoriesList(getAllCategories([...existingProducts, { category: created.key }]));
+      setFormData(prev => ({ ...prev, category: created.key }));
+      setNewCatLabel('');
+      setIsAddingNewCat(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title || formData.price === '' || formData.price === undefined) return;
@@ -439,7 +464,11 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
       colors: finalColors,
       colorsAvailable: finalColors.map(c => c.hex),
       totalStock: totalUnits,
-      inventory: formData.inventory
+      inventory: formData.inventory,
+      collarSpec: formData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
+      fit: formData.fit || 'Tailored Regular Fit',
+      silhouette: formData.fit || formData.silhouette || 'Tailored Regular Fit',
+      origin: formData.origin || 'Florence Atelier'
     };
 
     onSave(finalProduct);
@@ -485,17 +514,84 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
 
               <div className="form-row-2col">
                 <div className="form-group">
-                  <label className="form-label">Silhouette Pillar Category</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                    <label className="form-label" style={{ margin: 0 }}>Silhouette Pillar Category</label>
+                    {!isAddingNewCat && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingNewCat(true)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--gold-bright, #c5a059)',
+                          fontSize: '0.72rem',
+                          cursor: 'pointer',
+                          padding: '2px 4px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em'
+                        }}
+                      >
+                        + Add Custom
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) => {
+                      if (e.target.value === '__add_new__') {
+                        setIsAddingNewCat(true);
+                      } else {
+                        setFormData({ ...formData, category: e.target.value });
+                      }
+                    }}
                     className="form-input admin-input"
                   >
-                    <option value="heavyweight">Heavyweight (280 GSM)</option>
-                    <option value="luxury-cotton">Sea Island / Signature Cotton</option>
-                    <option value="oversized">Boxy Drop-Shoulder</option>
-                    <option value="mercerized">Mercerized Silk-Cotton</option>
+                    {categoriesList.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.label}
+                      </option>
+                    ))}
+                    <option value="__add_new__">+ Add New Category...</option>
                   </select>
+
+                  {isAddingNewCat && (
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      <input
+                        type="text"
+                        placeholder="New category name..."
+                        value={newCatLabel}
+                        onChange={(e) => setNewCatLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddNewCategory();
+                          }
+                        }}
+                        className="form-input admin-input"
+                        style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddNewCategory}
+                        className="admin-btn admin-btn-primary"
+                        style={{ fontSize: '0.72rem', padding: '6px 10px', whiteSpace: 'nowrap' }}
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingNewCat(false);
+                          setNewCatLabel('');
+                        }}
+                        className="admin-btn admin-btn-secondary"
+                        style={{ fontSize: '0.72rem', padding: '6px 8px' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -551,12 +647,12 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Fiber & Cotton Composition</label>
+                <label className="form-label">Fabric & Fiber Composition</label>
                 <input
                   type="text"
                   value={formData.composition}
                   onChange={(e) => setFormData({ ...formData, composition: e.target.value })}
-                  placeholder="e.g. 100% Organic Giza 45 Long-Staple Cotton"
+                  placeholder="e.g. Durable Comfort Knit Blend"
                   className="form-input admin-input"
                 />
               </div>
@@ -572,15 +668,27 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave }) => {
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Collar Ribbing Specification</label>
-                <input
-                  type="text"
-                  value={formData.collarSpec}
-                  onChange={(e) => setFormData({ ...formData, collarSpec: e.target.value })}
-                  className="form-input admin-input"
-                  placeholder="e.g. Double-needle non-sag 1x1 ribbing"
-                />
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label className="form-label">Collar Ribbing Specification</label>
+                  <input
+                    type="text"
+                    value={formData.collarSpec}
+                    onChange={(e) => setFormData({ ...formData, collarSpec: e.target.value })}
+                    className="form-input admin-input"
+                    placeholder="e.g. Double-needle non-sag 1x1 ribbing"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Fit / Cut Silhouette</label>
+                  <input
+                    type="text"
+                    value={formData.fit}
+                    onChange={(e) => setFormData({ ...formData, fit: e.target.value })}
+                    className="form-input admin-input"
+                    placeholder="e.g. Tailored Regular Fit"
+                  />
+                </div>
               </div>
 
               {/* AVAILABLE COLOURS SECTION */}

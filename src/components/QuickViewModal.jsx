@@ -13,7 +13,15 @@ export const QuickViewModal = ({
 }) => {
   if (!isOpen || !product) return null;
 
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || 'M (40)');
+  const [selectedSize, setSelectedSize] = useState(() => {
+    const preferred = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
+    if (preferred && product?.sizes?.includes(preferred)) return preferred;
+    if (preferred && Array.isArray(product?.sizes)) {
+      const matched = product.sizes.find(s => s === preferred || s.startsWith(preferred + ' ') || preferred.startsWith(s + ' '));
+      if (matched) return matched;
+    }
+    return product.sizes?.[0] || 'M';
+  });
   const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.webp');
   const [added, setAdded] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);

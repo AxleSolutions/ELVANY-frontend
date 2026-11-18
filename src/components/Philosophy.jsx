@@ -8,17 +8,17 @@ export const Philosophy = () => {
         <div className="philosophy-accent-line" />
 
         <blockquote className="philosophy-quote">
-          “The artisanal heavyweight T-shirt is the foundation of modern elegance—defined by precise collar geometry, structural drape, and pure cotton integrity.”
+          “The essential T-shirt is the foundation of modern style—defined by precise collar geometry, clean structural drape, and reliable everyday comfort.”
         </blockquote>
 
         <div className="pillars-grid">
           <div className="pillar-item">
             <h3 className="pillar-title">
               <Shield size={18} color="var(--gold-primary)" />
-              280 GSM Heavyweight Cotton
+              Durable Fabric Structure
             </h3>
             <p className="pillar-text">
-              Dense organic combed cotton jersey that holds an immaculate, structured silhouette without clinging.
+              High-grade jersey engineered to hold an immaculate, clean silhouette without clinging.
             </p>
           </div>
 
@@ -38,7 +38,7 @@ export const Philosophy = () => {
               Pre-Shrunk Dimensional Stability
             </h3>
             <p className="pillar-text">
-              Combed long-staple cotton treated to preserve exact fit, texture, and deep color across years of wear.
+              Treated yarns formulated to preserve exact fit, texture, and deep color across daily wear and washes.
             </p>
           </div>
         </div>

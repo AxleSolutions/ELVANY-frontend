@@ -30,9 +30,9 @@ import { generateBespokeMockupCollage, generateBespokeAllAngles, downloadImageFi
 const FABRICS = [
   {
     id: 'supima_240',
-    name: 'Heavyweight Cotton (240 GSM)',
+    name: 'Classic Structured Knit (240 GSM)',
     badge: 'POPULAR CHOICE',
-    shortDesc: 'Thick, premium structured cotton. Stays in shape and does not shrink.',
+    shortDesc: 'Durable, premium structured fabric. Stays in shape and does not shrink.',
     basePrice: 18500
   },
   {
@@ -44,9 +44,9 @@ const FABRICS = [
   },
   {
     id: 'giza_200',
-    name: 'Soft Lightweight Cotton (200 GSM)',
+    name: 'Soft Lightweight Knit (200 GSM)',
     badge: 'COOL & BREATHABLE',
-    shortDesc: 'Silky smooth and breathable. Ideal for everyday warm weather wear.',
+    shortDesc: 'Smooth and breathable. Ideal for everyday warm weather wear.',
     basePrice: 16500
   }
 ];

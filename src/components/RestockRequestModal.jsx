@@ -35,7 +35,7 @@ export const RestockRequestModal = ({
 
   const availableSizes = Array.isArray(product.sizes) && product.sizes.length > 0
     ? product.sizes
-    : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'];
+    : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 
   const rawColors = Array.isArray(product.colors) && product.colors.length > 0
     ? product.colors

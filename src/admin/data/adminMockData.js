@@ -7,7 +7,7 @@ export const INITIAL_ADMIN_PRODUCTS = PRODUCTS.map((p, idx) => ({
   name: p.name || p.title || 'Signature Atelier Garment',
   price: p.priceLKR || p.price || 18500,
   gsm: p.gsm || (p.category === 'heavyweight' ? 280 : p.category === 'oversized' ? 260 : 220),
-  composition: p.fabricProvenance || '100% Organic Long-Staple Combed Cotton',
+  composition: p.fabricProvenance || 'Durable Comfort Knit Blend',
   inventory: {
     'S (38)': 12 - (idx * 2),
     'M (40)': 18 - (idx * 2),
@@ -90,7 +90,7 @@ export const INITIAL_ADMIN_REVIEWS = [
     productTitle: 'Sea Island Long-Staple Signature Tee',
     rating: 5,
     fitRating: 'True to Size',
-    comment: 'Exceptional drape and skin-feel. The luster of Sea Island cotton is immediately apparent compared to conventional jersey tees.',
+    comment: 'Exceptional drape and skin-feel. The luster of the fabric is immediately apparent compared to conventional jersey tees.',
     date: 'October 15, 2025',
     status: 'Approved',
     isFeatured: false
@@ -191,7 +191,7 @@ export const INITIAL_STORE_SETTINGS = {
   brandName: 'ELVANY (PVT) LTD',
   contactEmail: 'elvanywear@gmail.com',
   phonePrimary: '071 909 2726',
-  phoneSecondary: '072 722 6991',
+  phoneSecondary: '071 252 9942',
   operatingHours: 'Mon – Fri • 9:00 AM – 9:00 PM',
   deliveryTime: '3 – 5 Day Delivery Across Sri Lanka',
   colomboExpressFeeLKR: 0,

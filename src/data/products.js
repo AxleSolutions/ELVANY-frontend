@@ -1,8 +1,8 @@
 export const PRODUCTS = [
   {
     id: 'prod-01',
-    name: 'The 280 GSM Heavyweight Crewneck Tee',
-    tagline: 'Heavyweight combed organic cotton with bound rib collar',
+    name: 'The Essential Heavyweight Crewneck Tee',
+    tagline: 'Structured comfort knit with reinforced bound rib collar',
     priceLKR: 18500,
     priceEUR: 60,
     priceUSD: 65,
@@ -11,18 +11,18 @@ export const PRODUCTS = [
     color: 'Onyx Black',
     colorHex: '#121316',
     colorsAvailable: ['#121316', '#F4F4F4', '#474A51'],
-    sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     image: '/images/hero_tshirt.webp',
     images: [
       '/images/hero_tshirt.webp',
       '/images/pillar_heavyweight.webp'
     ],
-    fabricProvenance: '280 GSM 100% Long-Staple Combed Cotton, Florence Knit Atelier',
+    fabricProvenance: 'Durable Comfort Knit Jersey, Atelier Finishing',
     details: [
-      'Heavyweight 280 GSM structure that holds shape and never clings',
+      'Structured knit fabric that holds shape and never clings',
       'Double-needle reinforced high-density neck ribbing',
-      'Pre-shrunk organic cotton with zero synthetic blends',
-      'Blind hem stitch for an ultra-clean architectural finish'
+      'Pre-shrunk fabric ensuring consistent wash-and-wear fit',
+      'Clean hem stitch for an ultra-clean architectural finish'
     ],
     fitAdvice: 'Tailored regular fit with structured chest. Order true to size.',
     inStock: true,
@@ -52,8 +52,8 @@ export const PRODUCTS = [
         date: 'November 2, 2025',
         sizePurchased: 'M (40)',
         colorPurchased: 'Onyx Black',
-        title: 'Heavier and more luxurious than Sunspel or CDG',
-        content: 'Uncompromising density without feeling hot or stiff. The long-staple organic cotton handfeel is ultra-smooth and completely opaque. Drapes cleanly over the torso without bunching. Truly an heirloom staple.',
+        title: 'Heavier and more luxurious than standard tees',
+        content: 'Uncompromising density without feeling hot or stiff. The fabric handfeel is ultra-smooth and completely opaque. Drapes cleanly over the torso without bunching. Truly an essential staple.',
         fitScore: 'Perfect Tailored Fit',
         qualityScore: 'Ultra-Smooth Handfeel',
         collarScore: 'Reinforced 1x1 Ribbing',
@@ -78,7 +78,7 @@ export const PRODUCTS = [
   },
   {
     id: 'prod-02',
-    name: 'Sea Island Long-Staple Signature Tee',
+    name: 'The Classic Soft-Touch Signature Tee',
     tagline: 'Ultra-soft handfeel with pristine bright white finish',
     priceLKR: 22000,
     priceEUR: 70,
@@ -88,15 +88,15 @@ export const PRODUCTS = [
     color: 'Optic White',
     colorHex: '#F7F7F7',
     colorsAvailable: ['#F7F7F7', '#121316', '#2D323E'],
-    sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     image: '/images/tshirt_white.webp',
     images: [
       '/images/tshirt_white.webp',
       '/images/pillar_heavyweight.webp'
     ],
-    fabricProvenance: 'Rare Sea Island Cotton, Italian Yarn Spinning',
+    fabricProvenance: 'Soft Touch Comfort Knit, Atelier Finishing',
     details: [
-      'Silky long-staple cotton fibers that resist pilling',
+      'Silky resilient fibers that resist pilling',
       'Double-reinforced collar designed to maintain permanent shape',
       'Breathable, lightweight drape with natural opacity',
       'Hand-linked shoulder seams for seamless comfort'
@@ -115,9 +115,9 @@ export const PRODUCTS = [
         sizePurchased: 'M (40)',
         colorPurchased: 'Optic White',
         title: 'Completely opaque white tee with cashmere-like softness',
-        content: 'Finding an optic white artisanal tee that is completely non-see-through without feeling heavy is nearly impossible. The rare Sea Island cotton provides unbelievable softness and a clean, luminous optic white tone.',
+        content: 'Finding an optic white artisanal tee that is completely non-see-through without feeling heavy is nearly impossible. This fabric provides unbelievable softness and a clean, luminous optic white tone.',
         fitScore: 'True to Size',
-        qualityScore: 'Silky Long-Staple Cotton',
+        qualityScore: 'Silky Smooth Fabric',
         collarScore: 'Permanent Shape Retention',
         helpfulCount: 22
       },
@@ -150,7 +150,7 @@ export const PRODUCTS = [
     color: 'Washed Charcoal',
     colorHex: '#4A4E57',
     colorsAvailable: ['#4A4E57', '#1E1F22', '#D8D4CC'],
-    sizes: ['S (Relaxed)', 'M (Relaxed)', 'L (Relaxed)', 'XL (Relaxed)'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     image: '/images/tshirt_oversized.webp',
     images: [
       '/images/tshirt_oversized.webp',
@@ -202,8 +202,8 @@ export const PRODUCTS = [
   },
   {
     id: 'prod-04',
-    name: 'Mercerized Silk-Cotton Luster Tee',
-    tagline: 'Liquid handfeel with rich color depth and natural sheen',
+    name: 'The Luster Minimalist Crewneck Tee',
+    tagline: 'Smooth handfeel with rich color depth and natural drape',
     priceLKR: 24000,
     priceEUR: 78,
     priceUSD: 85,
@@ -212,18 +212,18 @@ export const PRODUCTS = [
     color: 'Midnight Navy',
     colorHex: '#1B273D',
     colorsAvailable: ['#1B273D', '#121316', '#EDEBE6'],
-    sizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     image: '/images/tshirt_silk.webp',
     images: [
       '/images/tshirt_silk.webp',
       '/images/pillar_silk.webp'
     ],
-    fabricProvenance: '80% Double-Mercerized Cotton / 20% Mulberry Silk, Como Atelier',
+    fabricProvenance: 'Silky-Touch Fine Gauge Knit, Atelier Finishing',
     details: [
-      'Double-mercerized finish for permanent luster and rich dark navy shade',
-      'Mulberry silk blend delivering cool-touch breathability',
+      'Refined finish for permanent luster and rich dark navy shade',
+      'Breathable blend delivering cool-touch comfort',
       'Ultra-fine gauge knit with zero seam irritation',
-      'Refined collar band with bespoke sartorial edge'
+      'Refined collar band with clean tailored edge'
     ],
     fitAdvice: 'Streamlined tailored fit. True to size.',
     inStock: true,
@@ -241,7 +241,7 @@ export const PRODUCTS = [
         title: 'Unbelievable fabric luster and silk touch',
         content: 'You can immediately tell this was woven with genuine Como silk yarns. The midnight navy has deep optical depth under evening lighting. Worn under an unstructured blazer to dinner and received multiple compliments.',
         fitScore: 'Streamlined Sartorial Fit',
-        qualityScore: 'Mulberry Silk & Mercerized Cotton',
+        qualityScore: 'Fine Gauge Knit Finish',
         collarScore: 'Ultra-Refined Low Profile',
         helpfulCount: 25
       },
@@ -267,18 +267,18 @@ export const PRODUCTS = [
 export const CATEGORIES = [
   {
     id: 'heavyweight-tees',
-    title: 'Heavyweight Structured Tees',
-    subtitle: '280 GSM combed organic cotton crewnecks',
-    actionText: 'VIEW HEAVYWEIGHT (12)',
+    title: 'Classic Structured Tees',
+    subtitle: 'Durable comfort crewnecks',
+    actionText: 'VIEW CLASSIC',
     count: 12,
     image: '/images/pillar_heavyweight.webp',
     categoryKey: 'heavyweight'
   },
   {
     id: 'silk-cotton-tees',
-    title: 'Silk & Mercerized Tees',
-    subtitle: 'Ultra-fine luster yarns with fluid drape',
-    actionText: 'VIEW SILK-COTTON (8)',
+    title: 'Essential Fit Tees',
+    subtitle: 'Smooth finish with versatile everyday drape',
+    actionText: 'VIEW ESSENTIALS',
     count: 8,
     image: '/images/pillar_silk.webp',
     categoryKey: 'silk-cotton'

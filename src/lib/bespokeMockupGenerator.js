@@ -200,7 +200,7 @@ export async function generateBespokeMockupCollage({
   colorName = 'Pure Black',
   cutId = 'tailored',
   cutName = 'Classic Regular Fit',
-  fabricName = 'Heavyweight Cotton',
+  fabricName = 'Signature Structured Knit',
   sleeveColorHex = null,
   size = 'L'
 }) {
@@ -335,7 +335,7 @@ export async function generateBespokeAllAngles({
   colorName = 'Pure Black',
   cutId = 'tailored',
   cutName = 'Classic Regular Fit',
-  fabricName = 'Heavyweight Cotton',
+  fabricName = 'Signature Structured Knit',
   sleeveColorHex = null,
   size = 'L'
 }) {

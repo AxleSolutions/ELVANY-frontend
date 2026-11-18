@@ -4,14 +4,14 @@ import { ArrowRight } from 'lucide-react';
 const HERO_SLIDES = [
   {
     id: 'heavyweight',
-    title: 'The signature heavyweight T-shirt, engineered to hold its structure',
-    description: 'Crafted in Florence with 280 GSM long-staple organic cotton and reinforced non-sag architectural collars.',
+    title: 'The signature essential T-shirt, engineered to hold its structure',
+    description: 'Designed with durable premium fabric and reinforced non-sag collars for sharp everyday wear.',
     image: '/images/hero_tshirt.webp'
   },
   {
     id: 'sea-island',
-    title: 'Silk-like softness meeting architectural density',
-    description: 'Woven from ultra-rare long-staple Sea Island cotton fibers with permanent drape memory and natural breathable luster.',
+    title: 'Smooth comfort meeting contemporary style',
+    description: 'Crafted with refined, breathable yarns offering a clean silhouette, comfortable touch, and effortless drape.',
     image: '/images/tshirt_white.webp'
   },
   {
@@ -120,7 +120,7 @@ export const Hero = ({ onExploreClick }) => {
           {/* Atelier Eyebrow Subheader Badge */}
           <div className="hero-eyebrow-tag">
             <span className="hero-eyebrow-line" />
-            <span>FLORENCE ATELIER • NOBLE COTTON</span>
+            <span>MAISON ELVANY • SIGNATURE CRAFT</span>
           </div>
 
           {/* Robust CSS Grid Stacking Stage Container */}
@@ -168,7 +168,7 @@ export const Hero = ({ onExploreClick }) => {
                 <div className="hero-progress-header">
                   <span className="hero-progress-num">0{idx + 1}</span>
                   <span className="hero-progress-sublabel" style={{ opacity: idx === currentSlide ? 1 : 0.45 }}>
-                    {idx === 0 ? 'HEAVYWEIGHT' : idx === 1 ? 'SEA ISLAND' : 'BOXY CUT'}
+                    {idx === 0 ? 'CREWNECK' : idx === 1 ? 'ESSENTIAL' : 'BOXY CUT'}
                   </span>
                 </div>
 

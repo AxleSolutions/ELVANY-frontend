@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Layers, AlertCircle, Check, ExternalLink, Filter, Power, Eye, EyeOff } from 'lucide-react';
+import { getAllCategories, slugifyCategory } from '../services/categoryService';
 
 export const ProductsManager = ({ 
   products = [], 
@@ -10,6 +11,8 @@ export const ProductsManager = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  const availableCategories = getAllCategories(products);
+
   const filteredProducts = products.filter((p) => {
     const title = (p.title || p.name || '').toLowerCase();
     const composition = (p.composition || p.fabricProvenance || '').toLowerCase();
@@ -17,7 +20,8 @@ export const ProductsManager = ({
     const search = searchQuery.toLowerCase();
 
     const matchesSearch = title.includes(search) || composition.includes(search) || sku.includes(search);
-    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+    const catSlug = slugifyCategory(p.category || '');
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory || catSlug === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -31,14 +35,14 @@ export const ProductsManager = ({
             <Search size={14} />
             <input
               type="text"
-              placeholder="Search by silhouette, cotton GSM, SKU..."
+              placeholder="Search by silhouette, fabric, SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="admin-search-input"
             />
           </div>
 
-          <div className="admin-filter-pills">
+          <div className="admin-filter-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
             <button
               type="button"
               className={`admin-filter-pill ${selectedCategory === 'all' ? 'active' : ''}`}
@@ -46,27 +50,19 @@ export const ProductsManager = ({
             >
               All Garments ({products.length})
             </button>
-            <button
-              type="button"
-              className={`admin-filter-pill ${selectedCategory === 'heavyweight' ? 'active' : ''}`}
-              onClick={() => setSelectedCategory('heavyweight')}
-            >
-              Heavyweight (280 GSM)
-            </button>
-            <button
-              type="button"
-              className={`admin-filter-pill ${selectedCategory === 'silk-cotton' ? 'active' : ''}`}
-              onClick={() => setSelectedCategory('silk-cotton')}
-            >
-              Silk & Mercerized
-            </button>
-            <button
-              type="button"
-              className={`admin-filter-pill ${selectedCategory === 'oversized' ? 'active' : ''}`}
-              onClick={() => setSelectedCategory('oversized')}
-            >
-              Boxy Drop-Shoulder
-            </button>
+            {availableCategories.map((cat) => {
+              const count = products.filter(p => p.category === cat.id || slugifyCategory(p.category || '') === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`admin-filter-pill ${selectedCategory === cat.id ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat.id)}
+                >
+                  {cat.label} {count > 0 && `(${count})`}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -107,10 +103,10 @@ export const ProductsManager = ({
                 filteredProducts.map((product, idx) => {
                   const title = product.title || product.name || 'Signature Atelier Garment';
                   const gsm = product.gsm || (product.category === 'heavyweight' ? 280 : 220);
-                  const composition = product.composition || product.fabricProvenance || '100% Organic Long-Staple Cotton';
+                  const composition = product.composition || product.fabricProvenance || 'Durable Comfort Knit Blend';
                   const price = product.price || product.priceLKR || 18500;
                   const sku = product.sku || `ELV-TEE-00${idx + 1}`;
-                  const inv = product.inventory || { 'S (38)': 8, 'M (40)': 14, 'L (42)': 18, 'XL (44)': 10, 'XXL (46)': 4 };
+                  const inv = product.inventory || { 'XS': 4, 'S': 8, 'M': 14, 'L': 18, 'XL': 10, '2XL': 4 };
                   const totalUnits = Object.values(inv).reduce((a, b) => a + (Number(b) || 0), 0);
                   const isActive = product.is_active !== undefined 
                     ? Boolean(product.is_active) 
@@ -165,7 +161,9 @@ export const ProductsManager = ({
                       </td>
 
                       <td>
-                        <span className="admin-category-tag">{product.category || 'heavyweight'}</span>
+                        <span className="admin-category-tag">
+                          {availableCategories.find(c => c.id === product.category || c.id === slugifyCategory(product.category || ''))?.label || product.category || 'Standard'}
+                        </span>
                       </td>
 
                       <td>

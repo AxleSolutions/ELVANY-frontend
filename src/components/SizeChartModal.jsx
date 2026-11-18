@@ -36,9 +36,9 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
         zIndex: 99999,
         overflowY: 'auto',
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: '2.5rem 1rem',
+        padding: '0.75rem',
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',
         animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -51,7 +51,8 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '960px',
+          maxWidth: '480px',
+          maxHeight: '94vh',
           margin: '0 auto',
           backgroundColor: '#0c0d12',
           border: '1px solid var(--gold-border)',
@@ -59,7 +60,8 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(197, 160, 89, 0.15)',
-          animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          overflow: 'hidden'
         }}
       >
         {/* Modal Close Button */}
@@ -69,10 +71,10 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           aria-label="Close size guide"
           style={{
             position: 'absolute',
-            top: '14px',
-            right: '14px',
-            width: '34px',
-            height: '34px',
+            top: '10px',
+            right: '10px',
+            width: '30px',
+            height: '30px',
             borderRadius: '50%',
             backgroundColor: 'rgba(255, 255, 255, 0.08)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -95,12 +97,12 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
           }}
         >
-          <X size={17} />
+          <X size={16} />
         </button>
 
         {/* Modal Header */}
         <div style={{
-          padding: '1.25rem 1.5rem',
+          padding: '0.75rem 1rem',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           background: 'linear-gradient(180deg, rgba(197, 160, 89, 0.08) 0%, transparent 100%)',
           flexShrink: 0
@@ -110,52 +112,56 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             alignItems: 'center',
             gap: '6px',
             color: 'var(--gold-bright)',
-            fontSize: '0.68rem',
+            fontSize: '0.64rem',
             fontWeight: 700,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            marginBottom: '0.2rem'
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase'
           }}>
-            <Ruler size={13} />
-            <span>MAISON ELVANY • SIZING CHART</span>
+            <Ruler size={12} />
+            <span>MAISON ELVANY • SIZE CHART</span>
           </div>
           <h2 style={{
             fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(1.2rem, 2.2vw, 1.5rem)',
+            fontSize: '1.15rem',
             color: '#ffffff',
             fontWeight: 400,
-            margin: 0
+            margin: '2px 0 0 0'
           }}>
             Garment Dimension Chart
           </h2>
         </div>
 
-        {/* Modal Body: Full-Width Size Chart Image & Notes */}
+        {/* Modal Body: Compact Fit Size Chart Image & Notes */}
         <div 
           data-lenis-prevent="true"
           style={{
-            padding: '1.25rem 1.5rem',
+            padding: '0.75rem 1rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '1.25rem'
+            gap: '0.5rem',
+            overflowY: 'auto'
           }}
         >
           <div style={{
             width: '100%',
             backgroundColor: '#07080a',
             border: '1px solid rgba(197, 160, 89, 0.2)',
-            borderRadius: '4px',
-            padding: '0.5rem',
-            overflowX: 'auto',
+            borderRadius: '3px',
+            padding: '0.25rem',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             boxShadow: 'inset 0 0 30px rgba(0, 0, 0, 0.8)'
           }}>
             <img 
               src="/Size chart/sizechart.webp" 
               alt="Maison ELVANY Official Garment Size Chart"
               style={{
-                width: '100%',
-                height: 'auto',
+                width: 'auto',
+                maxWidth: '100%',
+                maxHeight: 'min(52vh, 420px)',
+                objectFit: 'contain',
                 display: 'block',
                 borderRadius: '2px'
               }}
@@ -165,33 +171,33 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Sizing & Baggy Fit Clean Text Notes (No Gold Box) */}
+          {/* Sizing & Baggy Fit Clean Text Notes */}
           <div style={{
             width: '100%',
-            padding: '0.25rem 0.35rem',
+            padding: '0 0.15rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.35rem'
+            gap: '0.2rem'
           }}>
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.86rem', lineHeight: 1.6, margin: 0 }}>
-              * <strong style={{ color: '#ffffff' }}>Note:</strong> These measurements are for <strong>real t-shirts</strong>, not for your body measurements.
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.4, margin: 0 }}>
+              * <strong style={{ color: '#ffffff' }}>Note:</strong> Measurements are for <strong>real t-shirts (in inches)</strong>, not body measurements.
             </p>
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.86rem', lineHeight: 1.6, margin: 0 }}>
-              * When purchasing <strong>baggy t-shirts</strong>, please use your <strong>normal t-shirt size</strong>. We are adjusting the baggy t-shirt size for you.
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.4, margin: 0 }}>
+              * When purchasing <strong>baggy t-shirts</strong>, use your <strong>normal t-shirt size</strong>. We adjust the baggy fit for you.
             </p>
           </div>
         </div>
 
         {/* Modal Footer */}
         <div style={{
-          padding: '0.85rem 1.5rem',
+          padding: '0.65rem 1rem',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           backgroundColor: '#090a0d',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '0.75rem',
+          gap: '0.5rem',
           flexShrink: 0
         }}>
           <a
@@ -201,21 +207,21 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '0.5rem 0.9rem',
+              gap: '5px',
+              padding: '0.45rem 0.8rem',
               backgroundColor: 'rgba(197, 160, 89, 0.08)',
               border: '1px solid var(--gold-border)',
               color: 'var(--gold-bright)',
               borderRadius: '2px',
-              fontSize: '0.72rem',
+              fontSize: '0.7rem',
               fontWeight: 600,
               textDecoration: 'none',
               letterSpacing: '0.04em',
               transition: 'all 0.2s ease'
             }}
           >
-            <MessageSquare size={13} />
-            <span>ASK CONCIERGE ON WHATSAPP</span>
+            <MessageSquare size={12} />
+            <span>WHATSAPP CONCIERGE</span>
           </a>
 
           <button
@@ -223,8 +229,8 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="btn-primary-gold"
             style={{
-              padding: '0.5rem 1.25rem',
-              fontSize: '0.74rem',
+              padding: '0.45rem 1.1rem',
+              fontSize: '0.72rem',
               fontWeight: 700
             }}
           >

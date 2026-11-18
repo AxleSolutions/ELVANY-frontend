@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 const WAITING_SLOGANS = [
   'Precision in every fiber. Unveiling the collection...',
   'Weaving Florentine craftsmanship into modern silhouettes...',
-  'Curating the 280 GSM heavyweight capsule for you...',
-  'Where architectural weight meets pure cotton integrity...'
+  'Curating signature t-shirt silhouettes for you...',
+  'Where architectural weight meets refined modern craft...'
 ];
 
 export const LuxuryLoader = ({ isVisible }) => {

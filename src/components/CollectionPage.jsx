@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Home, Eye, ShoppingBag, Check, Ruler, Bell } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../data/products';
+import { getAllCategories, slugifyCategory } from '../services/categoryService';
 
 export const CollectionPage = ({
   products = [],
@@ -18,41 +19,70 @@ export const CollectionPage = ({
   const isLoggedIn = Boolean(loggedInUser || userProfile?.email);
   const userProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M (40)';
 
-
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sortBy, setSortBy] = useState('featured');
 
-  const filterTabs = [
-    { label: 'All T-Shirt Editions', value: 'all' },
-    { label: 'Heavyweight (280 GSM)', value: 'heavyweight' },
-    { label: 'Silk & Mercerized Cotton', value: 'silk-cotton' },
-    { label: 'Minimalist Boxy Cut', value: 'oversized' }
-  ];
+  const dynamicCategories = useMemo(() => {
+    return getAllCategories(products);
+  }, [products]);
+
+  const filterTabs = useMemo(() => {
+    return [
+      { label: 'All T-Shirt Editions', value: 'all' },
+      ...dynamicCategories.map(cat => ({
+        label: cat.label,
+        value: cat.id
+      }))
+    ];
+  }, [dynamicCategories]);
 
   const categoryDetails = {
     all: {
-      title: "The Complete T-Shirt Capsule",
+      title: "The Complete T-Shirt Collection",
       tagline: 'ALL T-SHIRTS',
-      desc: 'Explore heavyweight 280 GSM organic cotton crewnecks, silk-mercerized artisanal tees, and boxy drop-shoulder silhouettes.'
+      desc: 'Explore essential everyday crewnecks, durable comfort blends, and relaxed streetwear cuts.'
     },
     heavyweight: {
-      title: 'Heavyweight Structured Tees',
-      tagline: '280 GSM COMBED COTTON',
-      desc: 'Dense organic cotton with high-density double-bound collar ribbing that never stretches.'
+      title: 'Classic Crewneck Tees',
+      tagline: 'EVERYDAY WEAR',
+      desc: 'Comfortable, durable fabric engineered for clean daily styling and lasting collar retention.'
     },
     'silk-cotton': {
-      title: 'Silk & Mercerized Cotton Tees',
-      tagline: 'LUSTER YARNS',
-      desc: 'Mulberry silk and double-mercerized cotton delivering a cool touch and subtle sheen.'
+      title: 'Essential Fit Tees',
+      tagline: 'VERSATILE ESSENTIALS',
+      desc: 'Lightweight comfort, soft hand-feel, and timeless cuts for every occasion.'
+    },
+    'luxury-cotton': {
+      title: 'Essential Fit Tees',
+      tagline: 'VERSATILE ESSENTIALS',
+      desc: 'Lightweight comfort, soft hand-feel, and timeless cuts for every occasion.'
     },
     oversized: {
-      title: 'Minimalist Boxy & Oversized Tees',
-      tagline: 'RELAXED ARCHITECTURE',
-      desc: 'Drop-shoulder cuts with wide sleeves and straight hems in vintage mineral wash.'
+      title: 'Relaxed & Boxy Cuts',
+      tagline: 'CASUAL STREETWEAR',
+      desc: 'Contemporary drop-shoulder cuts with relaxed sleeves and a modern, casual profile.'
+    },
+    mercerized: {
+      title: 'Relaxed Streetwear Tees',
+      tagline: 'RELAXED EDITIONS',
+      desc: 'Modern relaxed streetwear cuts designed for casual everyday styling.'
     }
   };
 
-  const currentMeta = categoryDetails[selectedCategory] || categoryDetails.all;
+  const currentMeta = useMemo(() => {
+    if (categoryDetails[selectedCategory]) {
+      return categoryDetails[selectedCategory];
+    }
+    const matched = dynamicCategories.find(c => c.id === selectedCategory || slugifyCategory(c.label) === selectedCategory);
+    if (matched) {
+      return {
+        title: matched.label,
+        tagline: matched.label.toUpperCase(),
+        desc: `Discover signature ${matched.label.toLowerCase()} tailored for lasting comfort and clean style.`
+      };
+    }
+    return categoryDetails.all;
+  }, [selectedCategory, dynamicCategories]);
 
   // Helper to resolve offer details for a given product
   const getProductOfferInfo = (product) => {
@@ -118,7 +148,11 @@ export const CollectionPage = ({
   const filteredProducts = useMemo(() => {
     return products.filter((item) => {
       if (selectedCategory === 'all') return true;
-      return item.category === selectedCategory;
+      const itemCat = item.category || '';
+      const itemCatSlug = slugifyCategory(itemCat);
+      return itemCat === selectedCategory || itemCatSlug === selectedCategory ||
+        (selectedCategory === 'silk-cotton' && (itemCat === 'luxury-cotton' || itemCatSlug === 'luxury-cotton')) ||
+        (selectedCategory === 'luxury-cotton' && (itemCat === 'silk-cotton' || itemCatSlug === 'silk-cotton'));
     }).sort((a, b) => {
       const priceA = getProductOfferInfo(a).offerPrice || a.priceLKR || a.price || 0;
       const priceB = getProductOfferInfo(b).offerPrice || b.priceLKR || b.price || 0;

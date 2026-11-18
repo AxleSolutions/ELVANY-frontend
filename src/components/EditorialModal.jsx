@@ -145,7 +145,7 @@ export const EditorialModal = ({ isOpen, onClose }) => {
             color: '#ffffff',
             marginBottom: '0.8rem'
           }}>
-            Architectural Balance in Pure Cotton
+            Architectural Balance & Everyday Comfort
           </h2>
 
           <div style={{
@@ -158,7 +158,7 @@ export const EditorialModal = ({ isOpen, onClose }) => {
             paddingBottom: '0.8rem'
           }}>
             <span>ATELIER: FLORENCE, ITALY</span>
-            <span>FABRIC: 280 GSM SEA ISLAND</span>
+            <span>FABRIC: DURABLE PREMIUM JERSEY</span>
           </div>
 
           {/* Core Specification Breakdown */}
@@ -169,11 +169,11 @@ export const EditorialModal = ({ isOpen, onClose }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
                 <span style={{ color: 'var(--gold-bright)', fontWeight: 700, fontSize: '0.82rem' }}>01</span>
                 <h4 style={{ color: '#fff', fontSize: '0.92rem', margin: 0, fontWeight: 600 }}>
-                  280 GSM Long-Staple Combed Cotton
+                  High-Density Structured Knit
                 </h4>
               </div>
               <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.82rem', lineHeight: 1.6, margin: 0 }}>
-                Spun from ultra-long combed cotton fibers with zero synthetic blending. Double-mercerized to achieve natural matte sheen and permanent structural memory that resists sagging after wash cycles.
+                Spun with resilient yarns and precision circular knitting to achieve smooth hand-feel and permanent structural memory that resists sagging after wash cycles.
               </p>
             </div>
 

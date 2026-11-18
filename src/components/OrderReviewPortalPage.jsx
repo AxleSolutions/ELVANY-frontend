@@ -391,7 +391,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
                         <textarea
                           required
                           rows={4}
-                          placeholder="Describe how the cotton feels, how the neckline holds up after washing, and the fit silhouette..."
+                          placeholder="Describe how the fabric feels, how the neckline holds up after washing, and the fit silhouette..."
                           className="form-input"
                           style={{ resize: 'vertical' }}
                           value={formData.content || ''}

@@ -922,6 +922,7 @@ export const AdminApp = ({
         onClose={() => setIsProductModalOpen(false)}
         product={editingProduct}
         onSave={handleSaveProduct}
+        existingProducts={products}
       />
 
       {/* Order Details & Passport Modal */}

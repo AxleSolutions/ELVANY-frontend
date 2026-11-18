@@ -68,10 +68,13 @@ export async function getProducts() {
       status: p.is_active === false ? 'Draft' : 'Active',
       description: p.description,
 
-      composition: p.fabric_composition || p.composition || '100% Long-Staple Combed Cotton',
-      fabric: p.fabric_composition || p.fabric || '100% Long-Staple Combed Cotton',
-      gsm: parseInt(p.fabric_weight, 10) || 280,
-      weight: p.fabric_weight || '280 GSM',
+      composition: p.fabric_composition || p.composition || 'Durable Comfort Knit Blend',
+      fabric: p.fabric_composition || p.fabric || 'Durable Comfort Knit Blend',
+      gsm: parseInt(p.fabric_weight, 10) || 240,
+      weight: p.fabric_weight || '240 GSM',
+      collarSpec: p.collarSpec || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[0] : null) || 'Double-needle non-sag 1x1 ribbing',
+      fit: p.fit || p.silhouette || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[1] : null) || 'Tailored Regular Fit',
+      origin: p.origin || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[2] : null) || 'Sri Lanka Atelier',
       features: Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details : [],
       care: Array.isArray(p.care_instructions) ? p.care_instructions : [],
       image: defaultVariant?.gallery_images?.[0] || allImages[0] || p.image || '/images/hero_tshirt.webp',
@@ -87,17 +90,18 @@ export async function getProducts() {
         ? p.product_variants.map(v => v.color_hex)
         : ['#141518', '#c5a059'],
       color: defaultVariant?.color_name || 'Onyx Black',
-      tagline: p.subtitle || p.silhouette || 'Noble Cotton Atelier Edition',
+      tagline: p.subtitle || p.silhouette || 'Signature Atelier Edition',
       badge: p.badge || (p.is_featured ? 'SIGNATURE EDITION' : null),
       sizes: defaultVariant?.product_stock?.length > 0 
         ? defaultVariant.product_stock.map(s => s.size_code)
-        : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+        : ['XS', 'S', 'M', 'L', 'XL', '2XL'],
       inventory: Object.keys(inventory).length > 0 ? inventory : {
-        'S (38)': 10,
-        'M (40)': 15,
-        'L (42)': 20,
-        'XL (44)': 12,
-        'XXL (46)': 6
+        'XS': 5,
+        'S': 10,
+        'M': 15,
+        'L': 20,
+        'XL': 12,
+        '2XL': 6
       },
       totalStock: totalStock > 0 ? totalStock : Object.values(inventory).reduce((a, b) => a + b, 0) || 63,
       rating: 4.95,
@@ -807,16 +811,21 @@ export async function saveProduct(productData) {
             sku: productData.sku || `ELV-${Date.now().toString().slice(-4)}`,
             slug: slug + '-' + Date.now().toString().slice(-4),
             title: productData.title,
-            subtitle: productData.subtitle || productData.silhouette || 'Noble Cotton Atelier Edition',
+            subtitle: productData.subtitle || productData.silhouette || 'Signature Atelier Edition',
             category: productData.category || 'heavyweight',
-            silhouette: productData.silhouette || 'Boxy Drop-Shoulder',
+            silhouette: productData.silhouette || productData.fit || 'Tailored Regular Fit',
             base_price_lkr: parseFloat(productData.price || productData.priceLKR || 18500),
             original_price_lkr: parseFloat(productData.originalPriceLKR || productData.price || 18500),
             is_active: productData.status !== 'Draft',
             is_offer_applied: !!productData.isOfferApplied,
-            fabric_composition: productData.composition || productData.fabric || '100% Noble Long-Staple Cotton',
-            fabric_weight: productData.gsm ? `${productData.gsm} GSM` : (productData.weight || '280 GSM'),
-            description: productData.description || 'Crafted in Florence and finished with minimalist atelier precision.'
+            fabric_composition: productData.composition || productData.fabric || 'Durable Comfort Knit Blend',
+            fabric_weight: productData.gsm ? `${productData.gsm} GSM` : (productData.weight || '240 GSM'),
+            description: productData.description || 'Crafted with precision comfort yarns and finished with clean minimalist tailoring.',
+            craftsmanship_details: [
+              productData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
+              productData.fit || productData.silhouette || 'Tailored Regular Fit',
+              productData.origin || 'Sri Lanka'
+            ]
           })
           .select()
           .single();
@@ -824,25 +833,29 @@ export async function saveProduct(productData) {
         if (inserted) {
           productId = inserted.id;
 
-          const { data: variant } = await supabase
-            .from('product_variants')
-            .insert({
-              product_id: productId,
-              color_name: defaultCol.name,
-              color_hex: defaultCol.hex,
-              is_default: true,
-              gallery_images: orderedImages
-            })
-            .select()
-            .single();
+          for (let i = 0; i < configuredColors.length; i++) {
+            const col = configuredColors[i];
+            const isDef = Boolean(col.isDefault) || i === 0;
+            const { data: variant } = await supabase
+              .from('product_variants')
+              .insert({
+                product_id: productId,
+                color_name: col.name,
+                color_hex: col.hex,
+                is_default: isDef,
+                gallery_images: orderedImages
+              })
+              .select()
+              .single();
 
-          if (variant && productData.inventory) {
-            const stockRows = Object.entries(productData.inventory).map(([sizeCode, qty]) => ({
-              variant_id: variant.id,
-              size_code: sizeCode,
-              stock_quantity: parseInt(qty, 10) || 0
-            }));
-            await supabase.from('product_stock').insert(stockRows);
+            if (variant && productData.inventory && isDef) {
+              const stockRows = Object.entries(productData.inventory).map(([sizeCode, qty]) => ({
+                variant_id: variant.id,
+                size_code: sizeCode,
+                stock_quantity: parseInt(qty, 10) || 0
+              }));
+              await supabase.from('product_stock').insert(stockRows);
+            }
           }
 
           return { 
@@ -863,13 +876,19 @@ export async function saveProduct(productData) {
             title: productData.title,
             subtitle: productData.subtitle || productData.silhouette,
             category: productData.category,
-            silhouette: productData.silhouette,
+            silhouette: productData.silhouette || productData.fit,
             base_price_lkr: parseFloat(productData.price || productData.priceLKR || 18500),
             is_active: productData.status !== 'Draft',
             fabric_composition: productData.composition || productData.fabric,
             fabric_weight: productData.gsm ? `${productData.gsm} GSM` : productData.weight,
-            description: productData.description
+            description: productData.description,
+            craftsmanship_details: [
+              productData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
+              productData.fit || productData.silhouette || 'Tailored Regular Fit',
+              productData.origin || 'Sri Lanka'
+            ]
           })
+          .eq('id', productData.id);
         // Update gallery_images across all variants for this product
         await supabase
           .from('product_variants')
@@ -1856,7 +1875,7 @@ export async function saveBespokeDesign(designData) {
   const localPayload = {
     id: `bl-${Date.now()}`,
     designCode: designData.designCode || fallbackCode,
-    fabricName: designData.fabricName || '240 GSM Signature Supima Cotton',
+    fabricName: designData.fabricName || '240 GSM Signature Knit',
     fabricGsm: designData.fabricGsm || '240 GSM',
     cutName: designData.cutName || 'Classic Regular Fit',
     cutId: designData.cutId || 'tailored',
@@ -1961,7 +1980,7 @@ export async function getBespokeDesigns() {
                 id: `order-bespoke-${order.orderId}-${item.id || code}`,
                 designCode: code,
                 orderId: order.orderId,
-                fabricName: item.fabric || 'Heavyweight Cotton (240 GSM)',
+                fabricName: item.fabric || 'Structured Knit (240 GSM)',
                 fabricGsm: '240 GSM',
                 cutName: item.cut || 'Classic Regular Fit',
                 cutId: 'tailored',

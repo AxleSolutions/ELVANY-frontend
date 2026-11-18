@@ -16,19 +16,19 @@ export const ArchitecturalDetails = () => {
           <div className="craft-card-large">
             <img 
               src="/images/pillar_heavyweight.webp" 
-              alt="Heavyweight Cotton Structure" 
+              alt="Durable Fabric Structure" 
               loading="lazy"
               decoding="async"
             />
             <div className="craft-card-large-overlay">
               <div className="craft-card-tag" style={{ color: 'var(--gold-bright)' }}>
-                HEAVYWEIGHT INTERLOCK KNIT
+                DURABLE INTERLOCK KNIT
               </div>
               <h3 className="craft-card-title" style={{ color: '#fff', fontSize: '1.8rem' }}>
-                280 GSM Organic Cotton
+                High-Density Structured Fabric
               </h3>
               <p className="craft-card-desc" style={{ color: '#d0d2d8', maxWidth: '520px' }}>
-                Knitted with tightly spun long-staple combed cotton yarns to produce a dense, opaque fabric that drapes cleanly without clinging.
+                Knitted with tightly spun resilient yarns to produce an opaque, comfortable fabric that drapes cleanly without clinging.
               </p>
             </div>
           </div>
@@ -39,7 +39,7 @@ export const ArchitecturalDetails = () => {
               <div className="craft-card-tag">COLLAR ARCHITECTURE</div>
               <h3 className="craft-card-title">Reinforced Bound Collar</h3>
               <p className="craft-card-desc">
-                High-density 1x1 cotton ribbing secured with double-needle topstitching to guarantee your neckline never stretches or wavers.
+                High-density ribbing secured with double-needle topstitching to guarantee your neckline never stretches or wavers.
               </p>
             </div>
 

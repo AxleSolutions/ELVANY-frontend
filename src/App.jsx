@@ -5,7 +5,6 @@ import Lenis from 'lenis';
 import { LogOut } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { CuratedPillars } from './components/CuratedPillars';
 import { FeaturedTees } from './components/FeaturedTees';
 import { Philosophy } from './components/Philosophy';
 import { CollectionPage } from './components/CollectionPage';
@@ -915,12 +914,7 @@ export function App() {
                   onSelectProduct={navigateToProduct}
                 />
 
-                {/* 2. Signature Categories / Curated Pillars */}
-                <CuratedPillars
-                  onSelectCategory={navigateToCollection}
-                />
-
-                {/* 3. Direct Signature T-Shirt Showcase */}
+                {/* 2. Direct Signature T-Shirt Showcase */}
                 <FeaturedTees
                   products={activeStorefrontProducts}
                   offers={offers}
