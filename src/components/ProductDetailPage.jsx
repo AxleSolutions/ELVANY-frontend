@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell, Ruler } from 'lucide-react';
+import { Home, ArrowLeft, ShoppingBag, Check, Shield, RefreshCw, Truck, Star, ThumbsUp, Zap, Sparkles, Percent, Edit3, X, MessageSquare, ShieldCheck, Bell, Ruler, Camera, Maximize2 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
@@ -222,6 +222,7 @@ export const ProductDetailPage = ({
   };
 
   const [helpfulMap, setHelpfulMap] = useState({});
+  const [activePhotoModal, setActivePhotoModal] = useState(null);
   const [localReviews, setLocalReviews] = useState(() => getProductReviews());
 
   // Keep localReviews synchronized whenever allReviewsMap or product changes
@@ -864,9 +865,59 @@ export const ProductDetailPage = ({
                           </h4>
                         )}
 
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-light-secondary)', lineHeight: 1.65, margin: '0 0 1rem 0' }}>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-light-secondary)', lineHeight: 1.65, margin: '0 0 0.8rem 0' }}>
                           "{rev.content || rev.comment}"
                         </p>
+
+                        {/* Verified Client Garment Photos */}
+                        {(() => {
+                          const reviewPhotos = Array.isArray(rev.images) && rev.images.length > 0
+                            ? rev.images
+                            : (rev.imageUrl ? [rev.imageUrl] : []);
+                          if (reviewPhotos.length === 0) return null;
+
+                          return (
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '0.6rem 0 1rem 0' }}>
+                              {reviewPhotos.map((photoUrl, pIdx) => (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => setActivePhotoModal(photoUrl)}
+                                  style={{
+                                    background: 'none',
+                                    border: '1px solid rgba(197, 160, 89, 0.35)',
+                                    padding: 0,
+                                    borderRadius: '4px',
+                                    overflow: 'hidden',
+                                    width: '80px',
+                                    height: '80px',
+                                    cursor: 'pointer',
+                                    position: 'relative'
+                                  }}
+                                  title="Click to view full garment photo"
+                                >
+                                  <img
+                                    src={photoUrl}
+                                    alt={`Client photo ${pIdx + 1}`}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  />
+                                  <div style={{
+                                    position: 'absolute',
+                                    bottom: '3px',
+                                    right: '3px',
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    borderRadius: '2px',
+                                    padding: '2px 4px',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}>
+                                    <Maximize2 size={9} color="var(--gold-bright)" />
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })()}
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.6rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -1001,6 +1052,90 @@ export const ProductDetailPage = ({
         onOpenRestockModal={() => setIsRestockModalOpen(true)}
         selectedSizeStock={selectedSizeStock}
       />
+
+      {/* Full-Screen Client Photo Lightbox Modal */}
+      {activePhotoModal && (
+        <div 
+          onClick={() => setActivePhotoModal(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.92)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              border: '1px solid var(--gold-border)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.9)'
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setActivePhotoModal(null)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'rgba(0, 0, 0, 0.75)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 10
+              }}
+              title="Close image"
+            >
+              <X size={18} />
+            </button>
+
+            <img 
+              src={activePhotoModal} 
+              alt="Client Garment Review High-Resolution" 
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '85vh', 
+                objectFit: 'contain',
+                display: 'block' 
+              }} 
+            />
+
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: 'rgba(9, 10, 12, 0.88)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '0.6rem 1rem',
+              fontSize: '0.76rem',
+              color: 'var(--gold-bright)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Camera size={13} />
+              <span>Verified Client Garment Photo</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -241,7 +241,17 @@ export const AdminApp = ({
 
   // Core Data Store (Live Database Synced — No Mock Fallbacks)
   const [localOffers, setLocalOffers] = useState(offers || []);
-  const [products, setProducts] = useState(initialProducts || []);
+  const [products, setProducts] = useState(() => {
+    if (Array.isArray(initialProducts) && initialProducts.length > 0) return initialProducts;
+    try {
+      const cached = localStorage.getItem('elvany_catalog_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  });
   const [orders, setOrders] = useState(initialOrders || []);
   const [reviews, setReviews] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -280,11 +290,26 @@ export const AdminApp = ({
           getBespokeDesigns()
         ]);
 
-        if (dbProducts.status === 'fulfilled' && Array.isArray(dbProducts.value)) {
+        if (dbProducts.status === 'fulfilled' && Array.isArray(dbProducts.value) && dbProducts.value.length > 0) {
           setProducts(dbProducts.value);
           if (onUpdateProducts) onUpdateProducts(dbProducts.value);
+          try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(dbProducts.value)); } catch {}
         } else {
-          setProducts([]);
+          // Retain existing garments and recover from local catalog cache
+          setProducts(prev => {
+            if (prev.length > 0) return prev;
+            try {
+              const cached = localStorage.getItem('elvany_catalog_cache');
+              if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  if (onUpdateProducts) onUpdateProducts(parsed);
+                  return parsed;
+                }
+              }
+            } catch {}
+            return prev;
+          });
         }
 
         if (dbOrders.status === 'fulfilled' && Array.isArray(dbOrders.value)) {
@@ -482,6 +507,7 @@ export const AdminApp = ({
       setProducts(prev => {
         const next = prev.filter(p => p.id !== productId && String(p.id) !== String(productId));
         if (onUpdateProducts) onUpdateProducts(next);
+        try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
         return next;
       });
       showToast('Garment removed from catalog.');

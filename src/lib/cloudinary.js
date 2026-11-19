@@ -346,6 +346,122 @@ export async function uploadBespokeMockupToCloudinary(imageSource, designCode = 
   };
 }
 
+/**
+ * Upload a client review garment photo to Cloudinary with compressed fallback
+ * @param {File|Blob|string} file - The client photo
+ * @param {string} orderCode - The order identifier (e.g. 'ELV-36990')
+ * @returns {Promise<{ secure_url: string, public_id: string }>}
+ */
+export async function uploadReviewImageToCloudinary(file, orderCode = '') {
+  if (!file) return null;
+
+  // If already a remote URL
+  if (typeof file === 'string' && file.startsWith('http')) {
+    return { secure_url: file, public_id: `remote_${Date.now()}` };
+  }
+
+  // 1. Try Backend Upload Route
+  try {
+    const apiUrl = getApiUrl();
+    const formData = new FormData();
+    formData.append('image', file, `review_${orderCode || Date.now()}.jpg`);
+
+    const res = await fetch(`${apiUrl}/uploads/image`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.data?.url) {
+        return {
+          secure_url: data.data.url,
+          public_id: data.data.public_id || `review_${Date.now()}`
+        };
+      }
+    }
+  } catch (apiErr) {
+    console.warn('Backend review upload notice:', apiErr);
+  }
+
+  // 2. Direct Cloudinary Client Upload fallback
+  if (isCloudinaryConfigured) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+      formData.append('folder', 'elvany/reviews');
+      if (orderCode) {
+        formData.append('tags', `review_${orderCode},client_photo`);
+      }
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          secure_url: data.secure_url,
+          public_id: data.public_id
+        };
+      }
+    } catch (directErr) {
+      console.warn('Direct Cloudinary review upload notice:', directErr);
+    }
+  }
+
+  // 3. Client-side canvas compression fallback (max 1000px, ~70KB)
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            return resolve({
+              secure_url: dataUrl,
+              public_id: `local_review_${Date.now()}`
+            });
+          }
+          resolve({
+            secure_url: e.target.result,
+            public_id: `local_review_${Date.now()}`
+          });
+        };
+        img.onerror = () => resolve({ secure_url: e.target.result, public_id: `local_review_${Date.now()}` });
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
 
 
 

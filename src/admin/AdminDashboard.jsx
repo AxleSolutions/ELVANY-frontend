@@ -365,6 +365,109 @@ export const AdminDashboard = ({
 
       </div>
 
+      {/* Maison Garment Catalog Overview */}
+      <div className="admin-card" style={{ marginTop: '1.5rem' }}>
+        <div className="admin-card-header">
+          <div>
+            <h3 className="admin-card-title">Maison Garment Catalog ({products.length})</h3>
+            <p className="admin-card-subtitle">Active styles, inventory distribution, and atelier pricing</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+            <button 
+              type="button" 
+              className="admin-link-action"
+              onClick={() => onNavigateTab('products')}
+            >
+              <span>Manage All Styles</span>
+              <ArrowUpRight size={13} />
+            </button>
+            <button 
+              type="button" 
+              className="btn-primary-gold"
+              onClick={() => onOpenProductModal(null)}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.74rem' }}
+            >
+              <Plus size={13} />
+              <span>NEW GARMENT</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="admin-table-wrapper">
+          {products.length === 0 ? (
+            <div style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-light-muted)', fontSize: '0.84rem' }}>
+              <Shirt size={28} color="var(--border-dark)" style={{ margin: '0 auto 0.8rem auto', display: 'block' }} />
+              <span>No garments found in the catalog. Click "NEW GARMENT" to create your first atelier silhouette.</span>
+            </div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>GARMENT & SPEC</th>
+                  <th>CATEGORY</th>
+                  <th>PRICE (LKR)</th>
+                  <th>TOTAL UNITS</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.slice(0, 6).map((prod, idx) => {
+                  const inv = prod.inventory || {};
+                  const total = prod.totalStock !== undefined ? Number(prod.totalStock) : Object.values(inv).reduce((a, b) => a + (Number(b) || 0), 0);
+                  const isActive = prod.is_active !== undefined ? Boolean(prod.is_active) : (prod.status !== 'Draft' && prod.status !== 'Archived');
+                  return (
+                    <tr key={prod.id || idx}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                          <img 
+                            src={prod.image || '/images/hero_tshirt.webp'} 
+                            alt={prod.title} 
+                            style={{ width: '38px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }}
+                            onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
+                          />
+                          <div>
+                            <strong style={{ color: '#fff', fontSize: '0.85rem', display: 'block' }}>{prod.title}</strong>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>{prod.sku || `ELV-${idx + 1}`}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="admin-category-tag">{prod.category || 'Standard'}</span>
+                      </td>
+                      <td>
+                        <strong style={{ color: 'var(--gold-bright)', fontSize: '0.88rem' }}>
+                          LKR {(Number(prod.price || prod.priceLKR || 18500)).toLocaleString()}
+                        </strong>
+                      </td>
+                      <td>
+                        <strong style={{ color: total === 0 ? '#ef4444' : total < 10 ? '#f59e0b' : '#fff' }}>
+                          {total} Units {total === 0 && <span style={{ color: '#ef4444', fontSize: '0.68rem', display: 'block' }}>(Sold Out)</span>}
+                        </strong>
+                      </td>
+                      <td>
+                        <span className={`admin-status-badge ${isActive ? 'delivered' : 'cancelled'}`}>
+                          {isActive ? (total === 0 ? 'Out of Stock' : 'Active') : 'Draft / Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          type="button" 
+                          className="admin-action-btn"
+                          onClick={() => onOpenProductModal(prod)}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 };

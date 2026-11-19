@@ -62,13 +62,13 @@ export async function loginWithFacebookDirect() {
 
   return new Promise((resolve, reject) => {
     try {
-      // Request name and email
+      // Request standard public profile (bypasses unconfigured scope errors)
       window.FB.login((response) => {
         if (response && response.authResponse) {
-          // Fetch only Name and Email fields from Facebook Graph API
+          // Fetch Name, Email (if available) and Picture from Facebook Graph API
           window.FB.api('/me', { fields: 'name,email' }, (profile) => {
             if (profile && !profile.error) {
-              const clientName = profile.name || 'Maison Client';
+              const clientName = profile.name || 'Facebook Client';
               const clientEmail = profile.email || `${clientName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@facebook.com`;
               resolve({
                 name: clientName,
@@ -84,7 +84,7 @@ export async function loginWithFacebookDirect() {
         } else {
           reject(new Error('Facebook authentication was cancelled or closed.'));
         }
-      }, { scope: 'public_profile,email', return_scopes: true });
+      }, { scope: 'public_profile', return_scopes: true });
     } catch (err) {
       console.warn('Facebook login execution error:', err);
       reject(err);

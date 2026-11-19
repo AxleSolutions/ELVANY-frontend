@@ -206,6 +206,55 @@ export async function getProducts() {
     };
   };
 
+  const reconcileProducts = (remoteProducts) => {
+    let localCache = [];
+    try {
+      const raw = localStorage.getItem('elvany_catalog_cache');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) localCache = parsed;
+      }
+    } catch {}
+
+    if (!remoteProducts || remoteProducts.length === 0) {
+      if (localCache.length > 0) return localCache;
+      return PRODUCTS;
+    }
+
+    // Index remote products by string ID and slug
+    const remoteIdSet = new Set(remoteProducts.map(p => String(p.id)));
+    const remoteSlugSet = new Set(remoteProducts.map(p => String(p.slug || '')));
+
+    // Find local products that are not yet in the remote database (e.g. created locally with local_... or not yet synced)
+    const unsyncedLocalProducts = localCache.filter(lp => {
+      const hasId = lp.id && remoteIdSet.has(String(lp.id));
+      const hasSlug = lp.slug && remoteSlugSet.has(String(lp.slug));
+      return !hasId && !hasSlug;
+    });
+
+    // Merge remote products while preserving any active local changes
+    const mergedRemote = remoteProducts.map(rp => {
+      const localMatch = localCache.find(lp => String(lp.id) === String(rp.id) || (lp.slug && lp.slug === rp.slug));
+      if (localMatch) {
+        return {
+          ...rp,
+          ...localMatch,
+          images: (localMatch.images && localMatch.images.length > 0) ? localMatch.images : rp.images,
+          category: localMatch.category || rp.category,
+          status: localMatch.status || rp.status,
+          is_active: localMatch.is_active !== undefined ? localMatch.is_active : rp.is_active
+        };
+      }
+      return rp;
+    });
+
+    const finalCatalog = [...unsyncedLocalProducts, ...mergedRemote];
+    try {
+      localStorage.setItem('elvany_catalog_cache', JSON.stringify(finalCatalog));
+    } catch {}
+    return finalCatalog;
+  };
+
   // 1. Try Backend API
   try {
     const apiUrl = getApiUrl();
@@ -213,7 +262,7 @@ export async function getProducts() {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map(formatRawProduct);
+        return reconcileProducts(json.data.map(formatRawProduct));
       }
     }
   } catch (apiErr) {
@@ -229,14 +278,14 @@ export async function getProducts() {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data) && data.length > 0) {
-        return data.map(formatRawProduct);
+        return reconcileProducts(data.map(formatRawProduct));
       }
     } catch (err) {
       console.warn('Supabase products fetch notice:', err);
     }
   }
 
-  return [];
+  return reconcileProducts([]);
 }
 
 
@@ -747,6 +796,41 @@ export async function getOrders() {
   }
 
   return [];
+}
+
+/**
+ * Retrieve a single order by its ID or order_code
+ */
+export async function getOrderById(orderCodeOrId) {
+  if (!orderCodeOrId) return null;
+  const clean = orderCodeOrId.trim().toUpperCase();
+  const apiUrl = getApiUrl();
+
+  // 1. Try Backend API for specific order
+  try {
+    const res = await fetch(`${apiUrl}/orders/${clean}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {}
+
+  // 2. Search all orders
+  try {
+    const all = await getOrders();
+    if (Array.isArray(all)) {
+      const found = all.find(o => 
+        (o.orderId && o.orderId.toUpperCase() === clean) ||
+        (o.order_code && o.order_code.toUpperCase() === clean) ||
+        (o.id && o.id.toUpperCase() === clean)
+      );
+      if (found) return found;
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function updateOrderStatus(orderCode, newStatus, trackingNumber = null) {
@@ -1412,26 +1496,40 @@ export async function getReviews() {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map(r => ({
-          id: r.id,
-          productId: r.productId || r.product_id,
-          product_id: r.productId || r.product_id,
-          orderId: r.orderId || r.order_id,
-          author: r.customerName || r.client_name || r.author || 'Verified Client',
-          customerName: r.customerName || r.client_name || r.author || 'Verified Client',
-          customerEmail: r.customerEmail || 'client@elvany.com',
-          productTitle: r.productTitle || r.title || 'Heavyweight Atelier Tee',
-          title: r.title || 'Exceptional Quality',
-          rating: Number(r.rating) || 5,
-          fitRating: r.fitRating || r.fit_rating || 'True to Atelier Boxy Spec',
-          content: r.comment || '',
-          comment: r.comment || '',
-          location: r.clientLocation || r.client_location || 'Colombo, Sri Lanka',
-          date: r.date || new Date().toLocaleDateString(),
-          status: r.status || 'Approved',
-          isFeatured: !!r.isFeatured,
-          helpfulCount: r.helpfulCount || 0
-        }));
+        return json.data.map(r => {
+          let imgUrl = r.imageUrl || r.image_url || null;
+          let imgs = Array.isArray(r.images) && r.images.length > 0 ? r.images : (imgUrl ? [imgUrl] : []);
+          let cleanContent = r.comment || r.content || '';
+          const photoMatch = cleanContent.match(/\[Client Photo:\s*([^\]]+)\]/i);
+          if (photoMatch) {
+            if (!imgUrl) imgUrl = photoMatch[1].trim();
+            if (imgs.length === 0) imgs = [photoMatch[1].trim()];
+            cleanContent = cleanContent.replace(/\[Client Photo:\s*[^\]]+\]/i, '').trim();
+          }
+
+          return {
+            id: r.id,
+            productId: r.productId || r.product_id,
+            product_id: r.productId || r.product_id,
+            orderId: r.orderId || r.order_id,
+            author: r.customerName || r.client_name || r.author || 'Verified Client',
+            customerName: r.customerName || r.client_name || r.author || 'Verified Client',
+            customerEmail: r.customerEmail || 'client@elvany.com',
+            productTitle: r.productTitle || r.title || 'Heavyweight Atelier Tee',
+            title: r.title || 'Exceptional Quality',
+            rating: Number(r.rating) || 5,
+            fitRating: r.fitRating || r.fit_rating || 'True to Atelier Boxy Spec',
+            content: cleanContent,
+            comment: cleanContent,
+            imageUrl: imgUrl,
+            images: imgs,
+            location: r.clientLocation || r.client_location || 'Colombo, Sri Lanka',
+            date: r.date || new Date().toLocaleDateString(),
+            status: r.status || 'Approved',
+            isFeatured: !!r.isFeatured,
+            helpfulCount: r.helpfulCount || 0
+          };
+        });
       }
     }
   } catch (apiErr) {
@@ -1453,26 +1551,40 @@ export async function getReviews() {
       return [];
     }
 
-    return data.map((r) => ({
-      id: r.id,
-      productId: r.product_id,
-      product_id: r.product_id,
-      orderId: r.order_id,
-      author: r.client_name || r.customer_name || 'Verified Client',
-      customerName: r.client_name || r.customer_name || 'Verified Client',
-      customerEmail: r.customer_email || 'client@elvany.com',
-      productTitle: r.product_title || r.title || 'Heavyweight Atelier Tee',
-      title: r.title || 'Exceptional Quality',
-      rating: Number(r.rating) || 5,
-      fitRating: r.fit_rating || 'True to Atelier Boxy Spec',
-      content: r.comment || '',
-      comment: r.comment || '',
-      location: r.client_location || 'Colombo, Sri Lanka',
-      date: new Date(r.created_at || Date.now()).toLocaleDateString(),
-      status: r.status === 'published' ? 'Approved' : (r.status || 'Approved'),
-      isFeatured: r.is_featured || false,
-      helpfulCount: r.helpful_votes || 0
-    }));
+    return data.map((r) => {
+      let imgUrl = r.image_url || null;
+      let imgs = Array.isArray(r.images) && r.images.length > 0 ? r.images : (imgUrl ? [imgUrl] : []);
+      let cleanContent = r.comment || '';
+      const photoMatch = cleanContent.match(/\[Client Photo:\s*([^\]]+)\]/i);
+      if (photoMatch) {
+        if (!imgUrl) imgUrl = photoMatch[1].trim();
+        if (imgs.length === 0) imgs = [photoMatch[1].trim()];
+        cleanContent = cleanContent.replace(/\[Client Photo:\s*[^\]]+\]/i, '').trim();
+      }
+
+      return {
+        id: r.id,
+        productId: r.product_id,
+        product_id: r.product_id,
+        orderId: r.order_id,
+        author: r.client_name || r.customer_name || 'Verified Client',
+        customerName: r.client_name || r.customer_name || 'Verified Client',
+        customerEmail: r.customer_email || 'client@elvany.com',
+        productTitle: r.product_title || r.title || 'Heavyweight Atelier Tee',
+        title: r.title || 'Exceptional Quality',
+        rating: Number(r.rating) || 5,
+        fitRating: r.fit_rating || 'True to Atelier Boxy Spec',
+        content: cleanContent,
+        comment: cleanContent,
+        imageUrl: imgUrl,
+        images: imgs,
+        location: r.client_location || 'Colombo, Sri Lanka',
+        date: new Date(r.created_at || Date.now()).toLocaleDateString(),
+        status: r.status === 'published' ? 'Approved' : (r.status || 'Approved'),
+        isFeatured: r.is_featured || false,
+        helpfulCount: r.helpful_votes || 0
+      };
+    });
   } catch {
     return [];
   }
@@ -1481,6 +1593,10 @@ export async function getReviews() {
 
 export async function addReview(reviewData) {
   const apiUrl = getApiUrl();
+  const resolvedImageUrl = reviewData.imageUrl || (Array.isArray(reviewData.images) && reviewData.images[0]) || null;
+  const resolvedImages = Array.isArray(reviewData.images) && reviewData.images.length > 0 
+    ? reviewData.images 
+    : (resolvedImageUrl ? [resolvedImageUrl] : []);
 
   // 1. Try Backend API
   try {
@@ -1495,7 +1611,9 @@ export async function addReview(reviewData) {
         rating: Number(reviewData.rating) || 5,
         title: reviewData.title || 'Exceptional Craftsmanship',
         comment: reviewData.comment || reviewData.content,
-        fitRating: reviewData.fitRating || 'True to Size'
+        fitRating: reviewData.fitRating || 'True to Size',
+        imageUrl: resolvedImageUrl,
+        images: resolvedImages
       })
     });
     if (res.ok) {
@@ -1511,7 +1629,7 @@ export async function addReview(reviewData) {
   // 2. Direct Supabase Fallback
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('reviews').insert({
+      const { error: insErr } = await supabase.from('reviews').insert({
         product_id: reviewData.productId,
         order_id: reviewData.orderId || null,
         client_name: reviewData.author || reviewData.clientName || reviewData.customerName,
@@ -1519,15 +1637,37 @@ export async function addReview(reviewData) {
         rating: Number(reviewData.rating) || 5,
         title: reviewData.title || 'Exceptional Craftsmanship',
         comment: reviewData.comment || reviewData.content,
+        image_url: resolvedImageUrl,
+        images: resolvedImages,
         is_verified_buyer: true,
         status: 'published'
       });
+
+      if (insErr) {
+        // Fallback: column doesn't exist yet, append tag in comment
+        const tagged = resolvedImageUrl ? `${reviewData.comment || reviewData.content}\n\n[Client Photo: ${resolvedImageUrl}]` : (reviewData.comment || reviewData.content);
+        await supabase.from('reviews').insert({
+          product_id: reviewData.productId,
+          order_id: reviewData.orderId || null,
+          client_name: reviewData.author || reviewData.clientName || reviewData.customerName,
+          client_location: reviewData.location || 'Colombo, Sri Lanka',
+          rating: Number(reviewData.rating) || 5,
+          title: reviewData.title || 'Exceptional Craftsmanship',
+          comment: tagged,
+          is_verified_buyer: true,
+          status: 'published'
+        });
+      }
     } catch (err) {
       console.warn('Supabase direct review insert notice:', err);
     }
   }
 
-  return reviewData;
+  return {
+    ...reviewData,
+    imageUrl: resolvedImageUrl,
+    images: resolvedImages
+  };
 }
 
 
