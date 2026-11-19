@@ -57,6 +57,7 @@ import {
 } from './PaymentLogos';
 
 import { CITIES_LIST } from './AccountPage';
+import { sendOrderConfirmationReceipt } from '../services/emailNotificationService';
 
 // Configurable delivery fee logic (Supports flat standard rates, city-based rates, or free thresholds)
 export const STANDARD_DELIVERY_FEE_LKR = 450;
@@ -256,6 +257,7 @@ export const CheckoutPage = ({
 
           try {
             window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: finalizedOrder }));
+            sendOrderConfirmationReceipt(finalizedOrder).catch(err => console.warn('Koko receipt notice:', err));
           } catch {}
 
           localStorage.removeItem('elvany_pending_koko_order');
@@ -503,6 +505,7 @@ export const CheckoutPage = ({
 
                 try {
                   window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: verifiedOrder }));
+                  sendOrderConfirmationReceipt(verifiedOrder).catch(err => console.warn('Card receipt notice:', err));
                 } catch {}
 
                 setConfirmedOrder(verifiedOrder);
@@ -574,6 +577,7 @@ export const CheckoutPage = ({
       // Notify entire app of newly placed order
       try {
         window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: newOrder }));
+        sendOrderConfirmationReceipt(newOrder).catch(err => console.warn('Order receipt notice:', err));
       } catch {}
 
       setConfirmedOrder(newOrder);

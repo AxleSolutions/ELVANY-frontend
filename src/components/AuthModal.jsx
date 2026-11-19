@@ -3,6 +3,7 @@ import { X, Mail, ArrowRight, Check, AlertCircle, Loader2, MailCheck, RefreshCw,
 import { useGoogleLogin } from '@react-oauth/google';
 import { initFacebookSdk, loginWithFacebookDirect } from '../lib/facebookAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { sendWelcomeRegistrationEmail } from '../services/emailNotificationService';
 
 const getAuthRedirectUrl = () => {
   if (typeof window !== 'undefined' && window.location?.origin) {
@@ -348,6 +349,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             setIsLoading(false);
             setVerificationEmail(email);
             setAwaitingVerification(true);
+            sendWelcomeRegistrationEmail({ email, name }).catch(err => console.warn('Welcome notice:', err));
             return;
           }
 
@@ -356,6 +358,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
           setClientDisplayName(resolvedName);
           setIsLoading(false);
           setSubmitted(true);
+          sendWelcomeRegistrationEmail({ email: resolvedEmail, name: resolvedName }).catch(err => console.warn('Welcome notice:', err));
           setTimeout(() => {
             if (onLoginSuccess) {
               onLoginSuccess({

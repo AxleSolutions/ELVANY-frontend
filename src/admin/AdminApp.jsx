@@ -16,6 +16,7 @@ import { OffersManager } from './OffersManager';
 import { PopupAdManager } from './PopupAdManager';
 import { RestockRequestsManager } from './RestockRequestsManager';
 import { BespokeStudioManager } from './BespokeStudioManager';
+import { EmailStudio } from './EmailStudio';
 import { ProductEditModal } from './components/ProductEditModal';
 import { OrderDetailsModal } from './components/OrderDetailsModal';
 import { OfferEditModal } from './components/OfferEditModal';
@@ -971,6 +972,15 @@ export const AdminApp = ({
                   onOpenModal={handleOpenOfferModal}
                   onToggleOfferStatus={handleToggleOfferStatus}
                   onDeleteOffer={handleDeleteOffer}
+                />
+              )}
+
+              {activeTab === 'emailStudio' && (
+                <EmailStudio
+                  products={products}
+                  orders={orders}
+                  subscribers={subscribers}
+                  offers={localOffers}
                 />
               )}
 
