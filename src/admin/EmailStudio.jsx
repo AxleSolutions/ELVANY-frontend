@@ -109,17 +109,15 @@ export function EmailStudio() {
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'mobile'
   const [logoCopied, setLogoCopied] = useState(false);
 
-  // Contacts
-  const [recipientList, setRecipientList] = useState([]);
+  // Contacts with Name & Email
+  const [contacts, setContacts] = useState([]);
+  const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [singleName, setSingleName] = useState('');
+  const [singleEmail, setSingleEmail] = useState('');
   const [manualRecipients, setManualRecipients] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [uploadStats, setUploadStats] = useState(null);
-
-  // Dispatch & Test
-  const [testEmail, setTestEmail] = useState('');
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [testResult, setTestResult] = useState(null);
 
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [broadcastProgress, setBroadcastProgress] = useState({ sent: 0, total: 0, status: 'idle', logs: [] });
@@ -136,18 +134,31 @@ export function EmailStudio() {
     localStorage.setItem('elvany_google_email_endpoint', PERMANENT_GOOGLE_ENDPOINT);
   }, []);
 
-  // Load existing subscribers automatically
+  // Load existing subscribers automatically on mount
   useEffect(() => {
     const fetchSubscribers = async () => {
       try {
         const subscribers = await getNewsletterSubscribers();
         if (subscribers && subscribers.length > 0) {
           const list = subscribers
-            .map(u => typeof u === 'string' ? u : (u.email || ''))
-            .filter(e => e && e.includes('@'));
-          const unique = Array.from(new Set(list));
-          if (recipientList.length === 0 && unique.length > 0) {
-            setRecipientList(unique);
+            .map(u => {
+              const email = typeof u === 'string' ? u : (u.email || '');
+              const name = (typeof u === 'object' && u.name) ? u.name : email.split('@')[0].replace(/[._-]/g, ' ');
+              return { name: name || 'Patron', email: email.trim().toLowerCase() };
+            })
+            .filter(c => c.email && c.email.includes('@'));
+
+          const unique = [];
+          const seen = new Set();
+          for (const c of list) {
+            if (!seen.has(c.email)) {
+              seen.add(c.email);
+              unique.push({ id: `sub-${unique.length}`, ...c });
+            }
+          }
+
+          if (contacts.length === 0 && unique.length > 0) {
+            setContacts(unique);
             setUploadStats({ source: 'Store Subscribers', count: unique.length });
           }
         }
@@ -158,7 +169,7 @@ export function EmailStudio() {
     fetchSubscribers();
   }, []);
 
-  // Parse CSV or plain text file containing emails
+  // Parse CSV or plain text file extracting both Names and Emails
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -169,20 +180,121 @@ export function EmailStudio() {
     reader.onload = (event) => {
       try {
         const text = event.target.result;
-        const emailMatches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-        const cleaned = Array.from(new Set(emailMatches.map(em => em.trim().toLowerCase())));
+        const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        if (rawLines.length === 0) {
+          alert('Selected file is empty.');
+          return;
+        }
 
-        if (cleaned.length === 0) {
-          alert('No valid email addresses found in the selected file.');
+        const parseCsvRow = (line) => {
+          const delimiter = line.includes(';') && !line.includes(',') ? ';' : (line.includes('\t') && !line.includes(',') ? '\t' : ',');
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"' || char === "'") {
+              inQuotes = !inQuotes;
+            } else if (char === delimiter && !inQuotes) {
+              result.push(current.trim().replace(/^["']|["']$/g, ''));
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim().replace(/^["']|["']$/g, ''));
+          return result;
+        };
+
+        const firstLine = rawLines[0];
+        const isHeader = /email|mail|name|first|last/i.test(firstLine);
+
+        let nameColIndex = -1;
+        let emailColIndex = -1;
+        let firstNameColIndex = -1;
+        let lastNameColIndex = -1;
+
+        if (isHeader) {
+          const headers = parseCsvRow(firstLine).map(h => h.toLowerCase());
+          headers.forEach((h, idx) => {
+            if (/^email|^e-mail|^mail/i.test(h)) emailColIndex = idx;
+            else if (/full.*name|^name$|customer.*name|contact.*name|patron.*name/i.test(h)) nameColIndex = idx;
+            else if (/first.*name|^fname$/i.test(h)) firstNameColIndex = idx;
+            else if (/last.*name|^lname$/i.test(h)) lastNameColIndex = idx;
+          });
+        }
+
+        const startIndex = isHeader ? 1 : 0;
+        const extracted = [];
+        const seen = new Set(contacts.map(c => c.email.toLowerCase()));
+
+        for (let i = startIndex; i < rawLines.length; i++) {
+          const line = rawLines[i];
+          const cols = parseCsvRow(line);
+
+          let foundEmail = '';
+          if (emailColIndex !== -1 && cols[emailColIndex]) {
+            const m = cols[emailColIndex].match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+            if (m) foundEmail = m[0].toLowerCase();
+          }
+
+          if (!foundEmail) {
+            for (let c = 0; c < cols.length; c++) {
+              const m = cols[c].match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+              if (m) {
+                foundEmail = m[0].toLowerCase();
+                break;
+              }
+            }
+          }
+
+          if (!foundEmail || seen.has(foundEmail)) continue;
+
+          let foundName = '';
+          if (nameColIndex !== -1 && cols[nameColIndex]) {
+            foundName = cols[nameColIndex].trim();
+          } else if (firstNameColIndex !== -1) {
+            const fn = cols[firstNameColIndex] || '';
+            const ln = lastNameColIndex !== -1 ? (cols[lastNameColIndex] || '') : '';
+            foundName = `${fn} ${ln}`.trim();
+          }
+
+          if (!foundName) {
+            for (let c = 0; c < cols.length; c++) {
+              const val = cols[c].trim();
+              if (val && !val.includes('@') && isNaN(Number(val)) && val.length < 50) {
+                foundName = val;
+                break;
+              }
+            }
+          }
+
+          if (!foundName) {
+            const localPart = foundEmail.split('@')[0];
+            foundName = localPart.charAt(0).toUpperCase() + localPart.slice(1).replace(/[._-]/g, ' ');
+          }
+
+          seen.add(foundEmail);
+          extracted.push({
+            id: `cnt-${Date.now()}-${extracted.length}`,
+            name: foundName,
+            email: foundEmail
+          });
+        }
+
+        if (extracted.length === 0) {
+          alert('No valid contacts with email addresses found in the file.');
         } else {
-          setRecipientList(cleaned);
+          const updated = [...contacts, ...extracted];
+          setContacts(updated);
           setUploadStats({
             source: file.name,
-            count: cleaned.length
+            count: updated.length,
+            newCount: extracted.length
           });
         }
       } catch (err) {
-        alert('Failed to parse file: ' + err.message);
+        alert('Failed to parse CSV file: ' + err.message);
       } finally {
         setIsParsingFile(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -199,17 +311,82 @@ export function EmailStudio() {
 
   const handleAddManualEmails = () => {
     if (!manualRecipients.trim()) return;
-    const emailMatches = manualRecipients.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-    const cleaned = emailMatches.map(em => em.trim().toLowerCase());
-    const combined = Array.from(new Set([...recipientList, ...cleaned]));
-    setRecipientList(combined);
-    setUploadStats({
-      source: 'Pasted list / Manual',
-      count: combined.length
+    const lines = manualRecipients.split(/[\n,;]+/);
+    const seen = new Set(contacts.map(c => c.email.toLowerCase()));
+    const newItems = [];
+
+    lines.forEach(item => {
+      const trimmed = item.trim();
+      const m = trimmed.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (m) {
+        const email = m[0].toLowerCase();
+        if (!seen.has(email)) {
+          seen.add(email);
+          const name = trimmed.replace(email, '').trim().replace(/^[-:;,]+|[-:;,]+$/g, '') || email.split('@')[0];
+          newItems.push({
+            id: `man-${Date.now()}-${newItems.length}`,
+            name: name || 'Patron',
+            email
+          });
+        }
+      }
     });
+
+    if (newItems.length > 0) {
+      const updated = [...contacts, ...newItems];
+      setContacts(updated);
+      setUploadStats({
+        source: 'Manual entry',
+        count: updated.length
+      });
+    }
+
     setManualRecipients('');
     setShowManualInput(false);
   };
+
+  const handleAddSingleContact = (e) => {
+    e?.preventDefault();
+    const cleanEmail = singleEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    if (contacts.some(c => c.email.toLowerCase() === cleanEmail)) {
+      alert(`The email "${cleanEmail}" is already in the contact list.`);
+      return;
+    }
+
+    const cleanName = singleName.trim() || cleanEmail.split('@')[0].replace(/[._-]/g, ' ');
+    const newContact = {
+      id: `man-${Date.now()}`,
+      name: cleanName,
+      email: cleanEmail
+    };
+
+    const updated = [newContact, ...contacts];
+    setContacts(updated);
+    setSingleName('');
+    setSingleEmail('');
+    setUploadStats({
+      source: 'Active Roster',
+      count: updated.length
+    });
+  };
+
+  const handleRemoveContact = (emailToRemove) => {
+    const updated = contacts.filter(c => c.email !== emailToRemove);
+    setContacts(updated);
+    setUploadStats(updated.length > 0 ? { source: 'Active List', count: updated.length } : null);
+  };
+
+  // Filter contacts by search query
+  const filteredContacts = contacts.filter(c => {
+    if (!contactSearchQuery.trim()) return true;
+    const q = contactSearchQuery.toLowerCase().trim();
+    return (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q);
+  });
 
   // Central dispatcher handling standard fetch + no-cors fallback for Google Apps Script redirects
   const sendEmailRequest = async (recipients, emailSubject, emailHtml) => {
@@ -263,53 +440,28 @@ export function EmailStudio() {
     }
   };
 
-  // Send single test email
-  const handleSendTestEmail = async () => {
-    if (!googleEndpoint) {
-      setShowConfigModal(true);
-      return;
-    }
-    if (!testEmail || !testEmail.includes('@')) {
-      alert('Please enter a valid test recipient email address.');
-      return;
-    }
-
-    setIsSendingTest(true);
-    setTestResult(null);
-
-    try {
-      const result = await sendEmailRequest(testEmail.trim(), subject, htmlCode);
-      setTestResult(result);
-    } catch (err) {
-      setTestResult({
-        success: false,
-        message: `Connection failed (${err.message}). In Google Apps Script, ensure: 1) Click Deploy -> Manage Deployments -> Edit -> Who has access: "Anyone", 2) Version: "New version".`
-      });
-    } finally {
-      setIsSendingTest(false);
-    }
-  };
-
-  // Bulk Broadcast
+  // Bulk Broadcast to all parsed contacts
   const handleBroadcastCampaign = async () => {
     if (!googleEndpoint) {
       setShowConfigModal(true);
       return;
     }
-    if (recipientList.length === 0) {
-      alert('Please upload a CSV or TXT contact list first.');
+    if (contacts.length === 0) {
+      alert('Please upload a CSV contact list first.');
       return;
     }
 
+    const recipientEmails = contacts.map(c => c.email);
+
     const confirmSend = window.confirm(
-      `Send campaign "${subject}" to ${recipientList.length} recipient(s)? This will dispatch via your connected Google Account.`
+      `Send campaign "${subject}" to ${contacts.length} patron(s)? This will dispatch via your connected Google Account.`
     );
     if (!confirmSend) return;
 
     setIsBroadcasting(true);
     setBroadcastProgress({
       sent: 0,
-      total: recipientList.length,
+      total: recipientEmails.length,
       status: 'sending',
       logs: []
     });
@@ -318,10 +470,10 @@ export function EmailStudio() {
     let totalSent = 0;
     const logs = [];
 
-    for (let i = 0; i < recipientList.length; i += CHUNK_SIZE) {
-      const batch = recipientList.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < recipientEmails.length; i += CHUNK_SIZE) {
+      const batch = recipientEmails.slice(i, i + CHUNK_SIZE);
       const batchNum = Math.floor(i / CHUNK_SIZE) + 1;
-      const totalBatches = Math.ceil(recipientList.length / CHUNK_SIZE);
+      const totalBatches = Math.ceil(recipientEmails.length / CHUNK_SIZE);
 
       try {
         const result = await sendEmailRequest(batch, subject, htmlCode);
@@ -353,12 +505,12 @@ export function EmailStudio() {
 
       setBroadcastProgress({
         sent: totalSent,
-        total: recipientList.length,
-        status: i + CHUNK_SIZE >= recipientList.length ? 'complete' : 'sending',
+        total: recipientEmails.length,
+        status: i + CHUNK_SIZE >= recipientEmails.length ? 'complete' : 'sending',
         logs: [...logs]
       });
 
-      if (i + CHUNK_SIZE < recipientList.length) {
+      if (i + CHUNK_SIZE < recipientEmails.length) {
         await new Promise((resolve) => setTimeout(resolve, 600));
       }
     }
@@ -841,7 +993,7 @@ export function EmailStudio() {
                 </h3>
               </div>
 
-              {recipientList.length > 0 && (
+              {contacts.length > 0 && (
                 <span style={{
                   fontSize: '0.72rem',
                   fontWeight: 600,
@@ -851,7 +1003,7 @@ export function EmailStudio() {
                   color: '#34d399',
                   border: '1px solid rgba(52, 211, 153, 0.3)'
                 }}>
-                  {recipientList.length} Contacts Ready
+                  {contacts.length} Patrons Ready
                 </span>
               )}
             </div>
@@ -859,7 +1011,7 @@ export function EmailStudio() {
             {/* 1. CSV File Upload Area */}
             <div>
               <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '8px' }}>
-                1. Upload Contact List (CSV or TXT)
+                Upload Contact List (CSV with Names & Emails)
               </label>
 
               <div
@@ -884,13 +1036,13 @@ export function EmailStudio() {
                 <Upload style={{ width: 24, height: 24, color: '#c5a059', margin: '0 auto 8px auto' }} />
                 <div style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 500 }}>
                   {isParsingFile ? (
-                    <span style={{ color: '#c5a059' }}>Parsing emails...</span>
+                    <span style={{ color: '#c5a059' }}>Extracting names & emails...</span>
                   ) : (
-                    <span>Click to browse and upload <strong style={{ color: '#c5a059' }}>.csv</strong> or <strong style={{ color: '#c5a059' }}>.txt</strong></span>
+                    <span>Click to browse and upload <strong style={{ color: '#c5a059' }}>.csv</strong></span>
                   )}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px' }}>
-                  Automatically extracts valid email addresses from any column (Shopify, Mailchimp, or custom sheets).
+                  Auto-detects Name (Full Name, First/Last) and Email Address columns.
                 </div>
               </div>
 
@@ -907,12 +1059,12 @@ export function EmailStudio() {
                   fontSize: '0.75rem'
                 }}>
                   <span style={{ color: '#d4d4d8' }}>
-                    Loaded from: <strong style={{ color: '#ffffff' }}>{uploadStats.source}</strong> ({uploadStats.count} unique emails)
+                    Loaded: <strong style={{ color: '#ffffff' }}>{uploadStats.source}</strong> ({uploadStats.count} contacts total)
                   </span>
                   <button
                     type="button"
                     onClick={() => {
-                      setRecipientList([]);
+                      setContacts([]);
                       setUploadStats(null);
                     }}
                     style={{
@@ -924,38 +1076,102 @@ export function EmailStudio() {
                       alignItems: 'center',
                       gap: '4px'
                     }}
-                    title="Remove contacts"
+                    title="Clear contacts"
                   >
                     <Trash2 style={{ width: 14, height: 14 }} />
                   </button>
                 </div>
               )}
 
-              {/* Optional manual email input */}
-              <div style={{ marginTop: '6px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowManualInput(!showManualInput)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#a1a1aa',
-                    fontSize: '0.72rem',
-                    cursor: 'pointer',
-                    padding: '2px 0',
-                    textDecoration: 'underline'
-                  }}
-                >
-                  {showManualInput ? '▲ Hide manual email paste' : '▼ Or paste comma / newline separated emails manually'}
-                </button>
+              {/* Quick Add Single Contact Form (Name + Email) */}
+              <form onSubmit={handleAddSingleContact} style={{
+                marginTop: '10px',
+                background: '#0c0d10',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '4px',
+                padding: '10px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c5a059', fontWeight: 600 }}>
+                    Add Contact Manually
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(!showManualInput)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#a1a1aa',
+                      fontSize: '0.7rem',
+                      cursor: 'pointer',
+                      padding: 0,
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    {showManualInput ? 'Hide bulk paste' : 'Or bulk paste list'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr) auto', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={singleName}
+                    onChange={(e) => setSingleName(e.target.value)}
+                    placeholder="Patron Name (e.g. John Doe)"
+                    style={{
+                      background: '#07080a',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: '2px',
+                      padding: '7px 10px',
+                      fontSize: '0.75rem',
+                      color: '#ffffff',
+                      outline: 'none'
+                    }}
+                  />
+                  <input
+                    type="email"
+                    value={singleEmail}
+                    onChange={(e) => setSingleEmail(e.target.value)}
+                    placeholder="Email (e.g. patron@gmail.com)"
+                    style={{
+                      background: '#07080a',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: '2px',
+                      padding: '7px 10px',
+                      fontSize: '0.75rem',
+                      color: '#ffffff',
+                      outline: 'none'
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '7px 14px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      background: '#1f2127',
+                      border: '1px solid rgba(197, 160, 89, 0.35)',
+                      color: '#c5a059',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    + Add Patron
+                  </button>
+                </div>
 
                 {showManualInput && (
-                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <textarea
                       rows={2}
                       value={manualRecipients}
                       onChange={(e) => setManualRecipients(e.target.value)}
-                      placeholder="patron1@example.com, patron2@example.com..."
+                      placeholder="Paste contacts e.g.:&#10;Jane Doe, jane@example.com&#10;John Smith, john@example.com"
                       style={{
                         width: '100%',
                         boxSizing: 'border-box',
@@ -982,86 +1198,111 @@ export function EmailStudio() {
                         cursor: 'pointer'
                       }}
                     >
-                      Add Pasted Emails
+                      Add Pasted Contacts
                     </button>
                   </div>
                 )}
-              </div>
+              </form>
             </div>
 
-            {/* 2. Single Test Email */}
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '8px' }}>
-                2. Test Email Preview (Single Dispatch)
-              </label>
-              
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="email"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="your-email@gmail.com"
-                  style={{
-                    flex: 1,
-                    background: '#07080a',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '2px',
-                    padding: '8px 12px',
-                    fontSize: '0.8rem',
-                    color: '#ffffff',
-                    outline: 'none'
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleSendTestEmail}
-                  disabled={isSendingTest || !testEmail}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    background: '#1f2127',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#ffffff',
-                    borderRadius: '2px',
-                    cursor: (isSendingTest || !testEmail) ? 'not-allowed' : 'pointer',
-                    opacity: (isSendingTest || !testEmail) ? 0.6 : 1
-                  }}
-                >
-                  {isSendingTest ? <RefreshCw style={{ width: 13, height: 13 }} className="spin-animation" /> : <Send style={{ width: 13, height: 13 }} />}
-                  <span>Send Test</span>
-                </button>
-              </div>
-
-              {testResult && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '8px',
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  borderRadius: '2px',
-                  fontSize: '0.75rem',
-                  backgroundColor: testResult.success ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                  border: testResult.success ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
-                  color: testResult.success ? '#34d399' : '#f87171'
-                }}>
-                  {testResult.success ? <CheckCircle2 style={{ width: 15, height: 15, flexShrink: 0, marginTop: 1 }} /> : <AlertCircle style={{ width: 15, height: 15, flexShrink: 0, marginTop: 1 }} />}
-                  <span>{testResult.message}</span>
+            {/* Added Contacts Table (Names & Emails) */}
+            {contacts.length > 0 && (
+              <div style={{
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                paddingTop: '0.9rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.6rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c5a059', fontWeight: 600 }}>
+                    Loaded Patrons Roster ({contacts.length})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContacts([]);
+                      setUploadStats(null);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#f87171',
+                      fontSize: '0.7rem',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    Clear Roster
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* 3. Campaign Broadcast Action */}
+                {contacts.length > 5 && (
+                  <input
+                    type="text"
+                    value={contactSearchQuery}
+                    onChange={(e) => setContactSearchQuery(e.target.value)}
+                    placeholder="Search by name or email..."
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: '#07080a',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '2px',
+                      padding: '6px 10px',
+                      fontSize: '0.75rem',
+                      color: '#ffffff',
+                      outline: 'none'
+                    }}
+                  />
+                )}
+
+                <div style={{
+                  maxHeight: '230px',
+                  overflowY: 'auto',
+                  background: '#07080a',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '2px'
+                }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.73rem' }}>
+                    <thead>
+                      <tr style={{ background: '#0e0f13', color: '#a1a1aa', textAlign: 'left', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <th style={{ padding: '7px 10px', width: '30px' }}>#</th>
+                        <th style={{ padding: '7px 10px' }}>Patron Name</th>
+                        <th style={{ padding: '7px 10px' }}>Email Address</th>
+                        <th style={{ padding: '7px 10px', width: '24px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredContacts.map((c, idx) => (
+                        <tr key={c.id || idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                          <td style={{ padding: '6px 10px', color: '#71717a' }}>{idx + 1}</td>
+                          <td style={{ padding: '6px 10px', color: '#ffffff', fontWeight: 500 }}>{c.name}</td>
+                          <td style={{ padding: '6px 10px', color: '#c5a059', fontFamily: 'monospace' }}>{c.email}</td>
+                          <td style={{ padding: '6px 10px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContact(c.email)}
+                              style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                              title="Remove"
+                            >
+                              &times;
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Campaign Broadcast Action */}
             <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
               <button
                 type="button"
                 onClick={handleBroadcastCampaign}
-                disabled={isBroadcasting || recipientList.length === 0}
+                disabled={isBroadcasting || contacts.length === 0}
                 style={{
                   width: '100%',
                   padding: '12px 20px',
@@ -1070,17 +1311,17 @@ export function EmailStudio() {
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
                   borderRadius: '2px',
-                  background: (isBroadcasting || recipientList.length === 0)
+                  background: (isBroadcasting || contacts.length === 0)
                     ? '#1f2127'
                     : 'linear-gradient(135deg, #c5a059 0%, #e2be75 100%)',
-                  color: (isBroadcasting || recipientList.length === 0) ? '#71717a' : '#000000',
+                  color: (isBroadcasting || contacts.length === 0) ? '#71717a' : '#000000',
                   border: 'none',
-                  cursor: (isBroadcasting || recipientList.length === 0) ? 'not-allowed' : 'pointer',
+                  cursor: (isBroadcasting || contacts.length === 0) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: recipientList.length > 0 ? '0 4px 14px rgba(197, 160, 89, 0.25)' : 'none'
+                  boxShadow: contacts.length > 0 ? '0 4px 14px rgba(197, 160, 89, 0.25)' : 'none'
                 }}
               >
                 {isBroadcasting ? (
@@ -1091,7 +1332,7 @@ export function EmailStudio() {
                 ) : (
                   <>
                     <Mail style={{ width: 15, height: 15 }} />
-                    <span>Broadcast Campaign ({recipientList.length} Contacts)</span>
+                    <span>Broadcast Campaign ({contacts.length} Contacts)</span>
                   </>
                 )}
               </button>
