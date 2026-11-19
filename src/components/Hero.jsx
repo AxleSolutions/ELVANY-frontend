@@ -77,8 +77,8 @@ export const Hero = ({ onExploreClick }) => {
               src={slide.image} 
               alt={slide.title}
               fetchPriority={idx === 0 ? 'high' : 'auto'}
-              loading={idx === 0 ? 'eager' : 'lazy'}
-              decoding={idx === 0 ? 'sync' : 'async'}
+              loading="eager"
+              decoding="async"
               className="hero-slide-bg-img"
               style={{
                 width: '100%',

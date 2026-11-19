@@ -487,7 +487,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
       colorsAvailable: finalColors.map(c => c.hex),
       totalStock: isSoldOutExplicit ? 0 : Object.values(cleanedInventory).reduce((a, b) => a + Number(b), 0),
       inventory: cleanedInventory,
-      sizes: Object.keys(cleanedInventory),
+      sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'].filter(sz => cleanedInventory[sz] !== undefined),
       collarSpec: formData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
       fit: formData.fit || 'Tailored Regular Fit',
       silhouette: formData.fit || formData.silhouette || 'Tailored Regular Fit',
@@ -1319,7 +1319,15 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
 
                 {/* Size-by-Size Quantity Rows */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {Object.entries(formData.inventory || {}).map(([size, count]) => (
+                  {Object.entries(formData.inventory || {}).sort(([a], [b]) => {
+                    const order = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+                    const idxA = order.indexOf(cleanSizeCode(a));
+                    const idxB = order.indexOf(cleanSizeCode(b));
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return a.localeCompare(b);
+                  }).map(([size, count]) => (
                     <div 
                       key={size} 
                       style={{

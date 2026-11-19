@@ -165,7 +165,7 @@ export const FeaturedTees = ({
                       src={product.image || '/images/hero_tshirt.webp'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
                       onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                     />

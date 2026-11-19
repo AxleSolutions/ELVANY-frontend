@@ -339,10 +339,18 @@ export const AdminApp = ({
           setSubscribers([]);
         }
 
-        if (dbRestock.status === 'fulfilled' && dbRestock.value?.requests) {
-          setRestockRequests(dbRestock.value.requests);
+        if (dbRestock.status === 'fulfilled') {
+          const reqList = Array.isArray(dbRestock.value?.requests) 
+            ? dbRestock.value.requests 
+            : (Array.isArray(dbRestock.value) ? dbRestock.value : []);
+          setRestockRequests(reqList);
         } else {
-          setRestockRequests([]);
+          try {
+            const fallback = JSON.parse(localStorage.getItem('elvany_restock_requests_backup') || '[]');
+            setRestockRequests(fallback);
+          } catch {
+            setRestockRequests([]);
+          }
         }
 
         if (dbBespoke.status === 'fulfilled' && Array.isArray(dbBespoke.value)) {
@@ -387,6 +395,17 @@ export const AdminApp = ({
       syncAdminDatabase();
     }
   }, [isAdminAuthorized]);
+
+  // Live Demand & Restock Notification Event Listener
+  useEffect(() => {
+    const handleRestockLive = (e) => {
+      if (e.detail) {
+        setRestockRequests(prev => [e.detail, ...prev.filter(r => r.id !== e.detail.id)]);
+      }
+    };
+    window.addEventListener('elvany_restock_requested', handleRestockLive);
+    return () => window.removeEventListener('elvany_restock_requested', handleRestockLive);
+  }, []);
 
   // Modals & Drawers
   const [editingProduct, setEditingProduct] = useState(null);
@@ -476,7 +495,8 @@ export const AdminApp = ({
         isOutOfStock: isSoldOut,
         inStock: !isSoldOut,
         totalStock: isSoldOut ? 0 : Object.values(cleanInv).reduce((a, b) => a + Number(b), 0),
-        inventory: cleanInv
+        inventory: cleanInv,
+        _editedAt: Date.now()
       };
 
       if (editingProduct) {
@@ -520,7 +540,8 @@ export const AdminApp = ({
       isOutOfStock: willBeOutOfStock,
       inStock: !willBeOutOfStock,
       totalStock: willBeOutOfStock ? 0 : Object.values(cleanInv).reduce((a, b) => a + Number(b), 0),
-      inventory: cleanInv
+      inventory: cleanInv,
+      _editedAt: Date.now()
     };
 
     setProducts(prev => {

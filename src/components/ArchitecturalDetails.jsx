@@ -17,7 +17,7 @@ export const ArchitecturalDetails = () => {
             <img 
               src="/images/pillar_heavyweight.webp" 
               alt="Durable Fabric Structure" 
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <div className="craft-card-large-overlay">

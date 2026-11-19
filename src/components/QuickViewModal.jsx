@@ -3,6 +3,7 @@ import { X, Check, Shield, Sparkles, ShoppingBag, Bell, Ruler } from 'lucide-rea
 import { RestockRequestModal } from './RestockRequestModal';
 import { SizeChartModal } from './SizeChartModal';
 import { cleanSizeCode } from '../services/dbService';
+import { sortProductSizes } from './ProductDetailPage';
 
 export const QuickViewModal = ({
   product,
@@ -14,11 +15,13 @@ export const QuickViewModal = ({
 }) => {
   if (!isOpen || !product) return null;
 
+  const sortedSizes = sortProductSizes(product.sizes || Object.keys(product.inventory || {}));
+
   const [selectedSize, setSelectedSize] = useState(() => {
     const rawPref = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
     const preferred = cleanSizeCode(rawPref);
-    if (preferred && product?.sizes?.some(s => cleanSizeCode(s) === preferred)) return preferred;
-    return product.sizes?.[0] ? cleanSizeCode(product.sizes[0]) : 'M';
+    if (preferred && sortedSizes.includes(preferred)) return preferred;
+    return sortedSizes.includes('M') ? 'M' : (sortedSizes[0] || 'M');
   });
   const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.webp');
   const [added, setAdded] = useState(false);
@@ -177,13 +180,24 @@ export const QuickViewModal = ({
             </div>
 
             <div className="size-pill-group">
-              {product.sizes.map((rawSz) => {
-                const sz = cleanSizeCode(rawSz);
+              {sortedSizes.map((sz) => {
+                const sStock = isGarmentOutOfStock ? 0 : ((product.inventory && product.inventory[sz] !== undefined)
+                  ? Number(product.inventory[sz])
+                  : 0);
+                const isSoldOut = isGarmentOutOfStock || sStock <= 0;
+
                 return (
                   <button
                     key={sz}
-                    className={`size-pill ${selectedSize === sz ? 'active' : ''}`}
+                    disabled={isSoldOut}
+                    className={`size-pill ${selectedSize === sz ? 'active' : ''} ${isSoldOut ? 'sold-out' : ''}`}
                     onClick={() => setSelectedSize(sz)}
+                    style={{
+                      opacity: isSoldOut ? 0.35 : 1,
+                      cursor: isSoldOut ? 'not-allowed' : 'pointer',
+                      textDecoration: isSoldOut ? 'line-through' : 'none'
+                    }}
+                    title={isSoldOut ? `Size ${sz} is Sold Out` : `Size ${sz} (${sStock} available)`}
                   >
                     {sz}
                   </button>

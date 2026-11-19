@@ -8,6 +8,20 @@ import { SizeChartModal } from './SizeChartModal';
 import { KokoLogo } from './PaymentLogos';
 import { cleanSizeCode } from '../services/dbService';
 
+export const STANDARD_SIZES_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+
+export const sortProductSizes = (sizesList = []) => {
+  const cleanList = Array.from(new Set((sizesList || []).map(cleanSizeCode)));
+  return cleanList.sort((a, b) => {
+    const idxA = STANDARD_SIZES_ORDER.indexOf(a);
+    const idxB = STANDARD_SIZES_ORDER.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+};
+
 /**
  * Intelligent Atelier Recommendation Engine
  * Computes multidimensional compatibility based on category, silhouette,
@@ -166,14 +180,25 @@ export const ProductDetailPage = ({
     product.totalStock === 0 ||
     (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
 
+  const sortedSizes = useMemo(() => {
+    const rawList = Array.isArray(product?.sizes) && product.sizes.length > 0
+      ? product.sizes
+      : (product?.inventory ? Object.keys(product.inventory) : STANDARD_SIZES_ORDER.slice(0, 6));
+    return sortProductSizes(rawList);
+  }, [product?.sizes, product?.inventory]);
+
   const [selectedSize, setSelectedSize] = useState(() => {
     const rawPref = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
     const preferred = cleanSizeCode(rawPref);
-    if (preferred && product?.sizes?.some(s => cleanSizeCode(s) === preferred)) return preferred;
-    const firstClean = product?.sizes?.[0] ? cleanSizeCode(product.sizes[0]) : 'M';
-    const secondClean = product?.sizes?.[1] ? cleanSizeCode(product.sizes[1]) : firstClean;
-    return secondClean || 'M';
+    if (preferred && sortedSizes.includes(preferred)) return preferred;
+    return sortedSizes.includes('M') ? 'M' : (sortedSizes[0] || 'M');
   });
+
+  useEffect(() => {
+    if (sortedSizes.length > 0 && !sortedSizes.includes(selectedSize)) {
+      setSelectedSize(sortedSizes.includes('M') ? 'M' : sortedSizes[0]);
+    }
+  }, [sortedSizes]);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
@@ -358,7 +383,7 @@ export const ProductDetailPage = ({
                     className={`pdp-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
                     onClick={() => setActiveImageIndex(idx)}
                   >
-                    <img src={img} alt={`View ${idx + 1}`} loading="lazy" decoding="async" />
+                    <img src={img} alt={`View ${idx + 1}`} loading="eager" decoding="async" />
                   </button>
                 ))}
               </div>
@@ -454,13 +479,10 @@ export const ProductDetailPage = ({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              backgroundColor: 'rgba(197, 160, 89, 0.08)',
-              border: '1px solid rgba(197, 160, 89, 0.25)',
-              borderRadius: '4px',
-              padding: '4px 10px',
-              fontSize: '0.74rem',
+              padding: '2px 0',
+              fontSize: '0.76rem',
               color: 'var(--text-light-secondary)',
-              marginBottom: '1rem'
+              marginBottom: '1.2rem'
             }}>
               <Sparkles size={12} color="var(--gold-bright)" />
               <span>or 3 instalments of <strong style={{ color: 'var(--gold-bright)' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
@@ -533,7 +555,7 @@ export const ProductDetailPage = ({
                   }
                   const selectedSizeStock = (product.inventory && product.inventory[selectedSize] !== undefined)
                     ? Number(product.inventory[selectedSize])
-                    : (product.totalStock || 10);
+                    : 0;
 
                   if (selectedSizeStock <= 0) {
                     return <span style={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600 }}>Size {selectedSize} Sold Out</span>;
@@ -546,11 +568,10 @@ export const ProductDetailPage = ({
               </div>
 
               <div className="pdp-sizes-grid">
-                {product.sizes.map((rawS) => {
-                  const s = cleanSizeCode(rawS);
-                  const sStock = isGarmentOutOfStock ? 0 : ((product.inventory && (product.inventory[s] !== undefined ? product.inventory[s] : product.inventory[rawS]) !== undefined)
-                    ? Number(product.inventory[s] !== undefined ? product.inventory[s] : product.inventory[rawS])
-                    : (product.totalStock || 10));
+                {sortedSizes.map((s) => {
+                  const sStock = isGarmentOutOfStock ? 0 : ((product.inventory && product.inventory[s] !== undefined)
+                    ? Number(product.inventory[s])
+                    : 0);
                   const isSoldOut = isGarmentOutOfStock || sStock <= 0;
 
                   return (
@@ -586,7 +607,7 @@ export const ProductDetailPage = ({
             {(() => {
               const selectedSizeStock = isGarmentOutOfStock ? 0 : ((product.inventory && product.inventory[selectedSize] !== undefined)
                 ? Number(product.inventory[selectedSize])
-                : (product.totalStock || 10));
+                : 0);
               const isAvailable = !isGarmentOutOfStock && selectedSizeStock > 0;
 
               return (
@@ -987,7 +1008,7 @@ export const ProductDetailPage = ({
                   <img 
                     src={rp.image} 
                     alt={rp.name} 
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
                     className="pdp-related-img"
                   />

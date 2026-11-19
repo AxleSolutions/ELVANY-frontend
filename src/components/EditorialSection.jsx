@@ -53,7 +53,7 @@ export const EditorialSection = ({ onReadEditorial }) => {
           src="/images/tshirt_oversized.webp" 
           alt="ELVANY Signature T-Shirt Editorial" 
           className="editorial-hero-img"
-          loading="lazy"
+          loading="eager"
           decoding="async"
         />
         <div className="editorial-watermark-stamp">

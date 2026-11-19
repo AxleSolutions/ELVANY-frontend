@@ -41,24 +41,26 @@ export async function getProducts() {
     const allImages = p.product_variants?.flatMap(v => v.gallery_images || []) || [];
 
     // Extract inventory matrix with cleaned size codes
+    // Deduplicate: if database has both 'M' and legacy 'M (40)', prefer clean 'M'
+    // and do NOT sum duplicate legacy rows into it!
     const inventory = {};
-    let totalStock = 0;
     let hasExplicitStockRows = false;
 
-    (defaultVariant?.product_stock || []).forEach(s => {
+    const stockList = (defaultVariant?.product_stock && defaultVariant.product_stock.length > 0)
+      ? defaultVariant.product_stock
+      : (p.product_variants?.flatMap(v => v.product_stock || []) || []);
+
+    if (stockList.length > 0) {
       hasExplicitStockRows = true;
-      const cleanKey = cleanSizeCode(s.size_code);
-      inventory[cleanKey] = (inventory[cleanKey] || 0) + (Number(s.stock_quantity) || 0);
-      totalStock += (Number(s.stock_quantity) || 0);
-    });
-    if (!hasExplicitStockRows) {
-      (p.product_variants || []).forEach(v => {
-        (v.product_stock || []).forEach(s => {
-          hasExplicitStockRows = true;
-          const cleanKey = cleanSizeCode(s.size_code);
-          inventory[cleanKey] = (inventory[cleanKey] || 0) + (Number(s.stock_quantity) || 0);
-          totalStock += (Number(s.stock_quantity) || 0);
-        });
+      stockList.forEach(s => {
+        const rawCode = String(s.size_code || '').trim();
+        const cleanKey = cleanSizeCode(rawCode);
+        const isCleanExact = rawCode === cleanKey;
+        const qty = Math.max(0, parseInt(s.stock_quantity, 10) || 0);
+
+        if (inventory[cleanKey] === undefined || isCleanExact) {
+          inventory[cleanKey] = qty;
+        }
       });
     }
 
@@ -83,29 +85,26 @@ export async function getProducts() {
           ? p.inventory
           : { 'XS': 5, 'S': 10, 'M': 15, 'L': 20, 'XL': 12, '2XL': 6 });
 
-    // Sanitize all inventory keys to remove (38), (40), (42), etc.
+    // Sanitize all inventory keys to clean size codes without bracketed numbers
     const finalInventory = {};
     Object.entries(rawInv).forEach(([k, v]) => {
       const cleanK = cleanSizeCode(k);
-      finalInventory[cleanK] = (finalInventory[cleanK] || 0) + (Number(v) || 0);
+      finalInventory[cleanK] = Math.max(0, parseInt(v, 10) || 0);
     });
 
-    // Ensure all standard sizes exist in the matrix
+    // Ensure all standard sizes exist in the matrix in standard order
     ['XS', 'S', 'M', 'L', 'XL', '2XL'].forEach(sz => {
       if (finalInventory[sz] === undefined) {
         finalInventory[sz] = 0;
       }
     });
 
+    let totalStock = 0;
     if (isExplicitlySoldOut) {
       Object.keys(finalInventory).forEach(k => { finalInventory[k] = 0; });
       totalStock = 0;
-    } else if (hasExplicitStockRows) {
-      totalStock = Object.values(finalInventory).reduce((a, b) => a + (Number(b) || 0), 0);
-    } else if (p.totalStock !== undefined && p.totalStock !== null) {
-      totalStock = Number(p.totalStock);
     } else {
-      totalStock = Object.values(finalInventory).reduce((a, b) => a + (Number(b) || 0), 0);
+      totalStock = Object.values(finalInventory).reduce((a, b) => a + Number(b), 0);
     }
 
     const isOutOfStockGarment = isExplicitlySoldOut || totalStock === 0 || (Object.keys(finalInventory).length > 0 && Object.values(finalInventory).every(v => Number(v) <= 0));
@@ -140,6 +139,7 @@ export async function getProducts() {
     });
 
     const fabricComposition = p.fabric_composition || p.composition || p.fabric || 'Durable Comfort Knit Blend';
+    const fabricProvenance = p.fabricProvenance || p.fabric_provenance || fabricComposition || 'Durable Comfort Knit Jersey, Atelier Finishing';
     const fabricWeight = p.fabric_weight || (p.gsm ? `${p.gsm} GSM` : '240 GSM');
     const collarSpec = p.collarSpec || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[0] : null) || 'Double-needle non-sag 1x1 ribbing';
     const fitSilhouette = p.fit || p.silhouette || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[1] : null) || 'Tailored Regular Fit';
@@ -240,37 +240,29 @@ export async function getProducts() {
       return !hasId && !hasSlug;
     });
 
-    // Merge remote products while preserving any active local changes
+    // Merge remote products while preserving fresh database truth
     const mergedRemote = remoteProducts.map(rp => {
       const localMatch = localCache.find(lp => String(lp.id) === String(rp.id) || (lp.slug && lp.slug === rp.slug));
       if (localMatch) {
-        const isLocalSoldOut = localMatch.status === 'Sold Out' || 
-          localMatch.status === 'Archived' || 
-          localMatch.status === 'Out of Stock' || 
-          localMatch.isOutOfStock === true || 
-          localMatch.inStock === false ||
-          localMatch.totalStock === 0 || 
-          (localMatch.inventory && Object.keys(localMatch.inventory).length > 0 && Object.values(localMatch.inventory).every(v => Number(v) <= 0));
-        
-        const finalStatus = isLocalSoldOut 
-          ? (localMatch.status === 'Archived' ? 'Archived' : 'Sold Out') 
-          : (localMatch.status || rp.status);
+        // Only keep optimistic local inventory if modified in the current tab within the last 15 seconds
+        const isFreshLocalEdit = localMatch._editedAt && (Date.now() - localMatch._editedAt < 15000);
+        if (isFreshLocalEdit) {
+          return {
+            ...rp,
+            ...localMatch
+          };
+        }
 
-        const finalInventory = isLocalSoldOut
-          ? Object.fromEntries(Object.keys(localMatch.inventory || rp.inventory || { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0 }).map(k => [k, 0]))
-          : (localMatch.inventory || rp.inventory);
-
+        // Remote database product represents the fresh server truth
         return {
-          ...rp,
           ...localMatch,
-          images: (localMatch.images && localMatch.images.length > 0) ? localMatch.images : rp.images,
-          category: localMatch.category || rp.category,
-          status: finalStatus,
-          isOutOfStock: isLocalSoldOut,
-          inStock: !isLocalSoldOut,
-          totalStock: isLocalSoldOut ? 0 : (localMatch.totalStock ?? rp.totalStock),
-          inventory: finalInventory,
-          is_active: localMatch.is_active !== undefined ? localMatch.is_active : rp.is_active
+          ...rp,
+          images: (rp.images && rp.images.length > 0) ? rp.images : localMatch.images,
+          inventory: rp.inventory,
+          totalStock: rp.totalStock,
+          status: rp.status,
+          isOutOfStock: rp.isOutOfStock,
+          inStock: rp.inStock
         };
       }
       return rp;
@@ -1163,15 +1155,24 @@ export async function saveProduct(productData) {
           // Update stock rows for this variant
           if (productData.inventory && typeof productData.inventory === 'object') {
             const isSoldOutExplicit = productData.status === 'Sold Out' || productData.status === 'Archived';
-            for (const [sizeCode, qty] of Object.entries(productData.inventory)) {
-              const finalStock = isSoldOutExplicit ? 0 : Math.max(0, parseInt(qty, 10) || 0);
+            try {
+              // Delete existing rows for this variant to clean up any legacy bracketed size codes
               await supabase
                 .from('product_stock')
-                .upsert({
-                  variant_id: existingVariant.id,
-                  size_code: cleanSizeCode(sizeCode),
-                  stock_quantity: finalStock
-                }, { onConflict: 'variant_id,size_code' });
+                .delete()
+                .eq('variant_id', existingVariant.id);
+            } catch {}
+
+            const stockRowsToInsert = Object.entries(productData.inventory).map(([sizeCode, qty]) => ({
+              variant_id: existingVariant.id,
+              size_code: cleanSizeCode(sizeCode),
+              stock_quantity: isSoldOutExplicit ? 0 : Math.max(0, parseInt(qty, 10) || 0)
+            }));
+
+            if (stockRowsToInsert.length > 0) {
+              await supabase
+                .from('product_stock')
+                .insert(stockRowsToInsert);
             }
           }
         }
@@ -2203,38 +2204,61 @@ export async function createRestockRequest(payload) {
     createdAt: new Date().toISOString()
   };
 
-  // 1. Try Backend API
+  // 1. Try Direct Supabase Insert
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const isProdUuid = isUuid(payload.productId || '');
+      const { data: sbData, error: sbError } = await supabase
+        .from('restock_requests')
+        .insert({
+          product_id: isProdUuid ? payload.productId : null,
+          product_title: normalizedReq.productTitle,
+          product_image: normalizedReq.productImage,
+          variant_color: normalizedReq.variantColor,
+          size_code: normalizedReq.sizeCode,
+          customer_name: normalizedReq.customerName,
+          customer_email: normalizedReq.customerEmail,
+          customer_phone: normalizedReq.customerPhone,
+          notes: normalizedReq.notes,
+          status: normalizedReq.status
+        })
+        .select()
+        .maybeSingle();
+
+      if (!sbError && sbData) {
+        normalizedReq.id = sbData.id;
+      }
+    } catch (sbErr) {
+      console.warn('Supabase direct restock insert notice:', sbErr);
+    }
+  }
+
+  // 2. Try Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(normalizedReq)
     });
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
-        // Save to localStorage as backup
-        try {
-          const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
-          const updated = [json.data, ...existing.filter(r => r.id !== json.data.id)];
-          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
-        } catch {}
-        return json.data;
+        normalizedReq.id = json.data.id || normalizedReq.id;
       }
     }
   } catch (apiErr) {
     console.warn('API createRestockRequest notice:', apiErr);
   }
 
-  // 2. LocalStorage Fallback
+  // 3. LocalStorage persistence & live event broadcast
   try {
     const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
-    const updated = [normalizedReq, ...existing];
+    const updated = [normalizedReq, ...existing.filter(r => r.id !== normalizedReq.id)];
     localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
-    return normalizedReq;
-  } catch {
-    return normalizedReq;
-  }
+    window.dispatchEvent(new CustomEvent('elvany_restock_requested', { detail: normalizedReq }));
+  } catch {}
+
+  return normalizedReq;
 }
 
 /**
@@ -2242,20 +2266,68 @@ export async function createRestockRequest(payload) {
  */
 export async function getRestockRequests() {
   const apiUrl = getApiUrl();
+  const localList = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
 
-  // 1. Try Backend API
+  // 1. Try Direct Supabase Query
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('restock_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        const formatted = data.map(r => ({
+          id: r.id,
+          productId: r.product_id || null,
+          productTitle: r.product_title || 'Haute Atelier Garment',
+          productImage: r.product_image || '/images/hero_tshirt.webp',
+          variantColor: r.variant_color || 'Onyx Black',
+          sizeCode: cleanSizeCode(r.size_code || 'M'),
+          customerName: r.customer_name || 'VIP Client',
+          customerEmail: r.customer_email || '',
+          customerPhone: r.customer_phone || '',
+          notes: r.notes || '',
+          status: r.status || 'Pending Atelier Review',
+          createdAt: r.created_at || new Date().toISOString()
+        }));
+
+        const map = new Map();
+        formatted.forEach(r => map.set(r.id, r));
+        localList.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        try {
+          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(merged));
+        } catch {}
+
+        return {
+          requests: merged,
+          stats: {}
+        };
+      }
+    } catch (sbErr) {
+      console.warn('Supabase getRestockRequests notice:', sbErr);
+    }
+  }
+
+  // 2. Try Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        // Save to localStorage as backup
+        const map = new Map();
+        json.data.forEach(r => map.set(r.id, r));
+        localList.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
         try {
-          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(json.data));
+          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(merged));
         } catch {}
 
         return {
-          requests: json.data,
+          requests: merged,
           stats: json.stats || {}
         };
       }
@@ -2264,10 +2336,9 @@ export async function getRestockRequests() {
     console.warn('API getRestockRequests notice:', apiErr);
   }
 
-  // 2. LocalStorage Fallback
-  const stored = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+  // 3. LocalStorage Fallback
   return {
-    requests: stored,
+    requests: localList,
     stats: {}
   };
 }

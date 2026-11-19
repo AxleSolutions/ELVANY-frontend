@@ -220,7 +220,7 @@ export const CollectionPage = ({
                     <img
                       src={heroImg}
                       alt={cat.label}
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -386,7 +386,7 @@ export const CollectionPage = ({
                       src={product.image || '/images/hero_tshirt.webp'} 
                       alt={product.name || product.title} 
                       className="product-card-img"
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
                       onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                     />
