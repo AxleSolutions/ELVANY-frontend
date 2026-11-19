@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Home, Eye, ShoppingBag, Check, Ruler, Bell } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { getAllCategories, slugifyCategory, formatCategoryKey, formatCategoryLabel } from '../services/categoryService';
@@ -22,20 +22,77 @@ export const CollectionPage = ({
 
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sortBy, setSortBy] = useState('featured');
+  const productsGridRef = useRef(null);
 
   const dynamicCategories = useMemo(() => {
     return getAllCategories(products);
   }, [products]);
 
+  // Only categories that currently have live products in this catalog
+  const visibleCategoryCards = useMemo(() => {
+    return dynamicCategories
+      .map((cat) => {
+        const catKey = cat.id || cat.key;
+        const catProducts = products.filter(
+          p => p.category === catKey || 
+               slugifyCategory(p.category || '') === catKey ||
+               formatCategoryKey(p.category || '') === formatCategoryKey(catKey)
+        );
+        const count = catProducts.length;
+        const itemWithImg = catProducts.find(
+          p => (typeof p.image === 'string' && p.image.trim() && !p.image.includes('placeholder')) ||
+               (Array.isArray(p.images) && p.images.length > 0 && typeof p.images[0] === 'string' && p.images[0].trim())
+        );
+        const heroImg = itemWithImg?.image || itemWithImg?.images?.[0] || null;
+
+        return {
+          ...cat,
+          catKey,
+          count,
+          heroImg
+        };
+      })
+      // Hide category if 0 items or no image of an actual item
+      .filter(cat => cat.count > 0 && Boolean(cat.heroImg));
+  }, [dynamicCategories, products]);
+
   const filterTabs = useMemo(() => {
+    // Only include categories that actually have active items in the store
+    const activeCategories = dynamicCategories.filter(cat => {
+      const catKey = cat.id || cat.key;
+      return products.some(
+        p => p.category === catKey || 
+             slugifyCategory(p.category || '') === catKey ||
+             formatCategoryKey(p.category || '') === formatCategoryKey(catKey)
+      );
+    });
+
     return [
       { label: 'All T-Shirt Editions', value: 'all' },
-      ...dynamicCategories.map(cat => ({
+      ...activeCategories.map(cat => ({
         label: cat.label,
         value: cat.id || cat.key
       }))
     ];
-  }, [dynamicCategories]);
+  }, [dynamicCategories, products]);
+
+  const handleCategoryCardClick = (catKey) => {
+    const nextCategory = selectedCategory === catKey ? 'all' : catKey;
+    setSelectedCategory(nextCategory);
+
+    // Smoothly scroll down to where the items are
+    setTimeout(() => {
+      if (productsGridRef.current) {
+        const navOffset = 90;
+        const rect = productsGridRef.current.getBoundingClientRect();
+        const targetScrollTop = rect.top + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }, 60);
+  };
 
   const categoryDetails = {
     all: {
@@ -182,66 +239,37 @@ export const CollectionPage = ({
       </div>
 
       {/* Collection Category Selector Cards */}
-      {dynamicCategories.length > 0 && (
-        <div style={{ backgroundColor: 'var(--bg-cream)', padding: '3.5rem 0 1rem 0' }}>
+      {visibleCategoryCards.length > 0 && (
+        <section className="collection-categories-section">
           <div className="container">
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: dynamicCategories.length <= 3 ? 'repeat(auto-fit, minmax(280px, 1fr))' : 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2.5rem'
-            }}>
-              {dynamicCategories.map((cat) => {
-                const catKey = cat.id || cat.key;
-                const catProducts = products.filter(
-                  p => p.category === catKey || 
-                       slugifyCategory(p.category || '') === catKey ||
-                       formatCategoryKey(p.category || '') === formatCategoryKey(catKey)
-                );
-                const count = catProducts.length;
-                const heroImg = catProducts[0]?.image || catProducts[0]?.images?.[0] || '/images/hero_tshirt.webp';
+            <div className={`collection-categories-grid ${visibleCategoryCards.length === 3 ? 'col-count-3' : ''}`}>
+              {visibleCategoryCards.map((cat) => {
+                const catKey = cat.catKey || cat.id || cat.key;
                 const isSelected = selectedCategory === catKey || slugifyCategory(selectedCategory) === catKey;
 
                 return (
                   <div
                     key={catKey}
-                    onClick={() => setSelectedCategory(isSelected ? 'all' : catKey)}
-                    style={{
-                      position: 'relative',
-                      height: '180px',
-                      borderRadius: '2px',
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      border: isSelected ? '2px solid var(--gold-primary)' : '1px solid rgba(0,0,0,0.1)',
-                      boxShadow: 'var(--shadow-subtle)',
-                      transition: 'var(--transition-smooth)'
-                    }}
+                    className={`collection-category-card ${isSelected ? 'is-active' : ''}`}
+                    onClick={() => handleCategoryCardClick(catKey)}
+                    title={`Filter by ${cat.label}`}
                   >
                     <img
-                      src={heroImg}
+                      src={cat.heroImg}
                       alt={cat.label}
+                      className="collection-category-card-img"
                       loading="eager"
                       decoding="async"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(0deg, rgba(11,11,12,0.88) 0%, rgba(11,11,12,0.3) 100%)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'flex-end',
-                      padding: '1.2rem',
-                      color: '#fff'
-                    }}>
-                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '2px' }}>
+                    <div className="collection-category-card-overlay">
+                      <h4 className="collection-category-card-title">
                         {cat.label}
                       </h4>
-                      <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
-                        {count} {count === 1 ? 'Garment Edition' : 'Garment Editions'}
+                      <div className="collection-category-card-count">
+                        {cat.count} {cat.count === 1 ? 'Garment Edition' : 'Garments'}
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
-                        {isSelected ? '• ACTIVE SELECTION (CLICK TO RESET)' : 'VIEW CATEGORY →'}
+                      <div className="collection-category-card-cta">
+                        {isSelected ? '• ACTIVE' : 'VIEW →'}
                       </div>
                     </div>
                   </div>
@@ -249,11 +277,11 @@ export const CollectionPage = ({
               })}
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Sticky Filter & Sort Controls Bar */}
-      <div className="search-controls-bar">
+      <div className="search-controls-bar" ref={productsGridRef}>
         <div className="container search-controls-inner">
           <div className="search-filter-pills">
             {filterTabs.map((tab) => (

@@ -346,8 +346,12 @@ export const AdminApp = ({
           setRestockRequests(reqList);
         } else {
           try {
-            const fallback = JSON.parse(localStorage.getItem('elvany_restock_requests_backup') || '[]');
-            setRestockRequests(fallback);
+            const primary = JSON.parse(localStorage.getItem('elvany_restock_requests') || '[]');
+            const backup = JSON.parse(localStorage.getItem('elvany_restock_requests_backup') || '[]');
+            const map = new Map();
+            (Array.isArray(primary) ? primary : []).forEach(r => { if (r?.id) map.set(r.id, r); });
+            (Array.isArray(backup) ? backup : []).forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
+            setRestockRequests(Array.from(map.values()));
           } catch {
             setRestockRequests([]);
           }

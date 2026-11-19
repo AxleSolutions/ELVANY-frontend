@@ -2182,6 +2182,67 @@ export async function uploadPopupAdImage(file) {
    ========================================================================= */
 
 const LOCAL_RESTOCK_KEY = 'elvany_restock_requests';
+const BACKUP_RESTOCK_KEY = 'elvany_restock_requests_backup';
+
+let hasRestockTable = null;
+
+function getStoredLocalRestockRequests() {
+  try {
+    const primary = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+    const backup = JSON.parse(localStorage.getItem(BACKUP_RESTOCK_KEY) || '[]');
+    const map = new Map();
+    (Array.isArray(primary) ? primary : []).forEach(r => { if (r?.id) map.set(r.id, r); });
+    (Array.isArray(backup) ? backup : []).forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
+    return Array.from(map.values());
+  } catch {
+    return [];
+  }
+}
+
+function persistLocalRestockRequests(list) {
+  try {
+    const json = JSON.stringify(list);
+    localStorage.setItem(LOCAL_RESTOCK_KEY, json);
+    localStorage.setItem(BACKUP_RESTOCK_KEY, json);
+  } catch {}
+}
+
+async function syncRestockRequestsToCloud(requests) {
+  if (!isSupabaseConfigured || !supabase || !Array.isArray(requests)) return;
+  try {
+    await supabase
+      .from('promotions')
+      .upsert({
+        code: 'MAISON_RESTOCK_REGISTRY',
+        title: 'Maison Restock and Re-Issue Requests Registry',
+        description: JSON.stringify(requests),
+        is_active: true,
+        discount_type: 'restock_registry',
+        discount_value: 0
+      }, { onConflict: 'code' });
+  } catch (err) {
+    console.warn('Restock cloud registry sync note:', err?.message || err);
+  }
+}
+
+async function getCloudRestockRequests() {
+  if (!isSupabaseConfigured || !supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('description')
+      .eq('code', 'MAISON_RESTOCK_REGISTRY')
+      .maybeSingle();
+
+    if (!error && data?.description) {
+      const parsed = JSON.parse(data.description);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('Cloud restock registry query note:', err?.message || err);
+  }
+  return [];
+}
 
 /**
  * Submit a new restock / re-issue request
@@ -2204,8 +2265,8 @@ export async function createRestockRequest(payload) {
     createdAt: new Date().toISOString()
   };
 
-  // 1. Try Direct Supabase Insert
-  if (isSupabaseConfigured && supabase) {
+  // 1. Try Direct Supabase Insert (only if table is known to exist)
+  if (isSupabaseConfigured && supabase && hasRestockTable !== false) {
     try {
       const isProdUuid = isUuid(payload.productId || '');
       const { data: sbData, error: sbError } = await supabase
@@ -2225,15 +2286,32 @@ export async function createRestockRequest(payload) {
         .select()
         .maybeSingle();
 
-      if (!sbError && sbData) {
+      if (sbError) {
+        if (sbError.code === '42P01' || sbError.code === 'PGRST204' || sbError.message?.includes('does not exist')) {
+          hasRestockTable = false;
+        }
+      } else if (sbData) {
+        hasRestockTable = true;
         normalizedReq.id = sbData.id;
       }
     } catch (sbErr) {
-      console.warn('Supabase direct restock insert notice:', sbErr);
+      hasRestockTable = false;
     }
   }
 
-  // 2. Try Backend API
+  // 2. Persist locally first & broadcast live event
+  const existing = getStoredLocalRestockRequests();
+  const updated = [normalizedReq, ...existing.filter(r => r.id !== normalizedReq.id)];
+  persistLocalRestockRequests(updated);
+
+  try {
+    window.dispatchEvent(new CustomEvent('elvany_restock_requested', { detail: normalizedReq }));
+  } catch {}
+
+  // 3. Sync to Supabase Cloud Registry (guaranteed cloud persistence without 404s)
+  await syncRestockRequestsToCloud(updated);
+
+  // 4. Try Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests`, {
       method: 'POST',
@@ -2247,16 +2325,8 @@ export async function createRestockRequest(payload) {
       }
     }
   } catch (apiErr) {
-    console.warn('API createRestockRequest notice:', apiErr);
+    console.warn('API createRestockRequest notice:', apiErr?.message || apiErr);
   }
-
-  // 3. LocalStorage persistence & live event broadcast
-  try {
-    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
-    const updated = [normalizedReq, ...existing.filter(r => r.id !== normalizedReq.id)];
-    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent('elvany_restock_requested', { detail: normalizedReq }));
-  } catch {}
 
   return normalizedReq;
 }
@@ -2266,79 +2336,71 @@ export async function createRestockRequest(payload) {
  */
 export async function getRestockRequests() {
   const apiUrl = getApiUrl();
-  const localList = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
+  const localList = getStoredLocalRestockRequests();
+  const map = new Map();
+  localList.forEach(r => { if (r?.id) map.set(r.id, r); });
 
-  // 1. Try Direct Supabase Query
-  if (isSupabaseConfigured && supabase) {
+  // 1. Fetch from Supabase Cloud Registry (reliable, always accessible)
+  try {
+    const cloudRegistry = await getCloudRestockRequests();
+    cloudRegistry.forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
+  } catch {}
+
+  // 2. Try Direct Supabase Query (only if table is not marked missing)
+  if (isSupabaseConfigured && supabase && hasRestockTable !== false) {
     try {
       const { data, error } = await supabase
         .from('restock_requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data)) {
-        const formatted = data.map(r => ({
-          id: r.id,
-          productId: r.product_id || null,
-          productTitle: r.product_title || 'Haute Atelier Garment',
-          productImage: r.product_image || '/images/hero_tshirt.webp',
-          variantColor: r.variant_color || 'Onyx Black',
-          sizeCode: cleanSizeCode(r.size_code || 'M'),
-          customerName: r.customer_name || 'VIP Client',
-          customerEmail: r.customer_email || '',
-          customerPhone: r.customer_phone || '',
-          notes: r.notes || '',
-          status: r.status || 'Pending Atelier Review',
-          createdAt: r.created_at || new Date().toISOString()
-        }));
-
-        const map = new Map();
-        formatted.forEach(r => map.set(r.id, r));
-        localList.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        try {
-          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(merged));
-        } catch {}
-
-        return {
-          requests: merged,
-          stats: {}
-        };
+      if (error) {
+        if (error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('does not exist')) {
+          hasRestockTable = false;
+        }
+      } else if (Array.isArray(data)) {
+        hasRestockTable = true;
+        data.forEach(r => {
+          const item = {
+            id: r.id,
+            productId: r.product_id || null,
+            productTitle: r.product_title || 'Haute Atelier Garment',
+            productImage: r.product_image || '/images/hero_tshirt.webp',
+            variantColor: r.variant_color || 'Onyx Black',
+            sizeCode: cleanSizeCode(r.size_code || 'M'),
+            customerName: r.customer_name || 'VIP Client',
+            customerEmail: r.customer_email || '',
+            customerPhone: r.customer_phone || '',
+            notes: r.notes || '',
+            status: r.status || 'Pending Atelier Review',
+            createdAt: r.created_at || new Date().toISOString()
+          };
+          map.set(item.id, item);
+        });
       }
     } catch (sbErr) {
-      console.warn('Supabase getRestockRequests notice:', sbErr);
+      hasRestockTable = false;
     }
   }
 
-  // 2. Try Backend API
+  // 3. Try Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        const map = new Map();
-        json.data.forEach(r => map.set(r.id, r));
-        localList.forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
-        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        try {
-          localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(merged));
-        } catch {}
-
-        return {
-          requests: merged,
-          stats: json.stats || {}
-        };
+        json.data.forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
       }
     }
   } catch (apiErr) {
-    console.warn('API getRestockRequests notice:', apiErr);
+    console.warn('API getRestockRequests notice:', apiErr?.message || apiErr);
   }
 
-  // 3. LocalStorage Fallback
+  const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  persistLocalRestockRequests(merged);
+
   return {
-    requests: localList,
+    requests: merged,
     stats: {}
   };
 }
@@ -2350,13 +2412,21 @@ export async function updateRestockRequestStatus(id, status) {
   const apiUrl = getApiUrl();
 
   // 1. LocalStorage update
-  try {
-    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
-    const updated = existing.map(r => r.id === id ? { ...r, status } : r);
-    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
-  } catch {}
+  const existing = getStoredLocalRestockRequests();
+  const updated = existing.map(r => r.id === id ? { ...r, status } : r);
+  persistLocalRestockRequests(updated);
 
-  // 2. Backend API
+  // 2. Sync to Supabase Cloud Registry
+  await syncRestockRequestsToCloud(updated);
+
+  // 3. Try direct Supabase update if table exists
+  if (isSupabaseConfigured && supabase && hasRestockTable) {
+    try {
+      await supabase.from('restock_requests').update({ status }).eq('id', id);
+    } catch {}
+  }
+
+  // 4. Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests/${id}`, {
       method: 'PATCH',
@@ -2381,13 +2451,21 @@ export async function deleteRestockRequest(id) {
   const apiUrl = getApiUrl();
 
   // 1. LocalStorage update
-  try {
-    const existing = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
-    const updated = existing.filter(r => r.id !== id);
-    localStorage.setItem(LOCAL_RESTOCK_KEY, JSON.stringify(updated));
-  } catch {}
+  const existing = getStoredLocalRestockRequests();
+  const updated = existing.filter(r => r.id !== id);
+  persistLocalRestockRequests(updated);
 
-  // 2. Backend API
+  // 2. Sync to Supabase Cloud Registry
+  await syncRestockRequestsToCloud(updated);
+
+  // 3. Try direct Supabase delete if table exists
+  if (isSupabaseConfigured && supabase && hasRestockTable) {
+    try {
+      await supabase.from('restock_requests').delete().eq('id', id);
+    } catch {}
+  }
+
+  // 4. Backend API
   try {
     await fetch(`${apiUrl}/restock-requests/${id}`, { method: 'DELETE' });
   } catch (err) {

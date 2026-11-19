@@ -4,6 +4,8 @@
  * dynamically in the Admin Panel and reflected immediately across both Admin and Client storefront.
  */
 
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+
 const API_BASE = (import.meta.env?.VITE_API_BASE_URL || 'https://web-app-backend-production-19db.up.railway.app/api').replace(/\/+$/, '');
 const STORAGE_KEY = 'elvany_store_categories';
 const LEGACY_STORAGE_KEY = 'elvany_custom_categories';
@@ -125,27 +127,47 @@ export function getStoredCategories() {
 }
 
 /**
- * Persist categories to local storage cache & sync to backend
+ * Persist categories to local storage cache & sync to backend and Supabase Cloud
  */
 function persistCategories(categories) {
   if (!Array.isArray(categories)) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
-    // Asynchronously sync to backend API for multi-client & cloud persistence
+    
+    // 1. Asynchronously sync to backend API for multi-client & cloud persistence
     fetch(`${API_BASE}/categories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categories)
     }).catch(err => console.warn('Categories cloud sync note:', err?.message || err));
+
+    // 2. Direct Supabase Cloud persistence via promotions table
+    if (isSupabaseConfigured && supabase) {
+      supabase
+        .from('promotions')
+        .upsert({
+          code: 'STORE_CATEGORIES_CONFIG',
+          title: 'Store Product Categories Configuration',
+          description: JSON.stringify(categories),
+          is_active: true,
+          discount_type: 'category_config',
+          discount_value: 0
+        }, { onConflict: 'code' })
+        .then(({ error }) => {
+          if (error) console.warn('Supabase categories direct sync note:', error.message);
+        })
+        .catch(err => console.warn('Supabase categories direct sync error:', err));
+    }
   } catch (err) {
     console.warn('Failed to persist categories:', err);
   }
 }
 
 /**
- * Fetch categories from backend API and update local cache
+ * Fetch categories from backend API or Supabase and update local cache
  */
 export async function fetchCategories() {
+  // 1. Try Backend API
   try {
     const res = await fetch(`${API_BASE}/categories`);
     if (res.ok) {
@@ -156,8 +178,30 @@ export async function fetchCategories() {
       }
     }
   } catch (err) {
-    console.warn('Failed to fetch categories from server, using local cache:', err?.message || err);
+    console.warn('Failed to fetch categories from server, checking cloud:', err?.message || err);
   }
+
+  // 2. Try Supabase Cloud direct
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('code', 'STORE_CATEGORIES_CONFIG')
+        .maybeSingle();
+
+      if (!error && data?.description) {
+        const parsed = JSON.parse(data.description);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          return parsed;
+        }
+      }
+    } catch (sbErr) {
+      console.warn('Supabase categories query notice:', sbErr);
+    }
+  }
+
   return getStoredCategories();
 }
 
@@ -257,27 +301,17 @@ export function reassignProductsCategory(products = [], oldCatId, targetCatId = 
 /**
  * Get all available categories:
  * Merges stored categories with any category found on live products, respecting deleted category blacklist.
+ * When products are available, mock default categories with 0 products are automatically filtered out.
  */
 export function getAllCategories(products = []) {
   const map = new Map();
   const deletedKeys = getDeletedCategoryKeys();
 
-  // 1. Load Stored Categories (User configured / custom + defaults)
-  const stored = getStoredCategories();
-  stored.forEach(c => {
-    const k = c.key || c.id;
-    if (!deletedKeys.has(k) && !deletedKeys.has(c.id) && !deletedKeys.has(formatCategoryKey(c.label || ''))) {
-      map.set(k, {
-        id: k,
-        key: k,
-        label: c.label || formatCategoryLabel(k),
-        isCustom: c.isCustom !== false
-      });
-    }
-  });
+  // Find all category keys actually present on products
+  const productCategoryKeys = new Set();
+  const productCategoryLabels = new Map();
 
-  // 2. Discover any categories from live product catalog (excluding deleted)
-  if (Array.isArray(products)) {
+  if (Array.isArray(products) && products.length > 0) {
     products.forEach(p => {
       const rawCat = p.category;
       if (rawCat && rawCat !== 'all') {
@@ -285,30 +319,57 @@ export function getAllCategories(products = []) {
         if (
           catKey && 
           !deletedKeys.has(catKey) && 
-          !deletedKeys.has(rawCat) && 
-          !map.has(catKey) && 
-          !map.has(rawCat)
+          !deletedKeys.has(rawCat)
         ) {
-          const readable = formatCategoryLabel(rawCat);
-          map.set(catKey, {
-            id: catKey,
-            key: catKey,
-            label: readable,
-            isCustom: true
-          });
+          productCategoryKeys.add(catKey);
+          productCategoryKeys.add(rawCat);
+          if (!productCategoryLabels.has(catKey)) {
+            productCategoryLabels.set(catKey, formatCategoryLabel(rawCat));
+          }
         }
       }
     });
   }
 
-  // Ensure at least one default category remains if all were deleted
-  if (map.size === 0) {
-    map.set('classic-crewneck', {
-      id: 'classic-crewneck',
-      key: 'classic-crewneck',
-      label: 'Classic Crewneck',
-      isCustom: false
+  // 1. Load Stored Categories (User configured / custom)
+  const stored = getStoredCategories();
+  stored.forEach(c => {
+    const k = c.key || c.id;
+    if (!k || deletedKeys.has(k) || deletedKeys.has(c.id) || deletedKeys.has(formatCategoryKey(c.label || ''))) {
+      return;
+    }
+
+    // If products exist, drop mock default categories if no active products belong to them
+    const isMock = INITIAL_DEFAULT_CATEGORIES.some(m => m.key === k || m.id === k);
+    if (products.length > 0 && isMock && !productCategoryKeys.has(k) && !productCategoryKeys.has(c.id)) {
+      return;
+    }
+
+    map.set(k, {
+      id: k,
+      key: k,
+      label: c.label || formatCategoryLabel(k),
+      isCustom: c.isCustom !== false
     });
+  });
+
+  // 2. Discover any categories from live product catalog (excluding deleted)
+  productCategoryLabels.forEach((readable, catKey) => {
+    if (!map.has(catKey)) {
+      map.set(catKey, {
+        id: catKey,
+        key: catKey,
+        label: readable,
+        isCustom: true
+      });
+    }
+  });
+
+  // Ensure at least one category remains if all were deleted or empty catalog
+  if (map.size === 0) {
+    if (products.length === 0) {
+      INITIAL_DEFAULT_CATEGORIES.forEach(c => map.set(c.key, c));
+    }
   }
 
   return Array.from(map.values());
