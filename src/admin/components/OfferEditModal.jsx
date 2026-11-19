@@ -16,8 +16,8 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     discountTag: 'SAVE LKR 3,000',
     remainingUnits: 6,
     totalAllocation: 25,
-    availableSizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
-    sizesText: 'S (38), M (40), L (42), XL (44), XXL (46)',
+    availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
+    sizesText: 'XS, S, M, L, XL, 2XL',
     isActive: true,
     endsAt: null
   });
@@ -30,7 +30,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     if (offer) {
       const sizesArray = Array.isArray(offer.availableSizes) 
         ? offer.availableSizes 
-        : (offer.availableSizes ? [offer.availableSizes] : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)']);
+        : (offer.availableSizes ? [offer.availableSizes] : ['XS', 'S', 'M', 'L', 'XL', '2XL']);
       
       const existingEndsAt = offer.endsAt || offer.expires_at || offer.expiresAt || null;
       setFormData({
@@ -60,13 +60,13 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
       const defaultProd = products[0] || null;
       const defOrigPrice = defaultProd ? (defaultProd.originalPriceLKR || defaultProd.priceLKR || 18500) : 18500;
       const defOfferPrice = defaultProd ? Math.max(0, defOrigPrice - 3000) : 15500;
-      const defSizes = defaultProd?.sizes?.length > 0 ? defaultProd.sizes : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'];
+      const defSizes = defaultProd?.sizes?.length > 0 ? defaultProd.sizes : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
       const defaultExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
 
       setFormData({
         id: null,
         productId: defaultProd?.id || null,
-        productName: defaultProd?.title || defaultProd?.name || 'The 280 GSM Heavyweight Crewneck Tee',
+        productName: defaultProd?.title || defaultProd?.name || 'The Signature Crewneck Tee',
         productImage: defaultProd?.image || defaultProd?.images?.[0] || '/images/hero_tshirt.webp',
         badge: 'SPECIAL PRIVILEGE',
         title: 'Signature Atelier Privilege Drop',
@@ -93,7 +93,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
 
     const origPrice = selected.originalPriceLKR || selected.priceLKR || 18500;
     const offerPrice = Math.max(0, origPrice - 3000);
-    const sizes = selected.sizes?.length > 0 ? selected.sizes : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'];
+    const sizes = selected.sizes?.length > 0 ? selected.sizes : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 
     setFormData(prev => ({
       ...prev,
@@ -132,7 +132,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     // Parse comma separated sizes
     const parsedSizes = formData.sizesText
       ? formData.sizesText.split(',').map(s => s.trim()).filter(Boolean)
-      : ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'];
+      : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 
     let computedEndsAt = formData.endsAt;
     if (durationDays === 'custom' && customDateTime) {
@@ -207,7 +207,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
               <input
                 type="text"
                 required
-                placeholder="e.g. The 280 GSM Heavyweight Crewneck Tee"
+                placeholder="e.g. The Signature Crewneck Tee"
                 value={formData.productName}
                 onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                 className="form-input admin-input"
@@ -270,7 +270,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
               <input
                 type="text"
                 required
-                placeholder="e.g. Signature 280 GSM Heavyweight Edition"
+                placeholder="e.g. Signature Crewneck Edition"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="form-input admin-input"
@@ -347,7 +347,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
               <label className="form-label">Available Sizes (Comma Separated)</label>
               <input
                 type="text"
-                placeholder="S (38), M (40), L (42), XL (44), XXL (46)"
+                placeholder="XS, S, M, L, XL, 2XL"
                 value={formData.sizesText}
                 onChange={(e) => setFormData({ ...formData, sizesText: e.target.value })}
                 className="form-input admin-input"

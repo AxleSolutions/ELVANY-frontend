@@ -6,14 +6,15 @@ export const INITIAL_ADMIN_PRODUCTS = PRODUCTS.map((p, idx) => ({
   title: p.name || p.title || 'Signature Atelier Garment',
   name: p.name || p.title || 'Signature Atelier Garment',
   price: p.priceLKR || p.price || 18500,
-  gsm: p.gsm || (p.category === 'heavyweight' ? 280 : p.category === 'oversized' ? 260 : 220),
+  gsm: p.gsm || 240,
   composition: p.fabricProvenance || 'Durable Comfort Knit Blend',
   inventory: {
-    'S (38)': 12 - (idx * 2),
-    'M (40)': 18 - (idx * 2),
-    'L (42)': 22 - (idx * 3),
-    'XL (44)': 14 - (idx * 2),
-    'XXL (46)': 8 - idx
+    'XS': 8,
+    'S': 12 - (idx * 2),
+    'M': 18 - (idx * 2),
+    'L': 22 - (idx * 3),
+    'XL': 14 - (idx * 2),
+    '2XL': 8 - idx
   },
   status: 'Active',
   sku: `ELV-TEE-00${idx + 1}`,
@@ -35,8 +36,8 @@ export const INITIAL_ADMIN_ORDERS = [
     items: [
       {
         id: 1,
-        title: 'The 280 GSM Heavyweight Crewneck Tee',
-        size: 'L (42)',
+        title: 'The Signature Crewneck Tee',
+        size: 'L',
         color: 'Onyx Black',
         priceLKR: 18500,
         quantity: 2,
@@ -57,12 +58,12 @@ export const INITIAL_ADMIN_ORDERS = [
     items: [
       {
         id: 4,
-        title: 'Mercerized Silk-Cotton Luster Tee',
-        size: 'M (40)',
+        title: 'Essential Relaxed Fit Tee',
+        size: 'M',
         color: 'Ivory Cream',
         priceLKR: 24500,
         quantity: 1,
-        image: '/images/tshirt_silk.webp'
+        image: '/images/tshirt_white.webp'
       }
     ]
   }
@@ -74,10 +75,10 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-98421',
     customerName: 'Julian Sterling',
     location: 'Milano / Colombo',
-    productTitle: 'The 280 GSM Heavyweight Crewneck Tee',
+    productTitle: 'The Signature Crewneck Tee',
     rating: 5,
     fitRating: 'True to Size',
-    comment: 'The collar ribbing remains crisp with zero sagging. The 280 GSM fabric holds its architectural drop shoulder without feeling heavy. Outstanding bespoke quality.',
+    comment: 'The collar ribbing remains crisp with zero sagging. The fabric holds its clean shape without feeling heavy. Outstanding bespoke quality.',
     date: 'October 14, 2025',
     status: 'Approved',
     isFeatured: true
@@ -87,10 +88,10 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-98421',
     customerName: 'Julian Sterling',
     location: 'Milano / Colombo',
-    productTitle: 'Sea Island Long-Staple Signature Tee',
+    productTitle: 'Essential Relaxed Fit Tee',
     rating: 5,
     fitRating: 'True to Size',
-    comment: 'Exceptional drape and skin-feel. The luster of the fabric is immediately apparent compared to conventional jersey tees.',
+    comment: 'Exceptional drape and skin-feel. Clean minimalist look for everyday wear.',
     date: 'October 15, 2025',
     status: 'Approved',
     isFeatured: false
@@ -100,10 +101,10 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-55102',
     customerName: 'Julian Sterling',
     location: 'Milano / Colombo',
-    productTitle: 'Minimalist Boxy Drop-Shoulder Tee',
+    productTitle: 'Minimalist Oversized Tee',
     rating: 5,
     fitRating: 'True to Size',
-    comment: 'Structured boxy silhouette that pairs effortlessly with tailored trousers. Holds its shape flawlessly across the day.',
+    comment: 'Structured relaxed silhouette that pairs effortlessly with tailored trousers. Holds its shape flawlessly across the day.',
     date: 'November 5, 2025',
     status: 'Approved',
     isFeatured: true
@@ -113,10 +114,10 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-77304',
     customerName: 'Marcus Thorne',
     location: 'London, UK',
-    productTitle: 'Mercerized Silk-Cotton Luster Tee',
+    productTitle: 'Essential Relaxed Fit Tee',
     rating: 5,
     fitRating: 'True to Size',
-    comment: 'Subtle high-end sheen that elevates a casual look into black-tie elegance. Blind hems are flawlessly executed.',
+    comment: 'Subtle clean sheen that elevates a casual look. Blind hems are flawlessly executed.',
     date: 'December 20, 2025',
     status: 'Approved',
     isFeatured: false
@@ -126,10 +127,10 @@ export const INITIAL_ADMIN_REVIEWS = [
     orderId: 'ELV-62910',
     customerName: 'Alistair Vance',
     location: 'Colombo 07',
-    productTitle: 'The 280 GSM Heavyweight Crewneck Tee',
+    productTitle: 'The Signature Crewneck Tee',
     rating: 4,
     fitRating: 'Slightly Relaxed',
-    comment: 'Very substantial fabric weight. Great boxy drape. Delivery in Colombo was prompt and beautifully packaged.',
+    comment: 'Very substantial fabric weight. Great drape. Delivery in Colombo was prompt and beautifully packaged.',
     date: 'February 10, 2026',
     status: 'Pending',
     isFeatured: false
@@ -146,7 +147,7 @@ export const INITIAL_ADMIN_CUSTOMERS = [
     tier: 'Private Client',
     totalSpentLKR: 128500,
     totalOrders: 4,
-    preferredSize: 'L (42)',
+    preferredSize: 'L',
     lastActive: '2 hours ago'
   },
   {
@@ -158,7 +159,7 @@ export const INITIAL_ADMIN_CUSTOMERS = [
     tier: 'Private Client',
     totalSpentLKR: 92000,
     totalOrders: 3,
-    preferredSize: 'M (40)',
+    preferredSize: 'M',
     lastActive: 'Yesterday'
   },
   {
@@ -170,7 +171,7 @@ export const INITIAL_ADMIN_CUSTOMERS = [
     tier: 'Patron',
     totalSpentLKR: 74000,
     totalOrders: 2,
-    preferredSize: 'L (42)',
+    preferredSize: 'L',
     lastActive: '3 days ago'
   },
   {
@@ -182,7 +183,7 @@ export const INITIAL_ADMIN_CUSTOMERS = [
     tier: 'Patron',
     totalSpentLKR: 24500,
     totalOrders: 1,
-    preferredSize: 'M (40)',
+    preferredSize: 'M',
     lastActive: 'Today'
   }
 ];

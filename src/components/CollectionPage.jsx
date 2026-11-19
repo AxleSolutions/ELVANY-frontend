@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Home, Eye, ShoppingBag, Check, Ruler, Bell } from 'lucide-react';
-import { PRODUCTS, CATEGORIES } from '../data/products';
-import { getAllCategories, slugifyCategory } from '../services/categoryService';
+import { PRODUCTS } from '../data/products';
+import { getAllCategories, slugifyCategory, formatCategoryKey, formatCategoryLabel } from '../services/categoryService';
 
 export const CollectionPage = ({
   products = [],
@@ -17,7 +17,8 @@ export const CollectionPage = ({
   addedItemId
 }) => {
   const isLoggedIn = Boolean(loggedInUser || userProfile?.email);
-  const userProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M (40)';
+  const rawProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M';
+  const userProfileSize = (typeof rawProfileSize === 'string' ? rawProfileSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : rawProfileSize) || 'M';
 
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sortBy, setSortBy] = useState('featured');
@@ -31,7 +32,7 @@ export const CollectionPage = ({
       { label: 'All T-Shirt Editions', value: 'all' },
       ...dynamicCategories.map(cat => ({
         label: cat.label,
-        value: cat.id
+        value: cat.id || cat.key
       }))
     ];
   }, [dynamicCategories]);
@@ -41,47 +42,29 @@ export const CollectionPage = ({
       title: "The Complete T-Shirt Collection",
       tagline: 'ALL T-SHIRTS',
       desc: 'Explore essential everyday crewnecks, durable comfort blends, and relaxed streetwear cuts.'
-    },
-    heavyweight: {
-      title: 'Classic Crewneck Tees',
-      tagline: 'EVERYDAY WEAR',
-      desc: 'Comfortable, durable fabric engineered for clean daily styling and lasting collar retention.'
-    },
-    'silk-cotton': {
-      title: 'Essential Fit Tees',
-      tagline: 'VERSATILE ESSENTIALS',
-      desc: 'Lightweight comfort, soft hand-feel, and timeless cuts for every occasion.'
-    },
-    'luxury-cotton': {
-      title: 'Essential Fit Tees',
-      tagline: 'VERSATILE ESSENTIALS',
-      desc: 'Lightweight comfort, soft hand-feel, and timeless cuts for every occasion.'
-    },
-    oversized: {
-      title: 'Relaxed & Boxy Cuts',
-      tagline: 'CASUAL STREETWEAR',
-      desc: 'Contemporary drop-shoulder cuts with relaxed sleeves and a modern, casual profile.'
-    },
-    mercerized: {
-      title: 'Relaxed Streetwear Tees',
-      tagline: 'RELAXED EDITIONS',
-      desc: 'Modern relaxed streetwear cuts designed for casual everyday styling.'
     }
   };
 
   const currentMeta = useMemo(() => {
-    if (categoryDetails[selectedCategory]) {
-      return categoryDetails[selectedCategory];
+    if (selectedCategory === 'all') {
+      return categoryDetails.all;
     }
-    const matched = dynamicCategories.find(c => c.id === selectedCategory || slugifyCategory(c.label) === selectedCategory);
+    const matched = dynamicCategories.find(
+      c => c.id === selectedCategory || c.key === selectedCategory || slugifyCategory(c.label) === selectedCategory || formatCategoryKey(c.label) === selectedCategory
+    );
     if (matched) {
       return {
-        title: matched.label,
+        title: `${matched.label} Collection`,
         tagline: matched.label.toUpperCase(),
         desc: `Discover signature ${matched.label.toLowerCase()} tailored for lasting comfort and clean style.`
       };
     }
-    return categoryDetails.all;
+    const cleanLabel = formatCategoryLabel(selectedCategory);
+    return {
+      title: `${cleanLabel} Collection`,
+      tagline: cleanLabel.toUpperCase(),
+      desc: `Discover signature ${cleanLabel.toLowerCase()} tailored for lasting comfort and clean style.`
+    };
   }, [selectedCategory, dynamicCategories]);
 
   // Helper to resolve offer details for a given product
@@ -150,9 +133,13 @@ export const CollectionPage = ({
       if (selectedCategory === 'all') return true;
       const itemCat = item.category || '';
       const itemCatSlug = slugifyCategory(itemCat);
-      return itemCat === selectedCategory || itemCatSlug === selectedCategory ||
-        (selectedCategory === 'silk-cotton' && (itemCat === 'luxury-cotton' || itemCatSlug === 'luxury-cotton')) ||
-        (selectedCategory === 'luxury-cotton' && (itemCat === 'silk-cotton' || itemCatSlug === 'silk-cotton'));
+      const targetSlug = slugifyCategory(selectedCategory);
+      return (
+        itemCat === selectedCategory ||
+        itemCatSlug === selectedCategory ||
+        itemCatSlug === targetSlug ||
+        formatCategoryKey(itemCat) === formatCategoryKey(selectedCategory)
+      );
     }).sort((a, b) => {
       const priceA = getProductOfferInfo(a).offerPrice || a.priceLKR || a.price || 0;
       const priceB = getProductOfferInfo(b).offerPrice || b.priceLKR || b.price || 0;
@@ -195,58 +182,75 @@ export const CollectionPage = ({
       </div>
 
       {/* Collection Category Selector Cards */}
-      <div style={{ backgroundColor: 'var(--bg-cream)', padding: '3.5rem 0 1rem 0' }}>
-        <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1.5rem',
-            marginBottom: '2.5rem'
-          }}>
-            {CATEGORIES.map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.categoryKey)}
-                style={{
-                  position: 'relative',
-                  height: '180px',
-                  borderRadius: '2px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  border: selectedCategory === cat.categoryKey ? '2px solid var(--gold-primary)' : '1px solid rgba(0,0,0,0.1)',
-                  boxShadow: 'var(--shadow-subtle)',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  loading="lazy"
-                  decoding="async"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(0deg, rgba(11,11,12,0.85) 0%, rgba(11,11,12,0.3) 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '1.2rem',
-                  color: '#fff'
-                }}>
-                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '2px' }}>
-                    {cat.title}
-                  </h4>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
-                    {selectedCategory === cat.categoryKey ? '• ACTIVE SELECTION' : 'VIEW CATEGORY →'}
+      {dynamicCategories.length > 0 && (
+        <div style={{ backgroundColor: 'var(--bg-cream)', padding: '3.5rem 0 1rem 0' }}>
+          <div className="container">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: dynamicCategories.length <= 3 ? 'repeat(auto-fit, minmax(280px, 1fr))' : 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2.5rem'
+            }}>
+              {dynamicCategories.map((cat) => {
+                const catKey = cat.id || cat.key;
+                const catProducts = products.filter(
+                  p => p.category === catKey || 
+                       slugifyCategory(p.category || '') === catKey ||
+                       formatCategoryKey(p.category || '') === formatCategoryKey(catKey)
+                );
+                const count = catProducts.length;
+                const heroImg = catProducts[0]?.image || catProducts[0]?.images?.[0] || '/images/hero_tshirt.webp';
+                const isSelected = selectedCategory === catKey || slugifyCategory(selectedCategory) === catKey;
+
+                return (
+                  <div
+                    key={catKey}
+                    onClick={() => setSelectedCategory(isSelected ? 'all' : catKey)}
+                    style={{
+                      position: 'relative',
+                      height: '180px',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: isSelected ? '2px solid var(--gold-primary)' : '1px solid rgba(0,0,0,0.1)',
+                      boxShadow: 'var(--shadow-subtle)',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    <img
+                      src={heroImg}
+                      alt={cat.label}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(0deg, rgba(11,11,12,0.88) 0%, rgba(11,11,12,0.3) 100%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-end',
+                      padding: '1.2rem',
+                      color: '#fff'
+                    }}>
+                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '2px' }}>
+                        {cat.label}
+                      </h4>
+                      <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
+                        {count} {count === 1 ? 'Garment Edition' : 'Garment Editions'}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
+                        {isSelected ? '• ACTIVE SELECTION (CLICK TO RESET)' : 'VIEW CATEGORY →'}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Sticky Filter & Sort Controls Bar */}
       <div className="search-controls-bar">
@@ -323,7 +327,13 @@ export const CollectionPage = ({
           ) : (
             filteredProducts.map((product) => {
               const isJustAdded = addedItemId === product.id;
-              const isOutOfStock = product.totalStock === 0 || (product.inventory && Object.values(product.inventory).every(v => Number(v) <= 0));
+              const isOutOfStock = product.status === 'Sold Out' ||
+                product.status === 'Archived' ||
+                product.status === 'Out of Stock' ||
+                product.isOutOfStock === true ||
+                product.inStock === false ||
+                product.totalStock === 0 ||
+                (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
               const { activeOffer, isDiscounted, offerPrice, originalPrice, savings, discountPercent } = getProductOfferInfo(product);
 
               const productToAdd = isDiscounted

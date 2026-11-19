@@ -14,7 +14,7 @@ export const SubmitReviewPage = ({ onAddNewReview }) => {
   const [location, setLocation] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
   const [rating, setRating] = useState(5);
-  const [sizePurchased, setSizePurchased] = useState('M (40)');
+  const [sizePurchased, setSizePurchased] = useState('M');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [submitted, setSubmitted] = useState(false);

@@ -136,7 +136,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
       location: clientLoc,
       rating: Number(data.rating || 5),
       date: 'Just now',
-      sizePurchased: item.selectedSize || item.size || 'M (40)',
+      sizePurchased: typeof (item.selectedSize || item.size) === 'string' ? (item.selectedSize || item.size).replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : 'M',
       colorPurchased: item.color || 'Onyx Black',
       title: data.title || 'Exceptional Quality & Drape',
       content: data.content || data.comment,

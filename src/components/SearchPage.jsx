@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Home, ArrowLeft, Search, SlidersHorizontal, Eye, ShoppingBag, Check, X } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
+import { getAllCategories, slugifyCategory, formatCategoryKey } from '../services/categoryService';
 
 export const SearchPage = ({
   products = PRODUCTS,
@@ -15,24 +16,37 @@ export const SearchPage = ({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
 
-  const categories = [
-    { label: 'All Creations', value: 'all' },
-    { label: 'Atelier Tailoring', value: 'tailoring' },
-    { label: 'Pure Knitwear', value: 'knitwear' },
-    { label: 'Maison Accessories', value: 'accessories' },
-  ];
+  const categories = useMemo(() => {
+    const dynamic = getAllCategories(products);
+    return [
+      { label: 'All Creations', value: 'all' },
+      ...dynamic.map(c => ({
+        label: c.label,
+        value: c.id || c.key
+      }))
+    ];
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((item) => {
-      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      const itemCat = item.category || '';
+      const itemCatSlug = slugifyCategory(itemCat);
+      const targetSlug = slugifyCategory(selectedCategory);
+      const matchesCategory = selectedCategory === 'all' || 
+        itemCat === selectedCategory || 
+        itemCatSlug === selectedCategory || 
+        itemCatSlug === targetSlug || 
+        formatCategoryKey(itemCat) === formatCategoryKey(selectedCategory);
+      
       const q = query.trim().toLowerCase();
       const matchesQuery =
         !q ||
         item.name.toLowerCase().includes(q) ||
-        item.tagline.toLowerCase().includes(q) ||
-        item.fabricProvenance.toLowerCase().includes(q) ||
-        item.color.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q);
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.tagline && item.tagline.toLowerCase().includes(q)) ||
+        (item.fabricProvenance && item.fabricProvenance.toLowerCase().includes(q)) ||
+        (item.color && item.color.toLowerCase().includes(q)) ||
+        itemCat.toLowerCase().includes(q);
 
       return matchesCategory && matchesQuery;
     }).sort((a, b) => {
@@ -40,7 +54,7 @@ export const SearchPage = ({
       if (sortBy === 'price-high') return b.priceLKR - a.priceLKR;
       return 0;
     });
-  }, [query, selectedCategory, sortBy]);
+  }, [products, query, selectedCategory, sortBy]);
 
   const formatLKR = (val) => {
     return `LKR ${val.toLocaleString()}`;
@@ -150,16 +164,29 @@ export const SearchPage = ({
           <div className="products-grid">
             {filteredProducts.map((product) => {
               const isJustAdded = addedItemId === product.id;
+              const isOutOfStock = product.status === 'Sold Out' ||
+                product.status === 'Archived' ||
+                product.status === 'Out of Stock' ||
+                product.isOutOfStock === true ||
+                product.inStock === false ||
+                product.totalStock === 0 ||
+                (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
 
               return (
                 <article 
                   key={product.id} 
                   className="product-card"
                   onClick={() => onSelectProduct ? onSelectProduct(product) : onOpenQuickView(product)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', opacity: isOutOfStock ? 0.75 : 1 }}
                 >
                   <div className="product-image-wrap">
-                    {product.badge && <span className="product-badge">{product.badge}</span>}
+                    {isOutOfStock ? (
+                      <span className="product-badge" style={{ backgroundColor: 'rgba(239,68,68,0.9)', color: '#ffffff', border: '1px solid #ef4444' }}>
+                        SOLD OUT
+                      </span>
+                    ) : product.badge ? (
+                      <span className="product-badge">{product.badge}</span>
+                    ) : null}
                     <img 
                       src={product.image} 
                       alt={product.name} 
@@ -180,11 +207,22 @@ export const SearchPage = ({
                         className="btn-quick-add"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onAddToCart(product, product.sizes[0]);
+                          if (!isOutOfStock) {
+                            onAddToCart(product, product.sizes?.[0] || 'M');
+                          } else if (onSelectProduct) {
+                            onSelectProduct(product);
+                          }
                         }}
-                        title="Add default size to bag"
+                        style={{
+                          backgroundColor: isOutOfStock ? 'rgba(197, 160, 89, 0.15)' : undefined,
+                          border: isOutOfStock ? '1px solid var(--gold-bright)' : undefined,
+                          color: isOutOfStock ? 'var(--gold-bright)' : undefined
+                        }}
+                        title={isOutOfStock ? 'Garment sold out — Click to request re-issue' : 'Add default size to bag'}
                       >
-                        {isJustAdded ? (
+                        {isOutOfStock ? (
+                          <span>SOLD OUT</span>
+                        ) : isJustAdded ? (
                           <>
                             <Check size={13} />
                             <span>ADDED</span>

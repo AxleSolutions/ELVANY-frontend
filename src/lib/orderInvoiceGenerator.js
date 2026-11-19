@@ -28,7 +28,8 @@ export function generateInvoiceHtml(order, isScreenView = false) {
 
   const itemsRowsHtml = items.map((item, idx) => {
     const itemTitle = item.name || item.title || 'Haute Atelier Garment';
-    const itemSize = item.selectedSize || item.size || 'M (40)';
+    const rawSize = item.selectedSize || item.size || 'M';
+    const itemSize = typeof rawSize === 'string' ? rawSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : 'M';
     const itemColor = item.color || 'Onyx Black';
     const qty = parseInt(item.quantity || item.qty || 1, 10);
     const unitPrice = parseFloat(item.priceLKR || item.price || 0);

@@ -11,7 +11,7 @@ export const AccountModal = ({
 }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('orders');
-  const [savedSize, setSavedSize] = useState('L (42)');
+  const [savedSize, setSavedSize] = useState('L');
   const [savedFit, setSavedFit] = useState('Structured Tailored');
   const [address, setAddress] = useState('Via Montenapoleone 14, 20121 Milano, Italy');
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -186,11 +186,12 @@ export const AccountModal = ({
                   value={savedSize}
                   onChange={(e) => setSavedSize(e.target.value)}
                 >
-                  <option value="S (38)">S (38 IT / UK)</option>
-                  <option value="M (40)">M (40 IT / UK)</option>
-                  <option value="L (42)">L (42 IT / UK)</option>
-                  <option value="XL (44)">XL (44 IT / UK)</option>
-                  <option value="XXL (46)">XXL (46 IT / UK)</option>
+                  <option value="XS">XS</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                  <option value="2XL">2XL</option>
                 </select>
               </div>
 

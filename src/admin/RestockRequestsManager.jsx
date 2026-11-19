@@ -55,7 +55,7 @@ export const RestockRequestsManager = ({
       demandMap[key] = {
         title: r.productTitle || 'Haute Atelier Garment',
         color: r.variantColor || 'Onyx Black',
-        size: r.sizeCode || 'M (40)',
+        size: typeof r.sizeCode === 'string' ? r.sizeCode.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : 'M',
         image: r.productImage || '/images/hero_tshirt.webp',
         count: 0
       };

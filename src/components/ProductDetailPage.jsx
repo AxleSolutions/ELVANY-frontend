@@ -6,6 +6,7 @@ import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
 import { SizeChartModal } from './SizeChartModal';
 import { KokoLogo } from './PaymentLogos';
+import { cleanSizeCode } from '../services/dbService';
 
 /**
  * Intelligent Atelier Recommendation Engine
@@ -157,14 +158,21 @@ export const ProductDetailPage = ({
   const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.priceLKR || 18500) : null;
   const savings = isOfferActive ? (originalPrice - effectivePrice) : 0;
 
+  const isGarmentOutOfStock = product.status === 'Sold Out' ||
+    product.status === 'Archived' ||
+    product.status === 'Out of Stock' ||
+    product.isOutOfStock === true ||
+    product.inStock === false ||
+    product.totalStock === 0 ||
+    (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
+
   const [selectedSize, setSelectedSize] = useState(() => {
-    const preferred = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
-    if (preferred && product?.sizes?.includes(preferred)) return preferred;
-    if (preferred && Array.isArray(product?.sizes)) {
-      const matched = product.sizes.find(s => s === preferred || s.startsWith(preferred + ' ') || preferred.startsWith(s + ' '));
-      if (matched) return matched;
-    }
-    return product?.sizes?.[1] || product?.sizes?.[0] || 'M';
+    const rawPref = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
+    const preferred = cleanSizeCode(rawPref);
+    if (preferred && product?.sizes?.some(s => cleanSizeCode(s) === preferred)) return preferred;
+    const firstClean = product?.sizes?.[0] ? cleanSizeCode(product.sizes[0]) : 'M';
+    const secondClean = product?.sizes?.[1] ? cleanSizeCode(product.sizes[1]) : firstClean;
+    return secondClean || 'M';
   });
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
@@ -309,7 +317,13 @@ export const ProductDetailPage = ({
                 decoding="async"
                 fetchPriority="high"
               />
-              <span className="pdp-badge-overlay">{product.provenanceTag}</span>
+              {isGarmentOutOfStock ? (
+                <span className="pdp-badge-overlay" style={{ backgroundColor: 'rgba(239,68,68,0.9)', color: '#ffffff', border: '1px solid #ef4444' }}>
+                  SOLD OUT
+                </span>
+              ) : (
+                product.provenanceTag && <span className="pdp-badge-overlay">{product.provenanceTag}</span>
+              )}
 
               {isOfferActive && (
                 <div style={{
@@ -431,7 +445,7 @@ export const ProductDetailPage = ({
                 </span>
               )}
 
-              <span className="pdp-vat-tag">INCL. TAXES & COMPLIMENTARY COURIER</span>
+              <span className="pdp-vat-tag">INCL. TAXES</span>
             </div>
 
             {/* Koko BNPL 3-Instalment Teaser */}
@@ -513,12 +527,15 @@ export const ProductDetailPage = ({
                   </button>
                 </div>
                 {(() => {
+                  if (isGarmentOutOfStock) {
+                    return <span style={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 700 }}>Currently Sold Out / Out of Stock</span>;
+                  }
                   const selectedSizeStock = (product.inventory && product.inventory[selectedSize] !== undefined)
                     ? Number(product.inventory[selectedSize])
                     : (product.totalStock || 10);
 
                   if (selectedSizeStock <= 0) {
-                    return <span style={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600 }}>Currently Sold Out</span>;
+                    return <span style={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600 }}>Size {selectedSize} Sold Out</span>;
                   }
                   if (selectedSizeStock <= 3) {
                     return <span style={{ color: 'var(--gold-bright)', fontSize: '0.74rem', fontWeight: 700 }}>Only {selectedSizeStock} piece{selectedSizeStock > 1 ? 's' : ''} left in stock!</span>;
@@ -528,11 +545,12 @@ export const ProductDetailPage = ({
               </div>
 
               <div className="pdp-sizes-grid">
-                {product.sizes.map((s) => {
-                  const sStock = (product.inventory && product.inventory[s] !== undefined)
-                    ? Number(product.inventory[s])
-                    : (product.totalStock || 10);
-                  const isSoldOut = sStock <= 0;
+                {product.sizes.map((rawS) => {
+                  const s = cleanSizeCode(rawS);
+                  const sStock = isGarmentOutOfStock ? 0 : ((product.inventory && (product.inventory[s] !== undefined ? product.inventory[s] : product.inventory[rawS]) !== undefined)
+                    ? Number(product.inventory[s] !== undefined ? product.inventory[s] : product.inventory[rawS])
+                    : (product.totalStock || 10));
+                  const isSoldOut = isGarmentOutOfStock || sStock <= 0;
 
                   return (
                     <button
@@ -549,7 +567,7 @@ export const ProductDetailPage = ({
                         cursor: isSoldOut ? 'not-allowed' : 'pointer',
                         textDecoration: isSoldOut ? 'line-through' : 'none'
                       }}
-                      title={isSoldOut ? `${s} is Sold Out` : `${s} (${sStock} in stock)`}
+                      title={isSoldOut ? `Size ${s} is Sold Out` : `Size ${s} (${sStock} available)`}
                     >
                       <span>{s}</span>
                       {sStock > 0 && sStock <= 2 && (
@@ -565,10 +583,10 @@ export const ProductDetailPage = ({
 
             {/* Quantity and Add to Bag with Stock Enforcement */}
             {(() => {
-              const selectedSizeStock = (product.inventory && product.inventory[selectedSize] !== undefined)
+              const selectedSizeStock = isGarmentOutOfStock ? 0 : ((product.inventory && product.inventory[selectedSize] !== undefined)
                 ? Number(product.inventory[selectedSize])
-                : (product.totalStock || 10);
-              const isAvailable = selectedSizeStock > 0;
+                : (product.totalStock || 10));
+              const isAvailable = !isGarmentOutOfStock && selectedSizeStock > 0;
 
               return (
                 <div className="pdp-actions-row">
@@ -626,7 +644,7 @@ export const ProductDetailPage = ({
                     {!isAvailable ? (
                       <>
                         <Bell size={18} />
-                        <span>REQUEST RE-ISSUE</span>
+                        <span>REQUEST RE-ISSUE (SOLD OUT)</span>
                       </>
                     ) : isJustAdded ? (
                       <>
@@ -710,15 +728,15 @@ export const ProductDetailPage = ({
               <div className="pdp-tab-pane">
                 <div className="spec-row">
                   <span className="spec-label">Fabric Composition:</span>
-                  <span className="spec-value">{product.fabricProvenance || product.composition || product.fabric || 'Durable Comfort Knit Blend'}</span>
+                  <span className="spec-value">{product.fabricProvenance || product.composition || product.fabric || product.fabric_composition || 'Durable Comfort Knit Blend'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Fabric Weight / Density:</span>
-                  <span className="spec-value">{product.density || (product.gsm ? `${product.gsm} GSM` : product.weight) || '240 GSM'}</span>
+                  <span className="spec-value">{product.density || (product.gsm ? `${product.gsm} GSM` : (product.weight || product.fabric_weight)) || '240 GSM'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Provenance / Origin:</span>
-                  <span className="spec-value">{product.origin || 'Sri Lanka Atelier'}</span>
+                  <span className="spec-value">{product.origin || (Array.isArray(product.craftsmanship_details) ? product.craftsmanship_details[2] : null) || 'Sri Lanka Atelier'}</span>
                 </div>
               </div>
             )}
@@ -727,11 +745,11 @@ export const ProductDetailPage = ({
               <div className="pdp-tab-pane">
                 <div className="spec-row">
                   <span className="spec-label">Silhouette Structure:</span>
-                  <span className="spec-value">{product.silhouette || product.fit || 'Tailored Regular Fit'}</span>
+                  <span className="spec-value">{product.silhouette || product.fit || (Array.isArray(product.craftsmanship_details) ? product.craftsmanship_details[1] : null) || 'Tailored Regular Fit'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Collar Construction:</span>
-                  <span className="spec-value">{product.collarSpec || 'Reinforced 1x1 non-sag ribbing'}</span>
+                  <span className="spec-value">{product.collarSpec || (Array.isArray(product.craftsmanship_details) ? product.craftsmanship_details[0] : null) || 'Double-needle non-sag 1x1 ribbing'}</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">Hem & Finish:</span>
@@ -742,14 +760,32 @@ export const ProductDetailPage = ({
 
             {activeTab === 'care' && (
               <div className="pdp-tab-pane">
-                <div className="spec-row">
-                  <span className="spec-label">Washing Guidance:</span>
-                  <span className="spec-value">Machine wash cold (30°C) with like dark colors. Do not bleach.</span>
-                </div>
-                <div className="spec-row">
-                  <span className="spec-label">Drying:</span>
-                  <span className="spec-value">Flat dry in shade to preserve fabric elasticity and color depth.</span>
-                </div>
+                {Array.isArray(product.care) && product.care.length > 0 ? (
+                  product.care.map((item, idx) => (
+                    <div key={idx} className="spec-row">
+                      <span className="spec-label">Care Guidance {idx + 1}:</span>
+                      <span className="spec-value">{item}</span>
+                    </div>
+                  ))
+                ) : Array.isArray(product.care_instructions) && product.care_instructions.length > 0 ? (
+                  product.care_instructions.map((item, idx) => (
+                    <div key={idx} className="spec-row">
+                      <span className="spec-label">Care Guidance {idx + 1}:</span>
+                      <span className="spec-value">{item}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="spec-row">
+                      <span className="spec-label">Washing Guidance:</span>
+                      <span className="spec-value">Machine wash cold (30°C) with like dark colors. Do not bleach.</span>
+                    </div>
+                    <div className="spec-row">
+                      <span className="spec-label">Drying & Longevity:</span>
+                      <span className="spec-value">Flat dry in shade to preserve fabric elasticity and color depth. Cool iron if needed.</span>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

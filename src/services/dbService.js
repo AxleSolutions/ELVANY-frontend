@@ -14,6 +14,20 @@ export const getApiUrl = () => {
   return url;
 };
 
+/**
+ * Standardize size codes into clean letters without measurements:
+ * e.g. "S (38)" -> "S", "XL (44)2" -> "XL", "M (40)" -> "M", "XXL (46)" -> "2XL"
+ */
+export function cleanSizeCode(code) {
+  if (!code || typeof code !== 'string') return '';
+  let cleaned = code
+    .replace(/\s*\([^)]*\)\s*\d*/g, '')
+    .replace(/\s+\d+$/g, '')
+    .trim();
+  if (cleaned.toUpperCase() === 'XXL') cleaned = '2XL';
+  return cleaned || code;
+}
+
 
 
 /**
@@ -26,20 +40,73 @@ export async function getProducts() {
     const defaultVariant = p.product_variants?.find(v => v.is_default) || p.product_variants?.[0];
     const allImages = p.product_variants?.flatMap(v => v.gallery_images || []) || [];
 
-    // Extract inventory matrix
+    // Extract inventory matrix with cleaned size codes
     const inventory = {};
     let totalStock = 0;
+    let hasExplicitStockRows = false;
+
     (defaultVariant?.product_stock || []).forEach(s => {
-      inventory[s.size_code] = s.stock_quantity;
-      totalStock += (s.stock_quantity || 0);
+      hasExplicitStockRows = true;
+      const cleanKey = cleanSizeCode(s.size_code);
+      inventory[cleanKey] = (inventory[cleanKey] || 0) + (Number(s.stock_quantity) || 0);
+      totalStock += (Number(s.stock_quantity) || 0);
     });
-    if (Object.keys(inventory).length === 0) {
+    if (!hasExplicitStockRows) {
       (p.product_variants || []).forEach(v => {
         (v.product_stock || []).forEach(s => {
-          inventory[s.size_code] = (inventory[s.size_code] || 0) + (s.stock_quantity || 0);
-          totalStock += (s.stock_quantity || 0);
+          hasExplicitStockRows = true;
+          const cleanKey = cleanSizeCode(s.size_code);
+          inventory[cleanKey] = (inventory[cleanKey] || 0) + (Number(s.stock_quantity) || 0);
+          totalStock += (Number(s.stock_quantity) || 0);
         });
       });
+    }
+
+    // Resolve saved status (from craftsmanship_details[3] or p.status)
+    const savedStatus = (Array.isArray(p.craftsmanship_details) && p.craftsmanship_details[3])
+      ? p.craftsmanship_details[3]
+      : (p.status || (p.is_active === false ? 'Draft' : 'Active'));
+
+    const isExplicitlySoldOut = savedStatus === 'Sold Out' || savedStatus === 'Archived';
+
+    const rawInv = hasExplicitStockRows
+      ? inventory
+      : (p.inventory && Object.keys(p.inventory).length > 0
+          ? p.inventory
+          : { 'XS': 5, 'S': 10, 'M': 15, 'L': 20, 'XL': 12, '2XL': 6 });
+
+    // Sanitize all inventory keys to remove (38), (40), (42), etc.
+    const finalInventory = {};
+    Object.entries(rawInv).forEach(([k, v]) => {
+      const cleanK = cleanSizeCode(k);
+      finalInventory[cleanK] = (finalInventory[cleanK] || 0) + (Number(v) || 0);
+    });
+
+    // Ensure all standard sizes exist in the matrix
+    ['XS', 'S', 'M', 'L', 'XL', '2XL'].forEach(sz => {
+      if (finalInventory[sz] === undefined) {
+        finalInventory[sz] = 0;
+      }
+    });
+
+    if (isExplicitlySoldOut) {
+      Object.keys(finalInventory).forEach(k => { finalInventory[k] = 0; });
+      totalStock = 0;
+    } else if (hasExplicitStockRows) {
+      totalStock = Object.values(finalInventory).reduce((a, b) => a + (Number(b) || 0), 0);
+    } else if (p.totalStock !== undefined && p.totalStock !== null) {
+      totalStock = Number(p.totalStock);
+    } else {
+      totalStock = Object.values(finalInventory).reduce((a, b) => a + (Number(b) || 0), 0);
+    }
+
+    const isOutOfStockGarment = isExplicitlySoldOut || totalStock === 0 || (Object.keys(finalInventory).length > 0 && Object.values(finalInventory).every(v => Number(v) <= 0));
+
+    let resolvedStatus = p.is_active === false ? 'Draft' : 'Active';
+    if (p.is_active === false) {
+      resolvedStatus = 'Draft';
+    } else if (isOutOfStockGarment) {
+      resolvedStatus = savedStatus === 'Archived' ? 'Archived' : 'Sold Out';
     }
 
     const basePrice = parseFloat(p.base_price_lkr || p.price || 18500);
@@ -49,6 +116,35 @@ export async function getProducts() {
       : ((p.offerPriceLKR !== undefined && p.offerPriceLKR !== null) ? parseFloat(p.offerPriceLKR) : null);
     const hasOffer = Boolean(p.is_offer_applied || (offerPrice && offerPrice < basePrice));
 
+    // Resolve clean size list in standard order
+    const standardOrder = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+    const rawSizesList = defaultVariant?.product_stock?.length > 0 
+      ? defaultVariant.product_stock.map(s => cleanSizeCode(s.size_code))
+      : (Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes.map(cleanSizeCode) : standardOrder);
+
+    const resolvedSizes = Array.from(new Set(rawSizesList)).sort((a, b) => {
+      const idxA = standardOrder.indexOf(a);
+      const idxB = standardOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    const fabricComposition = p.fabric_composition || p.composition || p.fabric || 'Durable Comfort Knit Blend';
+    const fabricWeight = p.fabric_weight || (p.gsm ? `${p.gsm} GSM` : '240 GSM');
+    const collarSpec = p.collarSpec || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[0] : null) || 'Double-needle non-sag 1x1 ribbing';
+    const fitSilhouette = p.fit || p.silhouette || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[1] : null) || 'Tailored Regular Fit';
+    const provenanceOrigin = p.origin || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[2] : null) || 'Sri Lanka Atelier';
+    const careList = Array.isArray(p.care_instructions) && p.care_instructions.length > 0
+      ? p.care_instructions
+      : (Array.isArray(p.care) && p.care.length > 0 
+          ? p.care 
+          : [
+            'Machine wash cold (30°C) with like dark colors. Do not bleach.',
+            'Flat dry in shade to preserve fabric elasticity and color depth.'
+          ]);
+
     return {
       id: p.id,
       sku: p.sku || `ELV-${p.id?.slice(0, 4) || 'TEE'}`,
@@ -56,7 +152,7 @@ export async function getProducts() {
       name: p.title,
       title: p.title,
       subtitle: p.subtitle,
-      category: p.category || 'heavyweight',
+      category: p.category || 'classic-crewneck',
       silhouette: p.silhouette || 'Boxy Drop-Shoulder',
       price: basePrice,
       priceLKR: basePrice,
@@ -65,18 +161,27 @@ export async function getProducts() {
       discountTag: p.discount_tag || (offerPrice && origPrice > offerPrice ? `SAVE LKR ${(origPrice - offerPrice).toLocaleString()}` : null),
       isOfferApplied: hasOffer,
       is_active: p.is_active !== false,
-      status: p.is_active === false ? 'Draft' : 'Active',
+      status: resolvedStatus,
+      isOutOfStock: isOutOfStockGarment,
+      inStock: !isOutOfStockGarment,
       description: p.description,
 
-      composition: p.fabric_composition || p.composition || 'Durable Comfort Knit Blend',
-      fabric: p.fabric_composition || p.fabric || 'Durable Comfort Knit Blend',
-      gsm: parseInt(p.fabric_weight, 10) || 240,
-      weight: p.fabric_weight || '240 GSM',
-      collarSpec: p.collarSpec || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[0] : null) || 'Double-needle non-sag 1x1 ribbing',
-      fit: p.fit || p.silhouette || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[1] : null) || 'Tailored Regular Fit',
-      origin: p.origin || (Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details[2] : null) || 'Sri Lanka Atelier',
-      features: Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details : [],
-      care: Array.isArray(p.care_instructions) ? p.care_instructions : [],
+      fabricProvenance,
+      composition: fabricComposition,
+      fabric: fabricComposition,
+      fabric_composition: fabricComposition,
+      density: fabricWeight,
+      gsm: parseInt(fabricWeight, 10) || 240,
+      weight: fabricWeight,
+      fabric_weight: fabricWeight,
+      collarSpec,
+      fit: fitSilhouette,
+      silhouette: fitSilhouette,
+      origin: provenanceOrigin,
+      features: Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details : [collarSpec, fitSilhouette, provenanceOrigin],
+      craftsmanship_details: Array.isArray(p.craftsmanship_details) ? p.craftsmanship_details : [collarSpec, fitSilhouette, provenanceOrigin, resolvedStatus],
+      care: careList,
+      care_instructions: careList,
       image: defaultVariant?.gallery_images?.[0] || allImages[0] || p.image || '/images/hero_tshirt.webp',
       images: defaultVariant?.gallery_images?.length > 0 
         ? defaultVariant.gallery_images 
@@ -90,20 +195,11 @@ export async function getProducts() {
         ? p.product_variants.map(v => v.color_hex)
         : ['#141518', '#c5a059'],
       color: defaultVariant?.color_name || 'Onyx Black',
-      tagline: p.subtitle || p.silhouette || 'Signature Atelier Edition',
+      tagline: p.subtitle || fitSilhouette || 'Signature Atelier Edition',
       badge: p.badge || (p.is_featured ? 'SIGNATURE EDITION' : null),
-      sizes: defaultVariant?.product_stock?.length > 0 
-        ? defaultVariant.product_stock.map(s => s.size_code)
-        : ['XS', 'S', 'M', 'L', 'XL', '2XL'],
-      inventory: Object.keys(inventory).length > 0 ? inventory : {
-        'XS': 5,
-        'S': 10,
-        'M': 15,
-        'L': 20,
-        'XL': 12,
-        '2XL': 6
-      },
-      totalStock: totalStock > 0 ? totalStock : Object.values(inventory).reduce((a, b) => a + b, 0) || 63,
+      sizes: resolvedSizes,
+      inventory: finalInventory,
+      totalStock,
       rating: 4.95,
       reviewsCount: 14,
       reviews: []
@@ -428,7 +524,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
             product_id: matchedProdId,
             product_title: item.name || item.title || 'Haute Atelier Garment',
             color: item.color || 'Onyx Black',
-            size: item.selectedSize || item.size || 'M (40)',
+            size: cleanSizeCode(item.selectedSize || item.size || 'M'),
             unit_price_lkr: parseFloat(item.priceLKR || 18500),
             original_price_lkr: parseFloat(item.originalPriceLKR || item.priceLKR || 18500),
             quantity: parseInt(item.quantity || item.qty || 1, 10),
@@ -559,8 +655,8 @@ export async function getOrders() {
                 productId: i.product_id || i.productId,
                 title: i.product_title || i.title || i.name,
                 name: i.product_title || i.name || i.title,
-                size: i.size || i.selectedSize || 'M (40)',
-                selectedSize: i.size || i.selectedSize || 'M (40)',
+                size: cleanSizeCode(i.size || i.selectedSize || 'M'),
+                selectedSize: cleanSizeCode(i.size || i.selectedSize || 'M'),
                 color: i.color || 'Onyx Black',
                 priceLKR: parseFloat(i.unit_price_lkr || i.priceLKR || 18500),
                 originalPriceLKR: parseFloat(i.original_price_lkr || i.originalPriceLKR || 18500),
@@ -812,7 +908,7 @@ export async function saveProduct(productData) {
             slug: slug + '-' + Date.now().toString().slice(-4),
             title: productData.title,
             subtitle: productData.subtitle || productData.silhouette || 'Signature Atelier Edition',
-            category: productData.category || 'heavyweight',
+            category: productData.category || 'classic-crewneck',
             silhouette: productData.silhouette || productData.fit || 'Tailored Regular Fit',
             base_price_lkr: parseFloat(productData.price || productData.priceLKR || 18500),
             original_price_lkr: parseFloat(productData.originalPriceLKR || productData.price || 18500),
@@ -821,10 +917,19 @@ export async function saveProduct(productData) {
             fabric_composition: productData.composition || productData.fabric || 'Durable Comfort Knit Blend',
             fabric_weight: productData.gsm ? `${productData.gsm} GSM` : (productData.weight || '240 GSM'),
             description: productData.description || 'Crafted with precision comfort yarns and finished with clean minimalist tailoring.',
+            care_instructions: Array.isArray(productData.care) && productData.care.length > 0 
+              ? productData.care 
+              : (Array.isArray(productData.care_instructions) && productData.care_instructions.length > 0 
+                ? productData.care_instructions 
+                : [
+                  'Machine wash cold (30°C) with like dark colors. Do not bleach.',
+                  'Flat dry in shade to preserve fabric elasticity and color depth.'
+                ]),
             craftsmanship_details: [
               productData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
               productData.fit || productData.silhouette || 'Tailored Regular Fit',
-              productData.origin || 'Sri Lanka'
+              productData.origin || 'Sri Lanka',
+              productData.status || (productData.is_active === false ? 'Draft' : 'Active')
             ]
           })
           .select()
@@ -832,6 +937,7 @@ export async function saveProduct(productData) {
 
         if (inserted) {
           productId = inserted.id;
+          const isSoldOut = productData.status === 'Sold Out' || productData.status === 'Archived';
 
           for (let i = 0; i < configuredColors.length; i++) {
             const col = configuredColors[i];
@@ -851,16 +957,21 @@ export async function saveProduct(productData) {
             if (variant && productData.inventory && isDef) {
               const stockRows = Object.entries(productData.inventory).map(([sizeCode, qty]) => ({
                 variant_id: variant.id,
-                size_code: sizeCode,
-                stock_quantity: parseInt(qty, 10) || 0
+                size_code: cleanSizeCode(sizeCode),
+                stock_quantity: isSoldOut ? 0 : (parseInt(qty, 10) || 0)
               }));
               await supabase.from('product_stock').insert(stockRows);
             }
           }
 
+          const resolvedStatus = isSoldOut ? (productData.status === 'Archived' ? 'Archived' : 'Sold Out') : (productData.status || 'Active');
           return { 
             ...productData, 
             id: productId,
+            status: resolvedStatus,
+            isOutOfStock: isSoldOut,
+            inStock: !isSoldOut,
+            totalStock: isSoldOut ? 0 : (productData.totalStock || 0),
             image: orderedImages[0],
             images: orderedImages,
             color: defaultCol.name,
@@ -882,10 +993,19 @@ export async function saveProduct(productData) {
             fabric_composition: productData.composition || productData.fabric,
             fabric_weight: productData.gsm ? `${productData.gsm} GSM` : productData.weight,
             description: productData.description,
+            care_instructions: Array.isArray(productData.care) && productData.care.length > 0 
+              ? productData.care 
+              : (Array.isArray(productData.care_instructions) && productData.care_instructions.length > 0 
+                ? productData.care_instructions 
+                : [
+                  'Machine wash cold (30°C) with like dark colors. Do not bleach.',
+                  'Flat dry in shade to preserve fabric elasticity and color depth.'
+                ]),
             craftsmanship_details: [
               productData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
               productData.fit || productData.silhouette || 'Tailored Regular Fit',
-              productData.origin || 'Sri Lanka'
+              productData.origin || 'Sri Lanka',
+              productData.status || (productData.is_active === false ? 'Draft' : 'Active')
             ]
           })
           .eq('id', productData.id);
@@ -905,15 +1025,37 @@ export async function saveProduct(productData) {
         if (existingVariant) {
           await supabase
             .from('product_variants')
-            .update({
+            .update({ 
               color_name: defaultCol.name,
               color_hex: defaultCol.hex
             })
             .eq('id', existingVariant.id);
+
+          // Update stock rows for this variant
+          if (productData.inventory && typeof productData.inventory === 'object') {
+            const isSoldOutExplicit = productData.status === 'Sold Out' || productData.status === 'Archived';
+            for (const [sizeCode, qty] of Object.entries(productData.inventory)) {
+              const finalStock = isSoldOutExplicit ? 0 : Math.max(0, parseInt(qty, 10) || 0);
+              await supabase
+                .from('product_stock')
+                .upsert({
+                  variant_id: existingVariant.id,
+                  size_code: cleanSizeCode(sizeCode),
+                  stock_quantity: finalStock
+                }, { onConflict: 'variant_id,size_code' });
+            }
+          }
         }
+
+        const isSoldOut = productData.status === 'Sold Out' || productData.status === 'Archived' || (productData.totalStock === 0);
+        const resolvedStatus = isSoldOut ? (productData.status === 'Archived' ? 'Archived' : 'Sold Out') : (productData.status || 'Active');
 
         return {
           ...productData,
+          status: resolvedStatus,
+          isOutOfStock: isSoldOut,
+          inStock: !isSoldOut,
+          totalStock: isSoldOut && (productData.status === 'Sold Out' || productData.status === 'Archived') ? 0 : (productData.totalStock || 0),
           image: orderedImages[0],
           images: orderedImages,
           color: defaultCol.name,
@@ -1043,9 +1185,9 @@ function mapPromotionToOffer(p, productsMap = {}) {
   const defaultVariant = targetProduct?.product_variants?.find(v => v.is_default) || targetProduct?.product_variants?.[0];
   const galleryImage = targetProduct?.image || targetProduct?.images?.[0] || defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.webp';
 
-  const sizes = targetProduct?.sizes || defaultVariant?.product_stock?.map(s => s.size_code) || [
-    'S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'
-  ];
+  const sizes = (targetProduct?.sizes || defaultVariant?.product_stock?.map(s => s.size_code) || [
+    'XS', 'S', 'M', 'L', 'XL', '2XL'
+  ]).map(cleanSizeCode);
 
   return {
     id: p.id,
@@ -1105,7 +1247,7 @@ export async function getOffers() {
             priceLKR: parseFloat(p.base_price_lkr),
             originalPriceLKR: parseFloat(p.original_price_lkr || p.base_price_lkr),
             image: defaultVariant?.gallery_images?.[0] || '/images/hero_tshirt.webp',
-            sizes: defaultVariant?.product_stock?.map(s => s.size_code) || ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)']
+            sizes: defaultVariant?.product_stock?.map(s => cleanSizeCode(s.size_code)) || ['XS', 'S', 'M', 'L', 'XL', '2XL']
           };
         });
 
@@ -1727,7 +1869,7 @@ export async function createRestockRequest(payload) {
     productTitle: payload.productTitle || 'Haute Atelier Garment',
     productImage: payload.productImage || '/images/hero_tshirt.webp',
     variantColor: payload.variantColor || 'Onyx Black',
-    sizeCode: payload.sizeCode || 'M (40)',
+    sizeCode: cleanSizeCode(payload.sizeCode || 'M'),
     customerName: payload.customerName || 'VIP Client',
     customerEmail: payload.customerEmail || '',
     customerPhone: payload.customerPhone || '',
@@ -1885,8 +2027,8 @@ export async function saveBespokeDesign(designData) {
     sleeveColorHex: designData.sleeveColorHex || null,
     size: designData.size || 'L',
     quantity: Number(designData.quantity) || 1,
-    unitPrice: Number(designData.unitPrice) || 14500,
-    totalPrice: Number(designData.totalPrice) || 14500,
+    unitPrice: Number(designData.unitPrice) || 2950,
+    totalPrice: Number(designData.totalPrice) || 2950,
     artworks: designData.artworks || {},
     notes: designData.notes || '',
     tailorTuning: designData.tailorTuning !== false,
@@ -1900,13 +2042,17 @@ export async function saveBespokeDesign(designData) {
     createdAt: timestamp
   };
 
-  // 1. Save to LocalStorage immediately
+  // 1. Save to LocalStorage safely (keep max 8 recent to prevent quota exhaustion)
   try {
     const existing = JSON.parse(localStorage.getItem(LOCAL_BESPOKE_KEY) || '[]');
-    const updated = [localPayload, ...existing.filter(d => d.designCode !== localPayload.designCode)];
+    const updated = [localPayload, ...existing.filter(d => d.designCode !== localPayload.designCode)].slice(0, 8);
     localStorage.setItem(LOCAL_BESPOKE_KEY, JSON.stringify(updated));
   } catch (err) {
     console.warn('LocalStorage saveBespokeDesign notice:', err);
+    try {
+      const slimPayload = { ...localPayload, views: null, artworks: {} };
+      localStorage.setItem(LOCAL_BESPOKE_KEY, JSON.stringify([slimPayload]));
+    } catch {}
   }
 
   // 2. Persist to Backend API / Supabase

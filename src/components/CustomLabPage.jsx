@@ -26,28 +26,28 @@ import { SizeChartModal } from './SizeChartModal';
 import { saveBespokeDesign } from '../services/dbService';
 import { generateBespokeMockupCollage, generateBespokeAllAngles, downloadImageFile } from '../lib/bespokeMockupGenerator';
 
-// Clear, customer-friendly fabric descriptions
+// Clear, customer-friendly fabric descriptions with accessible everyday pricing
 const FABRICS = [
   {
     id: 'supima_240',
     name: 'Classic Structured Knit (240 GSM)',
     badge: 'POPULAR CHOICE',
     shortDesc: 'Durable, premium structured fabric. Stays in shape and does not shrink.',
-    basePrice: 18500
+    basePrice: 2950
   },
   {
     id: 'french_terry_280',
     name: 'Signature French Terry (280 GSM)',
     badge: 'EXTRA HEAVYWEIGHT',
     shortDesc: 'Ultra-soft, heavyweight artisanal knit with maximum comfort and structured drape.',
-    basePrice: 22500
+    basePrice: 3450
   },
   {
     id: 'giza_200',
     name: 'Soft Lightweight Knit (200 GSM)',
     badge: 'COOL & BREATHABLE',
     shortDesc: 'Smooth and breathable. Ideal for everyday warm weather wear.',
-    basePrice: 16500
+    basePrice: 2450
   }
 ];
 
@@ -90,6 +90,74 @@ const PLACEMENT_ZONES = [
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
+// Client-side image optimizer to keep memory and storage footprint safe
+const optimizeUploadedImage = (file, maxDimension = 1200) => {
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'medium';
+            ctx.drawImage(img, 0, 0, width, height);
+            const isPng = file.type === 'image/png';
+            try {
+              const dataUrl = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.85);
+              return resolve({
+                dataUrl,
+                width,
+                height,
+                aspect: width / height,
+                isHighRes: img.width >= 1000 || img.height >= 1000
+              });
+            } catch (err) {
+              console.warn('Canvas export fallback:', err);
+            }
+          }
+          resolve({
+            dataUrl: event.target.result,
+            width: img.width,
+            height: img.height,
+            aspect: img.width / img.height,
+            isHighRes: img.width >= 1000 || img.height >= 1000
+          });
+        };
+        img.onerror = () => {
+          resolve({
+            dataUrl: event.target.result,
+            width: 800,
+            height: 800,
+            aspect: 1,
+            isHighRes: false
+          });
+        };
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    } catch (e) {
+      console.warn('optimizeUploadedImage notice:', e);
+      resolve(null);
+    }
+  });
+};
+
 export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollection }) => {
   // Step Navigation: 1 (Style) | 2 (Artwork) | 3 (Review & Order)
   const [activeStep, setActiveStep] = useState(1);
@@ -120,6 +188,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
   const [isGridOn, setIsGridOn] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   // 3. Artwork Store
   const [artworks, setArtworks] = useState({});
@@ -135,37 +204,30 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
     }
   };
 
-  // Upload image
-  const handleFileUpload = (e, zoneId) => {
+  // Upload image with automatic optimization to prevent browser lag & memory crashes
+  const handleFileUpload = async (e, zoneId) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const zone = PLACEMENT_ZONES.find(z => z.id === zoneId) || PLACEMENT_ZONES[0];
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const isHighRes = img.width >= 1000 || img.height >= 1000;
-        setArtworks(prev => ({
-          ...prev,
-          [zoneId]: {
-            file,
-            dataUrl: event.target.result,
-            width: img.width,
-            height: img.height,
-            aspect: img.width / img.height,
-            x: prev[zoneId]?.x ?? zone.defaultX,
-            y: prev[zoneId]?.y ?? zone.defaultY,
-            scale: prev[zoneId]?.scale ?? zone.defaultScale,
-            rotation: prev[zoneId]?.rotation ?? 0,
-            isHighRes
-          }
-        }));
-        handleSelectZone(zoneId);
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    const optimized = await optimizeUploadedImage(file, 1200);
+    if (!optimized) return;
+
+    setArtworks(prev => ({
+      ...prev,
+      [zoneId]: {
+        dataUrl: optimized.dataUrl,
+        width: optimized.width,
+        height: optimized.height,
+        aspect: optimized.aspect,
+        x: prev[zoneId]?.x ?? zone.defaultX,
+        y: prev[zoneId]?.y ?? zone.defaultY,
+        scale: prev[zoneId]?.scale ?? zone.defaultScale,
+        rotation: prev[zoneId]?.rotation ?? 0,
+        isHighRes: optimized.isHighRes
+      }
+    }));
+    handleSelectZone(zoneId);
     e.target.value = '';
   };
 
@@ -271,105 +333,136 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
     });
   };
 
-  // Transparent pricing calculation
+  // Transparent pricing calculation with accessible everyday t-shirt pricing
   const totalArtworksCount = Object.keys(artworks).length;
   const extraPrintsCount = Math.max(0, totalArtworksCount - 1); // 1st print is included free
   const basePricePerUnit = selectedFabric.basePrice;
-  const extraPrintsPrice = extraPrintsCount * 1500;
+  const extraPrintsPrice = extraPrintsCount * 450;
   const unitPrice = basePricePerUnit + extraPrintsPrice;
   const totalPrice = unitPrice * qty;
 
   // Add to Bag & Save to Backend Database with rendered 4-Angle T-Shirt Mockups
   const handleAddCustomToBag = async () => {
-    const activePlacementsList = Object.keys(artworks).map(key => {
-      const z = PLACEMENT_ZONES.find(p => p.id === key);
-      return z ? z.label : key;
-    });
+    if (isAdding) return;
+    setIsAdding(true);
 
-    const bespokeCode = `BL-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
-    // 1. Render actual customized T-shirt photos across all 4 angles (Front, Back, Left Sleeve, Right Sleeve) + Collage
-    let renderedAngles = null;
     try {
-      renderedAngles = await generateBespokeAllAngles({
-        artworks,
-        colorHex: selectedColor.hex,
-        colorName: selectedColor.name,
-        cutId: selectedCut.id,
-        cutName: selectedCut.name,
-        fabricName: selectedFabric.name.split('(')[0].trim(),
-        sleeveColorHex: selectedCut.id === 'raglan' ? selectedSleeveColor.hex : null,
-        size: selectedSize
+      const activePlacementsList = Object.keys(artworks).map(key => {
+        const z = PLACEMENT_ZONES.find(p => p.id === key);
+        return z ? z.label : key;
       });
-    } catch (mockErr) {
-      console.warn('Mockup generation notice:', mockErr);
-    }
 
-    const finalCollage = renderedAngles?.collage || artworks[activeZoneKey]?.dataUrl || '/images/hero_tshirt.webp';
-    const views = {
-      front: renderedAngles?.front || finalCollage,
-      back: renderedAngles?.back || finalCollage,
-      left: renderedAngles?.left || finalCollage,
-      right: renderedAngles?.right || finalCollage
-    };
+      const bespokeCode = `BL-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    const bespokePayload = {
-      designCode: bespokeCode,
-      fabricName: selectedFabric.name,
-      fabricGsm: selectedFabric.name.match(/\((.*?)\)/)?.[1] || '240 GSM',
-      cutName: selectedCut.name,
-      cutId: selectedCut.id,
-      colorName: selectedColor.name,
-      colorHex: selectedColor.hex,
-      sleeveColorName: selectedCut.id === 'raglan' ? selectedSleeveColor.name : null,
-      sleeveColorHex: selectedCut.id === 'raglan' ? selectedSleeveColor.hex : null,
-      size: selectedSize,
-      quantity: qty,
-      unitPrice: unitPrice,
-      totalPrice: totalPrice,
-      artworks: artworks,
-      notes: customNotes,
-      tailorTuning: isTailorTuningOn,
-      previewThumbnail: finalCollage,
-      blueprintImage: finalCollage,
-      views,
-      status: 'Saved / In Shopping Bag'
-    };
+      // 1. Render actual customized T-shirt photos across all 4 angles + Collage with timeout safety
+      let renderedAngles = null;
+      try {
+        renderedAngles = await Promise.race([
+          generateBespokeAllAngles({
+            artworks,
+            colorHex: selectedColor.hex,
+            colorName: selectedColor.name,
+            cutId: selectedCut.id,
+            cutName: selectedCut.name,
+            fabricName: selectedFabric.name.split('(')[0].trim(),
+            sleeveColorHex: selectedCut.id === 'raglan' ? selectedSleeveColor.hex : null,
+            size: selectedSize
+          }),
+          new Promise((resolve) => setTimeout(() => resolve(null), 3500))
+        ]);
+      } catch (mockErr) {
+        console.warn('Mockup generation notice:', mockErr);
+      }
 
-    // Asynchronously register in backend & database
-    try {
-      saveBespokeDesign(bespokePayload);
+      const activeArtData = artworks[activeZoneKey]?.dataUrl;
+      const finalCollage = renderedAngles?.collage || renderedAngles?.front || activeArtData || '/images/hero_tshirt.webp';
+      const views = {
+        front: renderedAngles?.front || finalCollage,
+        back: renderedAngles?.back || finalCollage,
+        left: renderedAngles?.left || finalCollage,
+        right: renderedAngles?.right || finalCollage
+      };
+
+      // Clean artworks metadata for cart
+      const cleanArtworks = {};
+      Object.keys(artworks).forEach(k => {
+        const a = artworks[k];
+        if (a) {
+          cleanArtworks[k] = {
+            dataUrl: a.dataUrl,
+            width: a.width,
+            height: a.height,
+            aspect: a.aspect,
+            x: a.x,
+            y: a.y,
+            scale: a.scale,
+            rotation: a.rotation
+          };
+        }
+      });
+
+      const bespokePayload = {
+        designCode: bespokeCode,
+        fabricName: selectedFabric.name,
+        fabricGsm: selectedFabric.name.match(/\((.*?)\)/)?.[1] || '240 GSM',
+        cutName: selectedCut.name,
+        cutId: selectedCut.id,
+        colorName: selectedColor.name,
+        colorHex: selectedColor.hex,
+        sleeveColorName: selectedCut.id === 'raglan' ? selectedSleeveColor.name : null,
+        sleeveColorHex: selectedCut.id === 'raglan' ? selectedSleeveColor.hex : null,
+        size: selectedSize,
+        quantity: qty,
+        unitPrice: unitPrice,
+        totalPrice: totalPrice,
+        artworks: cleanArtworks,
+        notes: customNotes,
+        tailorTuning: isTailorTuningOn,
+        previewThumbnail: finalCollage,
+        blueprintImage: finalCollage,
+        views,
+        status: 'Saved / In Shopping Bag'
+      };
+
+      // Asynchronously register in backend & database without blocking or crashing
+      try {
+        saveBespokeDesign(bespokePayload).catch(() => {});
+      } catch (err) {
+        console.warn('Bespoke save warning:', err);
+      }
+
+      const customBespokeItem = {
+        id: `bespoke-${Date.now()}`,
+        designCode: bespokeCode,
+        name: `Custom ${selectedCut.name} (${selectedFabric.name.split('(')[0].trim()})`,
+        tagline: `Bespoke #${bespokeCode} in ${selectedColor.name}`,
+        priceLKR: unitPrice,
+        color: selectedColor.name,
+        colorHex: selectedColor.hex,
+        size: selectedSize,
+        fabric: selectedFabric.name,
+        cut: selectedCut.name,
+        isBespokeCustom: true,
+        customPlacements: activePlacementsList,
+        customArtworkThumb: finalCollage,
+        customNotes,
+        isTailorTuningOn,
+        image: views.front || finalCollage,
+        blueprintImage: finalCollage,
+        previewThumbnail: finalCollage,
+        views: views,
+        artworks: cleanArtworks
+      };
+
+      if (onAddToCart) {
+        onAddToCart(customBespokeItem, selectedSize, qty);
+        setIsAdded(true);
+        setTimeout(() => setIsAdded(false), 2500);
+      }
     } catch (err) {
-      console.warn('Bespoke save warning:', err);
-    }
-
-    const customBespokeItem = {
-      id: `bespoke-${Date.now()}`,
-      designCode: bespokeCode,
-      name: `Custom ${selectedCut.name} (${selectedFabric.name.split('(')[0].trim()})`,
-      tagline: `Bespoke #${bespokeCode} in ${selectedColor.name}`,
-      priceLKR: unitPrice,
-      color: selectedColor.name,
-      colorHex: selectedColor.hex,
-      size: selectedSize,
-      fabric: selectedFabric.name,
-      cut: selectedCut.name,
-      isBespokeCustom: true,
-      customPlacements: activePlacementsList,
-      customArtworkThumb: finalCollage,
-      customNotes,
-      isTailorTuningOn,
-      image: views.front || finalCollage,
-      blueprintImage: finalCollage,
-      previewThumbnail: finalCollage,
-      views: views,
-      artworks: artworks || {}
-    };
-
-    if (onAddToCart) {
-      onAddToCart(customBespokeItem, selectedSize, qty);
-      setIsAdded(true);
-      setTimeout(() => setIsAdded(false), 2500);
+      console.error('Error adding bespoke garment to bag:', err);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -649,7 +742,7 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', display: 'block' }}>ESTIMATED SHIRT PRICE</span>
                     <strong style={{ fontSize: '0.95rem', color: 'var(--gold-bright)' }}>LKR {unitPrice.toLocaleString()}</strong>
                   </div>
-                  <span style={{ fontSize: '0.72rem', color: '#10b981' }}>✓ 1st Print Included Free</span>
+                  <span style={{ fontSize: '0.72rem', color: '#10b981' }}>✓ 1st Print Free (+LKR 450 per extra spot)</span>
                 </div>
 
                 <button
@@ -1022,10 +1115,16 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
                     <button
                       type="button"
                       onClick={handleAddCustomToBag}
+                      disabled={isAdding}
                       className="btn-primary-gold"
-                      style={{ flex: '2 1 180px', justifyContent: 'center', padding: '1rem' }}
+                      style={{ flex: '2 1 180px', justifyContent: 'center', padding: '1rem', opacity: isAdding ? 0.8 : 1 }}
                     >
-                      {isAdded ? (
+                      {isAdding ? (
+                        <>
+                          <Sparkles size={16} />
+                          <span>PREPARING GARMENT...</span>
+                        </>
+                      ) : isAdded ? (
                         <>
                           <Check size={16} />
                           <span>ADDED TO BAG!</span>
@@ -1465,9 +1564,16 @@ export const CustomLabPage = ({ onAddToCart, onBackToHome, onNavigateToCollectio
             <button
               type="button"
               onClick={handleAddCustomToBag}
+              disabled={isAdding}
               className="btn-primary-gold cl-mobile-action-btn"
+              style={{ opacity: isAdding ? 0.8 : 1 }}
             >
-              {isAdded ? (
+              {isAdding ? (
+                <>
+                  <Sparkles size={14} />
+                  <span>PREPARING...</span>
+                </>
+              ) : isAdded ? (
                 <>
                   <Check size={14} />
                   <span>ADDED!</span>

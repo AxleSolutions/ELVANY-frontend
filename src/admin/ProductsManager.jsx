@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Layers, AlertCircle, Check, ExternalLink, Filter, Power, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Search, Edit, Trash2, Layers, AlertCircle, Check, ExternalLink, Filter, Power, Eye, EyeOff, Tag } from 'lucide-react';
 import { getAllCategories, slugifyCategory } from '../services/categoryService';
+import { CategoryManagerModal } from './components/CategoryManagerModal';
 
 export const ProductsManager = ({ 
   products = [], 
@@ -10,8 +11,12 @@ export const ProductsManager = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [catRevision, setCatRevision] = useState(0);
 
-  const availableCategories = getAllCategories(products);
+  const availableCategories = useMemo(() => {
+    return getAllCategories(products);
+  }, [products, catRevision]);
 
   const filteredProducts = products.filter((p) => {
     const title = (p.title || p.name || '').toLowerCase();
@@ -66,15 +71,35 @@ export const ProductsManager = ({
           </div>
         </div>
 
-        <button 
-          type="button" 
-          className="btn-primary-gold"
-          onClick={() => onOpenModal(null)}
-          style={{ whiteSpace: 'nowrap' }}
-        >
-          <Plus size={15} />
-          <span>CREATE NEW GARMENT</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button 
+            type="button" 
+            className="admin-btn admin-btn-secondary"
+            onClick={() => setIsCategoryModalOpen(true)}
+            style={{ 
+              whiteSpace: 'nowrap', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              padding: '9px 14px',
+              fontSize: '0.78rem',
+              letterSpacing: '0.05em'
+            }}
+          >
+            <Tag size={14} color="var(--gold-bright, #c5a059)" />
+            <span>MANAGE CATEGORIES</span>
+          </button>
+
+          <button 
+            type="button" 
+            className="btn-primary-gold"
+            onClick={() => onOpenModal(null)}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            <Plus size={15} />
+            <span>CREATE NEW GARMENT</span>
+          </button>
+        </div>
       </div>
 
       {/* Product Catalog Table */}
@@ -270,6 +295,14 @@ export const ProductsManager = ({
           </table>
         </div>
       </div>
+
+      {/* Category Management Modal */}
+      <CategoryManagerModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        products={products}
+        onCategoriesChanged={() => setCatRevision(r => r + 1)}
+      />
     </div>
   );
 };

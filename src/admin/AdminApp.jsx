@@ -430,17 +430,28 @@ export const AdminApp = ({
   const handleSaveProduct = async (savedData) => {
     try {
       const persisted = await saveProduct(savedData);
+      const isSoldOut = savedData.status === 'Sold Out' || savedData.status === 'Archived' || savedData.totalStock === 0;
+      const mergedProduct = {
+        ...savedData,
+        ...persisted,
+        status: isSoldOut ? (savedData.status === 'Archived' ? 'Archived' : 'Sold Out') : (savedData.status || 'Active'),
+        isOutOfStock: isSoldOut,
+        inStock: !isSoldOut
+      };
+
       if (editingProduct) {
         setProducts(prev => {
-          const next = prev.map(p => p.id === savedData.id ? { ...savedData, ...persisted } : p);
+          const next = prev.map(p => p.id === savedData.id ? mergedProduct : p);
           if (onUpdateProducts) onUpdateProducts(next);
+          try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
           return next;
         });
         showToast(`Garment "${savedData.title}" updated in database.`);
       } else {
         setProducts(prev => {
-          const next = [{ ...savedData, ...persisted }, ...prev];
+          const next = [mergedProduct, ...prev];
           if (onUpdateProducts) onUpdateProducts(next);
+          try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
           return next;
         });
         showToast(`New garment "${savedData.title}" added to catalog.`);
@@ -455,6 +466,7 @@ export const AdminApp = ({
     setProducts(prev => {
       const next = prev.map(p => (p.id === productId || String(p.id) === String(productId)) ? { ...p, status: nextStatus, is_active: nextActiveState } : p);
       if (onUpdateProducts) onUpdateProducts(next);
+      try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
       return next;
     });
     showToast(`Garment visibility set to: ${nextActiveState ? 'Active (Live)' : 'Deactivated (Hidden)'}`);

@@ -12,7 +12,7 @@ export const INITIAL_ORDERS = [
         productId: 'prod-01',
         name: 'The 280 GSM Heavyweight Crewneck Tee',
         color: 'Onyx Black',
-        selectedSize: 'L (42)',
+        selectedSize: 'L',
         priceLKR: 18500,
         image: '/images/hero_tshirt.webp'
       },
@@ -20,7 +20,7 @@ export const INITIAL_ORDERS = [
         productId: 'prod-02',
         name: 'Sea Island Long-Staple Signature Tee',
         color: 'Optic White',
-        selectedSize: 'L (42)',
+        selectedSize: 'L',
         priceLKR: 22000,
         image: '/images/tshirt_white.webp'
       }
@@ -37,7 +37,7 @@ export const INITIAL_ORDERS = [
         productId: 'prod-03',
         name: 'Minimalist Boxy Drop-Shoulder Tee',
         color: 'Washed Charcoal',
-        selectedSize: 'M (Relaxed)',
+        selectedSize: 'M',
         priceLKR: 16500,
         image: '/images/tshirt_oversized.webp'
       }
@@ -54,7 +54,7 @@ export const INITIAL_ORDERS = [
         productId: 'prod-04',
         name: 'Mercerized Silk-Cotton Luster Tee',
         color: 'Midnight Navy',
-        selectedSize: 'M (40)',
+        selectedSize: 'M',
         priceLKR: 24000,
         image: '/images/tshirt_silk.webp'
       }

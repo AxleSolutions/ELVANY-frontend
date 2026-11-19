@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Check, Shield, Sparkles, ShoppingBag, Bell, Ruler } from 'lucide-react';
 import { RestockRequestModal } from './RestockRequestModal';
 import { SizeChartModal } from './SizeChartModal';
+import { cleanSizeCode } from '../services/dbService';
 
 export const QuickViewModal = ({
   product,
@@ -14,21 +15,26 @@ export const QuickViewModal = ({
   if (!isOpen || !product) return null;
 
   const [selectedSize, setSelectedSize] = useState(() => {
-    const preferred = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
-    if (preferred && product?.sizes?.includes(preferred)) return preferred;
-    if (preferred && Array.isArray(product?.sizes)) {
-      const matched = product.sizes.find(s => s === preferred || s.startsWith(preferred + ' ') || preferred.startsWith(s + ' '));
-      if (matched) return matched;
-    }
-    return product.sizes?.[0] || 'M';
+    const rawPref = userProfile?.savedSize || localStorage.getItem('elvany_saved_size');
+    const preferred = cleanSizeCode(rawPref);
+    if (preferred && product?.sizes?.some(s => cleanSizeCode(s) === preferred)) return preferred;
+    return product.sizes?.[0] ? cleanSizeCode(product.sizes[0]) : 'M';
   });
   const [selectedImg, setSelectedImg] = useState(product.images?.[0] || product.image || '/images/hero_tshirt.webp');
   const [added, setAdded] = useState(false);
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
 
-  const selectedSizeStock = product.inventory ? (product.inventory[selectedSize] ?? 10) : 10;
-  const isOutOfStock = selectedSizeStock <= 0 || product.status === 'Sold Out';
+  const isGarmentOutOfStock = product.status === 'Sold Out' ||
+    product.status === 'Archived' ||
+    product.status === 'Out of Stock' ||
+    product.isOutOfStock === true ||
+    product.inStock === false ||
+    product.totalStock === 0 ||
+    (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
+
+  const selectedSizeStock = isGarmentOutOfStock ? 0 : (product.inventory ? (product.inventory[selectedSize] ?? 10) : 10);
+  const isOutOfStock = isGarmentOutOfStock || selectedSizeStock <= 0;
 
   const getPrice = () => {
     return `LKR ${(product.priceLKR || 18500).toLocaleString()}`;
@@ -171,15 +177,18 @@ export const QuickViewModal = ({
             </div>
 
             <div className="size-pill-group">
-              {product.sizes.map((sz) => (
-                <button
-                  key={sz}
-                  className={`size-pill ${selectedSize === sz ? 'active' : ''}`}
-                  onClick={() => setSelectedSize(sz)}
-                >
-                  {sz}
-                </button>
-              ))}
+              {product.sizes.map((rawSz) => {
+                const sz = cleanSizeCode(rawSz);
+                return (
+                  <button
+                    key={sz}
+                    className={`size-pill ${selectedSize === sz ? 'active' : ''}`}
+                    onClick={() => setSelectedSize(sz)}
+                  >
+                    {sz}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

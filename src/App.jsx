@@ -242,6 +242,42 @@ export function App() {
     }
   });
 
+// Safe cart local storage persistence that handles QuotaExceededError smoothly
+const safeSaveCartToLocalStorage = (cart) => {
+  const cleanCart = Array.isArray(cart) ? cart : [];
+  try {
+    localStorage.setItem('elvany_cart', JSON.stringify(cleanCart));
+  } catch (storageErr) {
+    console.warn('LocalStorage save failed, creating slim cart fallback:', storageErr);
+    try {
+      // Strip out heavy base64 strings to stay within quota
+      const slimCart = cleanCart.map(item => {
+        if (!item.isBespokeCustom) return item;
+        const thumb = (typeof item.customArtworkThumb === 'string' && item.customArtworkThumb.length < 50000)
+          ? item.customArtworkThumb
+          : ((typeof item.image === 'string' && item.image.length < 50000) ? item.image : '/images/hero_tshirt.webp');
+        return {
+          ...item,
+          image: thumb,
+          previewThumbnail: thumb,
+          customArtworkThumb: thumb,
+          blueprintImage: thumb,
+          views: {
+            front: thumb,
+            back: thumb,
+            left: null,
+            right: null
+          },
+          artworks: {}
+        };
+      });
+      localStorage.setItem('elvany_cart', JSON.stringify(slimCart));
+    } catch (fallbackErr) {
+      console.warn('LocalStorage slim fallback also failed:', fallbackErr);
+    }
+  }
+};
+
   // Sync Cart helper to persist to Database for logged in users or LocalStorage for guests
   const syncCartState = (nextCartOrUpdater) => {
     setCart((prevCart) => {
@@ -250,12 +286,13 @@ export function App() {
       try {
         const activeUser = userProfile || JSON.parse(localStorage.getItem('elvany_auth_user') || 'null');
         if (activeUser?.email) {
-          saveDatabaseCart(activeUser.email, nextCart);
+          saveDatabaseCart(activeUser.email, nextCart).catch(() => {});
         } else {
-          localStorage.setItem('elvany_cart', JSON.stringify(nextCart));
+          safeSaveCartToLocalStorage(nextCart);
         }
-      } catch {
-        localStorage.setItem('elvany_cart', JSON.stringify(nextCart));
+      } catch (err) {
+        console.warn('syncCartState persistence notice:', err);
+        safeSaveCartToLocalStorage(nextCart);
       }
       return nextCart;
     });
@@ -275,7 +312,7 @@ export function App() {
       if (guestCart.length > 0) {
         const merged = [...dbCart];
         for (const item of guestCart) {
-          const itemSize = item.selectedSize || item.size || 'M (40)';
+          const itemSize = item.selectedSize || item.size || 'M';
           const idx = merged.findIndex(m => m.id === item.id && (m.selectedSize === itemSize || m.size === itemSize));
           if (idx > -1) {
             merged[idx].qty = Math.max(merged[idx].qty || 1, item.qty || 1);
@@ -309,7 +346,7 @@ export function App() {
           const email = session.user.email || '';
           const phone = session.user.phone || '';
           const provider = session.user.app_metadata?.provider || 'email';
-          const savedSize = session.user.user_metadata?.savedSize || localStorage.getItem('elvany_saved_size') || 'L (42)';
+          const savedSize = session.user.user_metadata?.savedSize || localStorage.getItem('elvany_saved_size') || 'L';
           const profile = { name, email, phone, provider, savedSize };
           setUserProfile(profile);
           localStorage.setItem('elvany_auth_user', JSON.stringify(profile));
@@ -326,7 +363,7 @@ export function App() {
           const email = session.user.email || '';
           const phone = session.user.phone || '';
           const provider = session.user.app_metadata?.provider || 'email';
-          const savedSize = session.user.user_metadata?.savedSize || localStorage.getItem('elvany_saved_size') || 'L (42)';
+          const savedSize = session.user.user_metadata?.savedSize || localStorage.getItem('elvany_saved_size') || 'L';
           const profile = { name, email, phone, provider, savedSize };
           setUserProfile(profile);
           localStorage.setItem('elvany_auth_user', JSON.stringify(profile));
@@ -345,9 +382,9 @@ export function App() {
 
 
 
-  // Filter public products (only active items shown on storefront)
+  // Filter public products (only active items shown on storefront; sold out items remain visible with badges)
   const activeStorefrontProducts = useMemo(() => {
-    return productsList.filter(p => p.is_active !== false && p.status !== 'Draft' && p.status !== 'Archived');
+    return productsList.filter(p => p.is_active !== false && p.status !== 'Draft');
   }, [productsList]);
 
 
@@ -494,7 +531,7 @@ export function App() {
 
   // Add to cart handler with strict live inventory enforcement and custom quantity
   const handleAddToCart = (product, size, qtyToAdd = 1) => {
-    const chosenSize = size || product.selectedSize || product.size || (product.sizes && product.sizes[0]) || 'M (40)';
+    const chosenSize = size || product.selectedSize || product.size || (product.sizes && product.sizes[0]) || 'M';
     const productName = product.name || product.title || 'Luxury Atelier T-Shirt';
     const numToAdd = Math.max(1, parseInt(qtyToAdd, 10) || 1);
 

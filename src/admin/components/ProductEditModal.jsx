@@ -18,7 +18,8 @@ import {
   Check
 } from 'lucide-react';
 import { uploadGarmentImageToCloudinary } from '../../lib/cloudinary';
-import { getAllCategories, addCustomCategory } from '../../services/categoryService';
+import { getAllCategories, addCustomCategory, formatCategoryLabel } from '../../services/categoryService';
+import { cleanSizeCode } from '../../services/dbService';
 
 const PRESET_ATELIER_COLORS = [
   { name: 'Onyx Black', hex: '#121316' },
@@ -40,12 +41,14 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
   const [isAddingNewCat, setIsAddingNewCat] = useState(false);
   const [newCatLabel, setNewCatLabel] = useState('');
 
+  const initialCat = categoriesList[0]?.id || categoriesList[0]?.key || 'classic-crewneck';
+
   const [formData, setFormData] = useState({
     id: null,
     title: '',
-    category: 'heavyweight',
+    category: initialCat,
     price: 18500,
-    gsm: 280,
+    gsm: 240,
     composition: 'Durable Comfort Knit Blend',
     image: '/images/hero_tshirt.webp',
     images: ['/images/hero_tshirt.webp'],
@@ -86,10 +89,12 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
   useEffect(() => {
     if (!isOpen) return;
 
-    // Refresh dynamic category list
-    setCategoriesList(getAllCategories(existingProducts));
+    const currentCats = getAllCategories(existingProducts);
+    setCategoriesList(currentCats);
     setIsAddingNewCat(false);
     setNewCatLabel('');
+
+    const activeDefaultCat = currentCats[0]?.id || currentCats[0]?.key || 'classic-crewneck';
 
     if (product) {
       const productImages = Array.isArray(product.images) && product.images.length > 0
@@ -124,31 +129,33 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
 
       setFormData({
         ...product,
+        category: product.category || activeDefaultCat,
         price: product.price ?? product.priceLKR ?? 18500,
-        gsm: product.gsm ?? 280,
+        gsm: product.gsm ?? 240,
         image: product.image || productImages[0] || '/images/hero_tshirt.webp',
         images: productImages,
         color: product.color || defaultColorObj.name,
         colorHex: product.colorHex || defaultColorObj.hex,
         colors: initialColors,
         colorsAvailable: initialColors.map(c => c.hex),
-        inventory: (product.inventory && Object.keys(product.inventory).length > 0) 
-          ? product.inventory 
-          : {
-            'S (38)': 10,
-            'M (40)': 15,
-            'L (42)': 20,
-            'XL (44)': 12,
-            'XXL (46)': 6
-          }
+        inventory: (() => {
+          const rawInv = product.inventory && Object.keys(product.inventory).length > 0 ? product.inventory : null;
+          if (!rawInv) return { 'XS': 5, 'S': 10, 'M': 15, 'L': 20, 'XL': 12, '2XL': 6 };
+          const cleaned = {};
+          Object.entries(rawInv).forEach(([k, v]) => {
+            const cleanK = cleanSizeCode(k);
+            cleaned[cleanK] = (cleaned[cleanK] || 0) + (Number(v) || 0);
+          });
+          return cleaned;
+        })()
       });
     } else {
       setFormData({
         id: null,
         title: '',
-        category: 'heavyweight',
+        category: activeDefaultCat,
         price: 18500,
-        gsm: 280,
+        gsm: 240,
         composition: 'Durable Comfort Knit Blend',
         image: '/images/hero_tshirt.webp',
         images: ['/images/hero_tshirt.webp'],
@@ -452,8 +459,23 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
 
     const defaultColorObj = finalColors.find(c => c.isDefault) || finalColors[0];
 
+    const isSoldOutExplicit = formData.status === 'Sold Out' || formData.status === 'Archived' || totalUnits === 0;
+    const finalStatus = formData.status === 'Draft' 
+      ? 'Draft' 
+      : (isSoldOutExplicit ? (formData.status === 'Archived' ? 'Archived' : 'Sold Out') : 'Active');
+
+    const cleanedInventory = {};
+    Object.entries(formData.inventory || {}).forEach(([k, v]) => {
+      const cleanK = cleanSizeCode(k);
+      cleanedInventory[cleanK] = (cleanedInventory[cleanK] || 0) + (Number(v) || 0);
+    });
+
     const finalProduct = {
       ...formData,
+      status: finalStatus,
+      isOutOfStock: isSoldOutExplicit,
+      inStock: !isSoldOutExplicit,
+      is_active: formData.status !== 'Draft',
       price: parseFloat(formData.price) || 0,
       priceLKR: parseFloat(formData.price) || 0,
       gsm: parseInt(formData.gsm, 10) || 0,
@@ -463,12 +485,13 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
       colorHex: defaultColorObj.hex,
       colors: finalColors,
       colorsAvailable: finalColors.map(c => c.hex),
-      totalStock: totalUnits,
-      inventory: formData.inventory,
+      totalStock: isSoldOutExplicit && (formData.status === 'Sold Out' || formData.status === 'Archived') ? 0 : totalUnits,
+      inventory: cleanedInventory,
+      sizes: Object.keys(cleanedInventory),
       collarSpec: formData.collarSpec || 'Double-needle non-sag 1x1 ribbing',
       fit: formData.fit || 'Tailored Regular Fit',
       silhouette: formData.fit || formData.silhouette || 'Tailored Regular Fit',
-      origin: formData.origin || 'Florence Atelier'
+      origin: formData.origin || 'Sri Lanka'
     };
 
     onSave(finalProduct);
@@ -507,7 +530,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. The 280 GSM Heavyweight Crewneck Tee"
+                  placeholder="e.g. The Signature Minimalist Crewneck Tee"
                   className="form-input admin-input"
                 />
               </div>
@@ -515,7 +538,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
               <div className="form-row-2col">
                 <div className="form-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                    <label className="form-label" style={{ margin: 0 }}>Silhouette Pillar Category</label>
+                    <label className="form-label" style={{ margin: 0 }}>Garment Category</label>
                     {!isAddingNewCat && (
                       <button
                         type="button"
@@ -546,8 +569,13 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                     }}
                     className="form-input admin-input"
                   >
+                    {formData.category && !categoriesList.some(c => c.id === formData.category || c.key === formData.category) && (
+                      <option value={formData.category}>
+                        {formatCategoryLabel(formData.category)}
+                      </option>
+                    )}
                     {categoriesList.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={cat.id || cat.key} value={cat.id || cat.key}>
                         {cat.label}
                       </option>
                     ))}
@@ -633,15 +661,25 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Publishing Status</label>
+                  <label className="form-label">Publishing & Stock Status</label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'Sold Out' || val === 'Archived') {
+                        const zeroed = {};
+                        Object.keys(formData.inventory || {}).forEach(k => { zeroed[k] = 0; });
+                        setFormData({ ...formData, status: val, inventory: Object.keys(zeroed).length > 0 ? zeroed : formData.inventory });
+                      } else {
+                        setFormData({ ...formData, status: val });
+                      }
+                    }}
                     className="form-input admin-input"
                   >
-                    <option value="Active">Active (Live on Storefront)</option>
-                    <option value="Draft">Draft (Internal Only)</option>
-                    <option value="Archived">Archived / Sold Out</option>
+                    <option value="Active">Active (Live & In Stock)</option>
+                    <option value="Sold Out">Out of Stock / Sold Out (Visible with 'SOLD OUT' Badge)</option>
+                    <option value="Draft">Draft (Hidden from Storefront)</option>
+                    <option value="Archived">Archived / Sold Out (Visible with 'SOLD OUT' Badge)</option>
                   </select>
                 </div>
               </div>
@@ -1219,17 +1257,40 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                     <Package size={16} color="var(--gold-bright)" />
                     <span className="form-label" style={{ margin: 0, fontWeight: 700 }}>AVAILABLE STOCK QUANTITY</span>
                   </div>
-                  <div style={{
-                    backgroundColor: 'rgba(197, 160, 89, 0.15)',
-                    border: '1px solid var(--gold-bright)',
-                    color: 'var(--gold-bright)',
-                    padding: '3px 10px',
-                    borderRadius: '2px',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 700,
-                    fontSize: '0.86rem'
-                  }}>
-                    {totalUnits} Pieces Available
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const zeroed = {};
+                        Object.keys(formData.inventory || {}).forEach(k => { zeroed[k] = 0; });
+                        setFormData({ ...formData, status: 'Sold Out', inventory: zeroed });
+                      }}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid #ef4444',
+                        color: '#f87171',
+                        borderRadius: '2px',
+                        cursor: 'pointer'
+                      }}
+                      title="Set all size stocks to 0 and mark garment as Out of Stock"
+                    >
+                      Set Out of Stock (0)
+                    </button>
+                    <div style={{
+                      backgroundColor: totalUnits === 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(197, 160, 89, 0.15)',
+                      border: totalUnits === 0 ? '1px solid #ef4444' : '1px solid var(--gold-bright)',
+                      color: totalUnits === 0 ? '#f87171' : 'var(--gold-bright)',
+                      padding: '3px 10px',
+                      borderRadius: '2px',
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 700,
+                      fontSize: '0.86rem'
+                    }}>
+                      {totalUnits === 0 ? 'OUT OF STOCK (0 Units)' : `${totalUnits} Pieces Available`}
+                    </div>
                   </div>
                 </div>
 

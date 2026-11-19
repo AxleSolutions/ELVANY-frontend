@@ -77,7 +77,7 @@ export const CustomersCRM = ({ customers }) => {
 
                       <td>
                         <span className="admin-size-pref-tag">
-                          {client.preferredSize || 'L (42)'}
+                          {typeof client.preferredSize === 'string' ? client.preferredSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : (client.preferredSize || 'L')}
                         </span>
                       </td>
 

@@ -18,7 +18,8 @@ export const FeaturedTees = ({
   }
 
   const isLoggedIn = Boolean(loggedInUser || userProfile?.email);
-  const userProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M (40)';
+  const rawProfileSize = userProfile?.savedSize || localStorage.getItem('elvany_saved_size') || 'M';
+  const userProfileSize = (typeof rawProfileSize === 'string' ? rawProfileSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : rawProfileSize) || 'M';
 
   const formatLKR = (val) => {
     return `LKR ${val.toLocaleString()}`;
@@ -90,7 +91,13 @@ export const FeaturedTees = ({
           ) : (
             displayedProducts.map((product) => {
               const isJustAdded = addedItemId === product.id;
-              const isOutOfStock = product.totalStock === 0 || (product.inventory && Object.values(product.inventory).every(v => Number(v) <= 0));
+              const isOutOfStock = product.status === 'Sold Out' ||
+                product.status === 'Archived' ||
+                product.status === 'Out of Stock' ||
+                product.isOutOfStock === true ||
+                product.inStock === false ||
+                product.totalStock === 0 ||
+                (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
 
               const activeOffer = (offers || []).find(
                 (o) => o.isActive !== false && (

@@ -15,7 +15,7 @@ export const RestockRequestModal = ({
   onClose,
   product,
   selectedColor = 'Onyx Black',
-  selectedSize = 'M (40)',
+  selectedSize = 'M',
   loggedInUser,
   userProfile,
   onSuccess
@@ -24,7 +24,8 @@ export const RestockRequestModal = ({
 
   const initialColor = getColorName(selectedColor || product.color);
   const [color, setColor] = useState(initialColor);
-  const [size, setSize] = useState(selectedSize || 'M (40)');
+  const cleanInitialSize = (typeof selectedSize === 'string' ? selectedSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : selectedSize) || 'M';
+  const [size, setSize] = useState(cleanInitialSize);
   const [name, setName] = useState(userProfile?.name || loggedInUser || '');
   const [email, setEmail] = useState(userProfile?.email || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
@@ -34,7 +35,7 @@ export const RestockRequestModal = ({
   const [errorMsg, setErrorMsg] = useState('');
 
   const availableSizes = Array.isArray(product.sizes) && product.sizes.length > 0
-    ? product.sizes
+    ? Array.from(new Set(product.sizes.map(s => typeof s === 'string' ? s.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : s)))
     : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 
   const rawColors = Array.isArray(product.colors) && product.colors.length > 0

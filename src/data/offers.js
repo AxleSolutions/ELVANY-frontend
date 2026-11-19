@@ -12,7 +12,7 @@ export const INITIAL_OFFERS = [
     offerPriceLKR: 15500,
     discountTag: 'SAVE LKR 3,000',
     code: 'HEAVY280',
-    availableSizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+    availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     isActive: true
   },
   {
@@ -28,7 +28,7 @@ export const INITIAL_OFFERS = [
     offerPriceLKR: 18500,
     discountTag: 'SAVE LKR 3,500',
     code: 'SEAIRARE',
-    availableSizes: ['S (38)', 'M (40)', 'L (42)', 'XL (44)', 'XXL (46)'],
+    availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     isActive: true
   },
   {
@@ -44,7 +44,7 @@ export const INITIAL_OFFERS = [
     offerPriceLKR: 13900,
     discountTag: 'SAVE LKR 2,600',
     code: 'BOXY260',
-    availableSizes: ['S (Relaxed)', 'M (Relaxed)', 'L (Relaxed)', 'XL (Relaxed)'],
+    availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     isActive: true
   }
 ];

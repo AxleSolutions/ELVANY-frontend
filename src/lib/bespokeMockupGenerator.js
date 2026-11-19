@@ -148,44 +148,66 @@ export function generateGarmentSvgString({
 }
 
 /**
- * Convert SVG string to a high-res PNG Data URL via HTML5 Canvas
+ * Convert SVG string to a high-res compressed JPEG Data URL via HTML5 Canvas
  */
-export async function convertSvgToPngDataUrl(svgString, targetWidth = 600, targetHeight = 600) {
+export async function convertSvgToPngDataUrl(svgString, targetWidth = 480, targetHeight = 520) {
   return new Promise((resolve) => {
+    let resolved = false;
+    const safeResolve = (val) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(val);
+      }
+    };
+
     try {
       const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const blobUrl = URL.createObjectURL(blob);
       const img = new Image();
 
+      const timer = setTimeout(() => {
+        try { URL.revokeObjectURL(blobUrl); } catch {}
+        safeResolve(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`);
+      }, 3000);
+
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-        const ctx = canvas.getContext('2d');
+        clearTimeout(timer);
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext('2d');
 
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-          const dataUrl = canvas.toDataURL('image/png', 0.98);
-          URL.revokeObjectURL(blobUrl);
-          resolve(dataUrl);
-        } else {
-          URL.revokeObjectURL(blobUrl);
-          resolve(null);
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'medium';
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            try {
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+              URL.revokeObjectURL(blobUrl);
+              return safeResolve(dataUrl);
+            } catch (toDataErr) {
+              console.warn('Canvas toDataURL notice:', toDataErr);
+            }
+          }
+        } catch (err) {
+          console.warn('Canvas draw error in convertSvgToPngDataUrl:', err);
         }
+        try { URL.revokeObjectURL(blobUrl); } catch {}
+        safeResolve(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`);
       };
 
       img.onerror = () => {
-        URL.revokeObjectURL(blobUrl);
-        resolve(null);
+        clearTimeout(timer);
+        try { URL.revokeObjectURL(blobUrl); } catch {}
+        safeResolve(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`);
       };
 
       img.src = blobUrl;
     } catch (err) {
       console.warn('convertSvgToPngDataUrl error:', err);
-      resolve(null);
+      safeResolve(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`);
     }
   });
 }
@@ -265,8 +287,9 @@ export async function generateBespokeMockupCollage({
     if (!src) return resolve(null);
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
+    const timer = setTimeout(() => resolve(null), 2500);
+    img.onload = () => { clearTimeout(timer); resolve(img); };
+    img.onerror = () => { clearTimeout(timer); resolve(null); };
     img.src = src;
   });
 
@@ -279,7 +302,7 @@ export async function generateBespokeMockupCollage({
 
   // Enable high-quality image smoothing
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingQuality = 'medium';
 
   const panels = [
     { img: frontImage, title: '1. FRONT VIEW', x: 30, tag: (artworks.front || artworks.left_chest || artworks.right_chest) ? 'PRINT ATTACHED' : 'CLEAN' },
@@ -297,7 +320,11 @@ export async function generateBespokeMockupCollage({
 
     // Draw Rendered Silhouette
     if (p.img) {
-      ctx.drawImage(p.img, p.x + 10, 75, 350, 395);
+      try {
+        ctx.drawImage(p.img, p.x + 10, 75, 350, 395);
+      } catch (drawErr) {
+        console.warn('Canvas draw panel error:', drawErr);
+      }
     }
 
     // Panel View Title
@@ -322,7 +349,12 @@ export async function generateBespokeMockupCollage({
     }
   });
 
-  return canvas.toDataURL('image/png', 0.98);
+  try {
+    return canvas.toDataURL('image/jpeg', 0.85);
+  } catch (canvasExportErr) {
+    console.warn('Canvas collage export error, using fallback:', canvasExportErr);
+    return frontImgData || null;
+  }
 }
 
 /**

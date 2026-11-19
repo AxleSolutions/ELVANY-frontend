@@ -93,24 +93,6 @@ export const EditorialModal = ({ isOpen, onClose }) => {
             alt="ELVANY Architectural Study" 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
-          <div style={{
-            position: 'absolute',
-            bottom: '1.5rem',
-            left: '1.5rem',
-            right: '1.5rem',
-            background: 'rgba(9, 10, 12, 0.85)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid var(--gold-border)',
-            padding: '1rem',
-            borderRadius: '2px'
-          }}>
-            <div style={{ color: 'var(--gold-bright)', fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600 }}>
-              MAISON ARCHIVE VOL. IV
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 500, marginTop: '2px' }}>
-              The 280 GSM Heavyweight T-Shirt Study
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Scrollable Deep Dive Content */}

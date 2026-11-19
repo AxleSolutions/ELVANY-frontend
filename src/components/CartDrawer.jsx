@@ -187,7 +187,8 @@ export const CartDrawer = ({
                   {cartItems.map((item, idx) => {
                     const itemKey = `${item.id}-${item.selectedSize || item.size || 'M'}-${idx}`;
                     const itemName = item.name || item.title || 'Signature Atelier T-Shirt';
-                    const itemSize = item.selectedSize || item.size || 'M (40)';
+                    const rawSize = item.selectedSize || item.size || 'M';
+                    const itemSize = (typeof rawSize === 'string' ? rawSize.replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : rawSize) || 'M';
                     const itemPrice = getPrice(item);
                     const itemQty = item.qty || 1;
                     const origPrice = item.originalPriceLKR || (item.isOfferApplied ? Math.round(itemPrice * 1.2) : itemPrice);
