@@ -50,7 +50,7 @@ export const CartDrawer = ({
   }, 0);
 
   const originalSubtotal = subtotal + totalSavings;
-  const freeShippingThreshold = 50000;
+  const freeShippingThreshold = 8500;
 
   const handleCheckoutClick = () => {
     onClose();
@@ -404,7 +404,9 @@ export const CartDrawer = ({
 
                 <div className="cart-subtotal-row sub">
                   <span>Island-Wide Delivery</span>
-                  <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>Complimentary Courier</span>
+                  <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>
+                    {subtotal >= freeShippingThreshold ? 'Complimentary Courier' : `LKR 450 (Free over ${formatLKR(freeShippingThreshold)})`}
+                  </span>
                 </div>
 
                 <button 

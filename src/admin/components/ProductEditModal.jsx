@@ -459,15 +459,15 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
 
     const defaultColorObj = finalColors.find(c => c.isDefault) || finalColors[0];
 
-    const isSoldOutExplicit = formData.status === 'Sold Out' || formData.status === 'Archived' || totalUnits === 0;
+    const isSoldOutExplicit = formData.status === 'Sold Out' || formData.status === 'Archived' || formData.status === 'Out of Stock' || totalUnits === 0;
     const finalStatus = formData.status === 'Draft' 
       ? 'Draft' 
-      : (isSoldOutExplicit ? (formData.status === 'Archived' ? 'Archived' : 'Sold Out') : 'Active');
+      : (formData.status === 'Archived' ? 'Archived' : (isSoldOutExplicit ? 'Sold Out' : 'Active'));
 
     const cleanedInventory = {};
     Object.entries(formData.inventory || {}).forEach(([k, v]) => {
       const cleanK = cleanSizeCode(k);
-      cleanedInventory[cleanK] = (cleanedInventory[cleanK] || 0) + (Number(v) || 0);
+      cleanedInventory[cleanK] = isSoldOutExplicit ? 0 : Math.max(0, parseInt(v, 10) || 0);
     });
 
     const finalProduct = {
@@ -485,7 +485,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
       colorHex: defaultColorObj.hex,
       colors: finalColors,
       colorsAvailable: finalColors.map(c => c.hex),
-      totalStock: isSoldOutExplicit && (formData.status === 'Sold Out' || formData.status === 'Archived') ? 0 : totalUnits,
+      totalStock: isSoldOutExplicit ? 0 : Object.values(cleanedInventory).reduce((a, b) => a + Number(b), 0),
       inventory: cleanedInventory,
       sizes: Object.keys(cleanedInventory),
       collarSpec: formData.collarSpec || 'Double-needle non-sag 1x1 ribbing',

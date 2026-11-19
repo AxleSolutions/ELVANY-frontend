@@ -69,8 +69,27 @@ export const PopupAdManager = ({
     }
   }, [popupAdSettings]);
 
-  const handleToggleStatus = () => {
-    setFormData(prev => ({ ...prev, enabled: !prev.enabled }));
+  const handleToggleStatus = async () => {
+    const nextEnabled = !formData.enabled;
+    const updated = { ...formData, enabled: nextEnabled };
+    setFormData(updated);
+    setIsSaving(true);
+    try {
+      await savePopupAdSettings(updated);
+      if (onSavePopupAdSettings) {
+        onSavePopupAdSettings(updated);
+      }
+      try {
+        localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(updated));
+      } catch {}
+      window.dispatchEvent(new CustomEvent('elvany_popup_ad_updated', { detail: updated }));
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } catch (err) {
+      console.warn('Error saving popup ad toggle:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePresetSelect = (path) => {

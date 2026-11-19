@@ -60,7 +60,7 @@ import { CITIES_LIST } from './AccountPage';
 
 // Configurable delivery fee logic (Supports flat standard rates, city-based rates, or free thresholds)
 export const STANDARD_DELIVERY_FEE_LKR = 450;
-export const FREE_DELIVERY_THRESHOLD_LKR = 35000;
+export const FREE_DELIVERY_THRESHOLD_LKR = 8500;
 
 export const calculateDeliveryFee = (subtotalAmount, selectedCity = '') => {
   if (!subtotalAmount || subtotalAmount <= 0) return 0;
@@ -1242,7 +1242,7 @@ export const CheckoutPage = ({
                   <div style={{ padding: '0.9rem 1.15rem', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <Truck size={18} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)', lineHeight: 1.5 }}>
-                      <strong style={{ color: '#ffffff' }}>White-Glove Island-Wide Delivery:</strong> Complimentary next business day dispatch with live signature tracking.
+                      <strong style={{ color: '#ffffff' }}>White-Glove Island-Wide Delivery:</strong> {deliveryFee === 0 ? 'Complimentary next business day dispatch with live signature tracking applied.' : `Complimentary island-wide courier on orders over ${formatLKR(FREE_DELIVERY_THRESHOLD_LKR)} (Flat LKR ${STANDARD_DELIVERY_FEE_LKR} otherwise).`}
                     </div>
                   </div>
                 </div>

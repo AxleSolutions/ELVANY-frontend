@@ -67,7 +67,15 @@ export async function getProducts() {
       ? p.craftsmanship_details[3]
       : (p.status || (p.is_active === false ? 'Draft' : 'Active'));
 
-    const isExplicitlySoldOut = savedStatus === 'Sold Out' || savedStatus === 'Archived';
+    const isExplicitlySoldOut = savedStatus === 'Sold Out' || 
+      savedStatus === 'Archived' || 
+      savedStatus === 'Out of Stock' || 
+      p.status === 'Sold Out' || 
+      p.status === 'Archived' || 
+      p.status === 'Out of Stock' ||
+      p.isOutOfStock === true || 
+      p.inStock === false ||
+      p.totalStock === 0;
 
     const rawInv = hasExplicitStockRows
       ? inventory
@@ -236,12 +244,32 @@ export async function getProducts() {
     const mergedRemote = remoteProducts.map(rp => {
       const localMatch = localCache.find(lp => String(lp.id) === String(rp.id) || (lp.slug && lp.slug === rp.slug));
       if (localMatch) {
+        const isLocalSoldOut = localMatch.status === 'Sold Out' || 
+          localMatch.status === 'Archived' || 
+          localMatch.status === 'Out of Stock' || 
+          localMatch.isOutOfStock === true || 
+          localMatch.inStock === false ||
+          localMatch.totalStock === 0 || 
+          (localMatch.inventory && Object.keys(localMatch.inventory).length > 0 && Object.values(localMatch.inventory).every(v => Number(v) <= 0));
+        
+        const finalStatus = isLocalSoldOut 
+          ? (localMatch.status === 'Archived' ? 'Archived' : 'Sold Out') 
+          : (localMatch.status || rp.status);
+
+        const finalInventory = isLocalSoldOut
+          ? Object.fromEntries(Object.keys(localMatch.inventory || rp.inventory || { 'XS': 0, 'S': 0, 'M': 0, 'L': 0, 'XL': 0, '2XL': 0 }).map(k => [k, 0]))
+          : (localMatch.inventory || rp.inventory);
+
         return {
           ...rp,
           ...localMatch,
           images: (localMatch.images && localMatch.images.length > 0) ? localMatch.images : rp.images,
           category: localMatch.category || rp.category,
-          status: localMatch.status || rp.status,
+          status: finalStatus,
+          isOutOfStock: isLocalSoldOut,
+          inStock: !isLocalSoldOut,
+          totalStock: isLocalSoldOut ? 0 : (localMatch.totalStock ?? rp.totalStock),
+          inventory: finalInventory,
           is_active: localMatch.is_active !== undefined ? localMatch.is_active : rp.is_active
         };
       }
@@ -945,11 +973,27 @@ export async function saveProduct(productData) {
           ? productData.images
           : (defaultVariant?.gallery_images?.length > 0 ? defaultVariant.gallery_images : [productData.image]);
 
+        const isSoldOutFlag = productData.status === 'Sold Out' || 
+          productData.status === 'Archived' || 
+          productData.status === 'Out of Stock' || 
+          productData.isOutOfStock === true || 
+          productData.inStock === false ||
+          productData.totalStock === 0;
+
+        const normalizedInv = {};
+        Object.entries(productData.inventory || {}).forEach(([k, v]) => {
+          normalizedInv[k] = isSoldOutFlag ? 0 : Math.max(0, Number(v) || 0);
+        });
+        const calculatedTotalStock = isSoldOutFlag ? 0 : Object.values(normalizedInv).reduce((a, b) => a + Number(b), 0);
+
         return {
           ...productData,
           id: p.id,
           sku: p.sku || productData.sku,
           slug: p.slug,
+          status: isSoldOutFlag ? (productData.status === 'Archived' ? 'Archived' : 'Sold Out') : (productData.status || 'Active'),
+          isOutOfStock: isSoldOutFlag,
+          inStock: !isSoldOutFlag,
           image: finalImages[0] || '',
           images: finalImages,
           color: defaultVariant?.color_name || productData.color || 'Onyx Black',
@@ -960,7 +1004,8 @@ export async function saveProduct(productData) {
           colorsAvailable: (p.product_variants && p.product_variants.length > 0)
             ? p.product_variants.map(v => v.color_hex)
             : (productData.colorsAvailable || [productData.colorHex || '#121316']),
-          totalStock: Object.values(productData.inventory || {}).reduce((a, b) => a + Number(b), 0)
+          totalStock: calculatedTotalStock,
+          inventory: normalizedInv
         };
       }
     }
@@ -1131,15 +1176,26 @@ export async function saveProduct(productData) {
           }
         }
 
-        const isSoldOut = productData.status === 'Sold Out' || productData.status === 'Archived' || (productData.totalStock === 0);
+        const isSoldOut = productData.status === 'Sold Out' || 
+          productData.status === 'Archived' || 
+          productData.status === 'Out of Stock' || 
+          productData.isOutOfStock === true || 
+          productData.inStock === false ||
+          productData.totalStock === 0;
+
         const resolvedStatus = isSoldOut ? (productData.status === 'Archived' ? 'Archived' : 'Sold Out') : (productData.status || 'Active');
+        const normalizedInv = {};
+        Object.entries(productData.inventory || {}).forEach(([k, v]) => {
+          normalizedInv[k] = isSoldOut ? 0 : Math.max(0, Number(v) || 0);
+        });
 
         return {
           ...productData,
           status: resolvedStatus,
           isOutOfStock: isSoldOut,
           inStock: !isSoldOut,
-          totalStock: isSoldOut && (productData.status === 'Sold Out' || productData.status === 'Archived') ? 0 : (productData.totalStock || 0),
+          totalStock: isSoldOut ? 0 : Object.values(normalizedInv).reduce((a, b) => a + Number(b), 0),
+          inventory: normalizedInv,
           image: orderedImages[0],
           images: orderedImages,
           color: defaultCol.name,
@@ -1153,7 +1209,28 @@ export async function saveProduct(productData) {
     }
   }
 
-  return { ...productData, id: productData.id || `local_${Date.now()}` };
+  const isSoldOut = productData.status === 'Sold Out' || 
+    productData.status === 'Archived' || 
+    productData.status === 'Out of Stock' || 
+    productData.isOutOfStock === true || 
+    productData.inStock === false ||
+    productData.totalStock === 0;
+
+  const resolvedStatus = isSoldOut ? (productData.status === 'Archived' ? 'Archived' : 'Sold Out') : (productData.status || 'Active');
+  const normalizedInv = {};
+  Object.entries(productData.inventory || {}).forEach(([k, v]) => {
+    normalizedInv[k] = isSoldOut ? 0 : Math.max(0, Number(v) || 0);
+  });
+
+  return {
+    ...productData,
+    id: productData.id || `local_${Date.now()}`,
+    status: resolvedStatus,
+    isOutOfStock: isSoldOut,
+    inStock: !isSoldOut,
+    totalStock: isSoldOut ? 0 : Object.values(normalizedInv).reduce((a, b) => a + Number(b), 0),
+    inventory: normalizedInv
+  };
 }
 
 export async function toggleProductStatus(productId, nextActiveState) {
@@ -1488,6 +1565,41 @@ export async function deleteOffer(offerId) {
  * REVIEWS & CLIENT EVALUATIONS SERVICES
  * =========================================================================
  */
+
+/**
+ * Record a submitted evaluation in the local browser registry.
+ * This ensures that revisiting an order review link immediately identifies
+ * which items have already been evaluated, blocking duplicate submissions.
+ */
+export function recordReviewInLocalRegistry(review) {
+  if (!review) return;
+  try {
+    const raw = localStorage.getItem('elvany_reviews_registry');
+    const registry = raw ? JSON.parse(raw) : {};
+    const cleanOrder = (review.orderId || review.order_id || review.orderCode || '').toUpperCase().trim();
+    const cleanProd = (review.productId || review.product_id || '').toLowerCase().trim();
+    const cleanTitle = (review.productTitle || review.title || '').toLowerCase().trim();
+
+    if (cleanOrder) {
+      if (cleanProd) {
+        registry[`${cleanOrder}_${cleanProd}`] = review;
+      }
+      if (cleanTitle) {
+        registry[`${cleanOrder}_${cleanTitle}`] = review;
+      }
+      if (!Array.isArray(registry[cleanOrder])) {
+        registry[cleanOrder] = [];
+      }
+      if (!registry[cleanOrder].some((r) => r.id === review.id || (cleanProd && (r.productId === cleanProd || r.product_id === cleanProd)))) {
+        registry[cleanOrder].push(review);
+      }
+    }
+    localStorage.setItem('elvany_reviews_registry', JSON.stringify(registry));
+  } catch (err) {
+    console.warn('Local review registry notice:', err);
+  }
+}
+
 export async function getReviews() {
   // 1. Try Backend API
   try {
@@ -1507,11 +1619,23 @@ export async function getReviews() {
             cleanContent = cleanContent.replace(/\[Client Photo:\s*[^\]]+\]/i, '').trim();
           }
 
-          return {
+          const orderTagMatch = cleanContent.match(/\[Order:\s*([^\]]+)\]/i);
+          const parsedOrderId = orderTagMatch ? orderTagMatch[1].trim() : null;
+          const itemTagMatch = cleanContent.match(/\[Item:\s*([^\]]+)\]/i);
+          const parsedItemId = itemTagMatch ? itemTagMatch[1].trim() : null;
+          if (orderTagMatch) cleanContent = cleanContent.replace(/\[Order:\s*[^\]]+\]/i, '').trim();
+          if (itemTagMatch) cleanContent = cleanContent.replace(/\[Item:\s*[^\]]+\]/i, '').trim();
+
+          const resolvedOrderId = parsedOrderId || r.orderId || r.order_id;
+          const resolvedProdId = parsedItemId || r.productId || r.product_id;
+
+          const mapped = {
             id: r.id,
-            productId: r.productId || r.product_id,
-            product_id: r.productId || r.product_id,
-            orderId: r.orderId || r.order_id,
+            productId: resolvedProdId,
+            product_id: resolvedProdId,
+            orderId: resolvedOrderId,
+            order_id: resolvedOrderId,
+            orderCode: resolvedOrderId,
             author: r.customerName || r.client_name || r.author || 'Verified Client',
             customerName: r.customerName || r.client_name || r.author || 'Verified Client',
             customerEmail: r.customerEmail || 'client@elvany.com',
@@ -1529,6 +1653,8 @@ export async function getReviews() {
             isFeatured: !!r.isFeatured,
             helpfulCount: r.helpfulCount || 0
           };
+          recordReviewInLocalRegistry(mapped);
+          return mapped;
         });
       }
     }
@@ -1562,11 +1688,23 @@ export async function getReviews() {
         cleanContent = cleanContent.replace(/\[Client Photo:\s*[^\]]+\]/i, '').trim();
       }
 
-      return {
+      const orderTagMatch = cleanContent.match(/\[Order:\s*([^\]]+)\]/i);
+      const parsedOrderId = orderTagMatch ? orderTagMatch[1].trim() : null;
+      const itemTagMatch = cleanContent.match(/\[Item:\s*([^\]]+)\]/i);
+      const parsedItemId = itemTagMatch ? itemTagMatch[1].trim() : null;
+      if (orderTagMatch) cleanContent = cleanContent.replace(/\[Order:\s*[^\]]+\]/i, '').trim();
+      if (itemTagMatch) cleanContent = cleanContent.replace(/\[Item:\s*[^\]]+\]/i, '').trim();
+
+      const resolvedOrderId = parsedOrderId || r.order_id;
+      const resolvedProdId = parsedItemId || r.product_id;
+
+      const mapped = {
         id: r.id,
-        productId: r.product_id,
-        product_id: r.product_id,
-        orderId: r.order_id,
+        productId: resolvedProdId,
+        product_id: resolvedProdId,
+        orderId: resolvedOrderId,
+        order_id: resolvedOrderId,
+        orderCode: resolvedOrderId,
         author: r.client_name || r.customer_name || 'Verified Client',
         customerName: r.client_name || r.customer_name || 'Verified Client',
         customerEmail: r.customer_email || 'client@elvany.com',
@@ -1584,6 +1722,8 @@ export async function getReviews() {
         isFeatured: r.is_featured || false,
         helpfulCount: r.helpful_votes || 0
       };
+      recordReviewInLocalRegistry(mapped);
+      return mapped;
     });
   } catch {
     return [];
@@ -1598,6 +1738,26 @@ export async function addReview(reviewData) {
     ? reviewData.images 
     : (resolvedImageUrl ? [resolvedImageUrl] : []);
 
+  // Tag order & item info cleanly into the comment so it is preserved across all database schemas
+  let commentWithTags = reviewData.comment || reviewData.content || '';
+  if (reviewData.orderId && !commentWithTags.includes(`[Order: ${reviewData.orderId}]`)) {
+    commentWithTags = `${commentWithTags}\n\n[Order: ${reviewData.orderId}]`;
+  }
+  if (reviewData.productId && !commentWithTags.includes(`[Item: ${reviewData.productId}]`)) {
+    commentWithTags = `${commentWithTags} [Item: ${reviewData.productId}]`;
+  }
+  if (resolvedImageUrl && !commentWithTags.includes(`[Client Photo: ${resolvedImageUrl}]`)) {
+    commentWithTags = `${commentWithTags} [Client Photo: ${resolvedImageUrl}]`;
+  }
+
+  // Immediately record locally so subsequent page views immediately show the locked authenticated state
+  recordReviewInLocalRegistry({
+    ...reviewData,
+    comment: commentWithTags,
+    imageUrl: resolvedImageUrl,
+    images: resolvedImages
+  });
+
   // 1. Try Backend API
   try {
     const res = await fetch(`${apiUrl}/reviews`, {
@@ -1610,7 +1770,7 @@ export async function addReview(reviewData) {
         clientLocation: reviewData.location || 'Colombo, Sri Lanka',
         rating: Number(reviewData.rating) || 5,
         title: reviewData.title || 'Exceptional Craftsmanship',
-        comment: reviewData.comment || reviewData.content,
+        comment: commentWithTags,
         fitRating: reviewData.fitRating || 'True to Size',
         imageUrl: resolvedImageUrl,
         images: resolvedImages
@@ -1629,34 +1789,50 @@ export async function addReview(reviewData) {
   // 2. Direct Supabase Fallback
   if (isSupabaseConfigured && supabase) {
     try {
-      const { error: insErr } = await supabase.from('reviews').insert({
-        product_id: reviewData.productId,
-        order_id: reviewData.orderId || null,
-        client_name: reviewData.author || reviewData.clientName || reviewData.customerName,
-        client_location: reviewData.location || 'Colombo, Sri Lanka',
-        rating: Number(reviewData.rating) || 5,
-        title: reviewData.title || 'Exceptional Craftsmanship',
-        comment: reviewData.comment || reviewData.content,
-        image_url: resolvedImageUrl,
-        images: resolvedImages,
-        is_verified_buyer: true,
-        status: 'published'
-      });
+      const isOrderUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(reviewData.orderId || '');
+      let dbOrderId = isOrderUuid ? reviewData.orderId : null;
+      if (!dbOrderId && reviewData.orderId) {
+        try {
+          const { data: ord } = await supabase.from('orders').select('id').eq('order_code', reviewData.orderId).maybeSingle();
+          if (ord?.id) dbOrderId = ord.id;
+        } catch {}
+      }
 
-      if (insErr) {
-        // Fallback: column doesn't exist yet, append tag in comment
-        const tagged = resolvedImageUrl ? `${reviewData.comment || reviewData.content}\n\n[Client Photo: ${resolvedImageUrl}]` : (reviewData.comment || reviewData.content);
-        await supabase.from('reviews').insert({
-          product_id: reviewData.productId,
-          order_id: reviewData.orderId || null,
+      const isProdUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(reviewData.productId || '');
+      let dbProductId = isProdUuid ? reviewData.productId : null;
+      if (!dbProductId && reviewData.productId) {
+        try {
+          const { data: prod } = await supabase.from('products').select('id').or(`slug.eq.${reviewData.productId},title.ilike.%${reviewData.productId}%`).maybeSingle();
+          if (prod?.id) dbProductId = prod.id;
+        } catch {}
+      }
+
+      // If productId could not be resolved to UUID, pick the first product as foreign key anchor
+      if (!dbProductId) {
+        try {
+          const { data: fallbackP } = await supabase.from('products').select('id').limit(1).maybeSingle();
+          if (fallbackP?.id) dbProductId = fallbackP.id;
+        } catch {}
+      }
+
+      if (dbProductId) {
+        const { error: insErr } = await supabase.from('reviews').insert({
+          product_id: dbProductId,
+          order_id: dbOrderId,
           client_name: reviewData.author || reviewData.clientName || reviewData.customerName,
           client_location: reviewData.location || 'Colombo, Sri Lanka',
           rating: Number(reviewData.rating) || 5,
           title: reviewData.title || 'Exceptional Craftsmanship',
-          comment: tagged,
+          comment: commentWithTags,
+          image_url: resolvedImageUrl,
+          images: resolvedImages,
           is_verified_buyer: true,
           status: 'published'
         });
+
+        if (insErr) {
+          console.warn('Supabase direct review insert notice:', insErr);
+        }
       }
     } catch (err) {
       console.warn('Supabase direct review insert notice:', err);
@@ -1808,6 +1984,11 @@ export async function saveDatabaseCart(email, cart) {
  */
 export async function getPopupAdSettings() {
   const apiUrl = getApiUrl();
+  let localSetting = null;
+  try {
+    const saved = localStorage.getItem('elvany_popup_ad_settings');
+    if (saved) localSetting = JSON.parse(saved);
+  } catch {}
 
   // 1. Try Backend API (which checks Supabase promotions & local JSON)
   try {
@@ -1815,10 +1996,13 @@ export async function getPopupAdSettings() {
     if (res.ok) {
       const body = await res.json();
       if (body.data) {
+        const finalData = (localSetting && localSetting.enabled === false && body.data.enabled !== false)
+          ? { ...body.data, enabled: false }
+          : body.data;
         try {
-          localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(body.data));
+          localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(finalData));
         } catch {}
-        return body.data;
+        return finalData;
       }
     }
   } catch (apiErr) {
@@ -1839,9 +2023,13 @@ export async function getPopupAdSettings() {
           ? data.applied_product_ids[0]
           : '/collection';
 
+        const isEnabled = localSetting && typeof localSetting.enabled === 'boolean'
+          ? localSetting.enabled
+          : (data.is_active !== false);
+
         const parsed = {
-          enabled: data.is_active !== false,
-          imageUrl: data.badge_label || '/images/editorial_brutalist.webp',
+          enabled: isEnabled,
+          imageUrl: data.badge_label || localSetting?.imageUrl || '/images/editorial_brutalist.webp',
           targetUrl: targetUrl || '/collection',
           altText: data.title || 'ELVANY Seasonal Advertisement',
           showOncePerSession: true,
@@ -1859,10 +2047,7 @@ export async function getPopupAdSettings() {
   }
 
   // 3. LocalStorage Fallback
-  try {
-    const saved = localStorage.getItem('elvany_popup_ad_settings');
-    if (saved) return JSON.parse(saved);
-  } catch {}
+  if (localSetting) return localSetting;
 
   return DEFAULT_POPUP_AD;
 }

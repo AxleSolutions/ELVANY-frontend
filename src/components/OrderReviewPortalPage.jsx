@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Home, Star, Check, ShieldCheck, ArrowRight, PackageCheck, Eye, MessageSquare, Camera, Upload, X, Sparkles, Maximize2 } from 'lucide-react';
+import { Home, Star, Check, ShieldCheck, ArrowRight, PackageCheck, Eye, MessageSquare, Camera, Upload, X, Sparkles, Maximize2, Lock } from 'lucide-react';
 import { INITIAL_ORDERS } from '../data/orders';
-import { getOrderById } from '../services/dbService';
+import { getOrderById, getReviews, recordReviewInLocalRegistry } from '../services/dbService';
 import { uploadReviewImageToCloudinary } from '../lib/cloudinary';
 
 export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewReview, allReviewsMap = {} }) => {
@@ -22,6 +22,22 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
   const [activeOrder, setActiveOrder] = useState(() => findInOrders(ordersList, orderId));
   const [isLoading, setIsLoading] = useState(!findInOrders(ordersList, orderId));
   const [hasSearchedDirectly, setHasSearchedDirectly] = useState(false);
+
+  // Direct reviews query to sync immediately on cold reload
+  const [directReviews, setDirectReviews] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getReviews()
+      .then((revs) => {
+        if (!isMounted || !Array.isArray(revs)) return;
+        setDirectReviews(revs);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId]);
 
   // Active zoomed photo lightbox
   const [activeZoomPhoto, setActiveZoomPhoto] = useState(null);
@@ -72,28 +88,89 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
   // Helper to reliably get product identifier from an item object
   const getItemId = (item) => item?.productId || item?.product_id || item?.id || 'item';
 
-  // Helper to find existing review in database for this specific item and order
+  // Initialize submitted reviews from persistent local storage registry
+  const [submittedMap, setSubmittedMap] = useState(() => {
+    try {
+      const raw = localStorage.getItem('elvany_reviews_registry');
+      const reg = raw ? JSON.parse(raw) : {};
+      const clean = (orderId || '').toUpperCase().trim();
+      const map = {};
+      if (clean) {
+        Object.keys(reg).forEach((k) => {
+          if (k.startsWith(`${clean}_`)) {
+            const subKey = k.replace(`${clean}_`, '');
+            map[subKey] = reg[k];
+          }
+        });
+        if (Array.isArray(reg[clean])) {
+          reg[clean].forEach((r) => {
+            const pKey = (r.productId || r.product_id || '').toLowerCase();
+            if (pKey) map[pKey] = r;
+          });
+        }
+      }
+      return map;
+    } catch {
+      return {};
+    }
+  });
+
+  // Helper to find existing review in database or local registry for this specific item and order
   const getExistingItemReview = (item) => {
-    if (!allReviewsMap) return null;
-    const allRevs = Object.values(allReviewsMap).flat();
-    const orderCode = (activeOrder?.orderId || activeOrder?.order_code || activeOrder?.id || orderId || '').toUpperCase();
-    const itemId = (item?.productId || item?.product_id || item?.id || '').toLowerCase();
-    const itemName = (item?.name || item?.title || '').toLowerCase();
+    const orderCode = (activeOrder?.orderId || activeOrder?.order_code || activeOrder?.id || orderId || '').toUpperCase().trim();
+    const itemId = (item?.productId || item?.product_id || item?.id || '').toLowerCase().trim();
+    const itemName = (item?.name || item?.title || '').toLowerCase().trim();
 
-    return allRevs.find((r) => {
-      const rOrder = (r.orderId || r.order_id || '').toUpperCase();
-      const rProd = (r.productId || r.product_id || '').toLowerCase();
-      const rTitle = (r.productTitle || '').toLowerCase();
+    // 1. Direct state submitted map
+    if (submittedMap[itemId]) return submittedMap[itemId];
+    if (itemName && submittedMap[itemName]) return submittedMap[itemName];
 
-      const orderMatches = rOrder && (rOrder === orderCode || (activeOrder?.id && rOrder === activeOrder.id.toUpperCase()));
-      const prodMatches = (itemId && rProd === itemId) || (itemName && rTitle === itemName);
+    // 2. Check local browser registry
+    try {
+      const raw = localStorage.getItem('elvany_reviews_registry');
+      const reg = raw ? JSON.parse(raw) : {};
+      if (reg[`${orderCode}_${itemId}`]) return reg[`${orderCode}_${itemId}`];
+      if (itemName && reg[`${orderCode}_${itemName}`]) return reg[`${orderCode}_${itemName}`];
+      if (Array.isArray(reg[orderCode])) {
+        const found = reg[orderCode].find((r) => {
+          const rProd = (r.productId || r.product_id || '').toLowerCase().trim();
+          const rTitle = (r.productTitle || r.title || '').toLowerCase().trim();
+          return (itemId && rProd === itemId) || (itemName && rTitle === itemName);
+        });
+        if (found) return found;
+      }
+    } catch {}
 
-      return (orderMatches && prodMatches) || (orderMatches && !rProd);
-    });
+    // 3. Check directly fetched reviews from database
+    if (directReviews && directReviews.length > 0) {
+      const found = directReviews.find((r) => {
+        const rOrder = (r.orderId || r.order_id || r.orderCode || '').toUpperCase().trim();
+        const rProd = (r.productId || r.product_id || '').toLowerCase().trim();
+        const rTitle = (r.productTitle || r.title || '').toLowerCase().trim();
+        const matchesOrder = rOrder && (rOrder === orderCode || (activeOrder?.id && rOrder === activeOrder.id.toUpperCase().trim()));
+        const matchesProd = (itemId && rProd === itemId) || (itemName && rTitle === itemName);
+        return matchesOrder && (matchesProd || !rProd);
+      });
+      if (found) return found;
+    }
+
+    // 4. Check allReviewsMap passed via props from App
+    if (allReviewsMap) {
+      const allRevs = Object.values(allReviewsMap).flat();
+      const found = allRevs.find((r) => {
+        const rOrder = (r.orderId || r.order_id || r.orderCode || '').toUpperCase().trim();
+        const rProd = (r.productId || r.product_id || '').toLowerCase().trim();
+        const rTitle = (r.productTitle || r.title || '').toLowerCase().trim();
+        const matchesOrder = rOrder && (rOrder === orderCode || (activeOrder?.id && rOrder === activeOrder.id.toUpperCase().trim()));
+        const matchesProd = (itemId && rProd === itemId) || (itemName && rTitle === itemName);
+        return matchesOrder && (matchesProd || !rProd);
+      });
+      if (found) return found;
+    }
+
+    return null;
   };
 
-  // Track submitted reviews per item (keyed by item identifier)
-  const [submittedMap, setSubmittedMap] = useState({});
   const [formDataMap, setFormDataMap] = useState({});
   const [isSubmittingMap, setIsSubmittingMap] = useState({});
 
@@ -247,6 +324,12 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
 
   const handleItemReviewSubmit = async (item) => {
     const key = getItemId(item);
+    const existing = getExistingItemReview(item);
+    if (existing) {
+      alert(`An authenticated evaluation has already been submitted for ${item.name || 'this garment'} from Order #${activeOrder?.orderId || orderId}. Only one review per garment is permitted.`);
+      return;
+    }
+
     const data = formDataMap[key] || { rating: 5, title: '', content: '' };
     if (!data.content && !data.comment) return;
 
@@ -277,12 +360,16 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
       id: `rev-order-${Date.now()}-${key}`,
       productId: resolvedProdId,
       orderId: resolvedOrderCode,
+      order_code: resolvedOrderCode,
+      orderCode: resolvedOrderCode,
       author: clientName,
+      customerName: clientName,
       location: clientLoc,
       rating: Number(data.rating || 5),
       date: 'Just now',
       sizePurchased: typeof (item.selectedSize || item.size) === 'string' ? (item.selectedSize || item.size).replace(/\s*\([^)]*\)\s*\d*/g, '').trim() : 'M',
       colorPurchased: item.color || 'Onyx Black',
+      productTitle: item.name || item.title || 'Heavyweight Atelier Tee',
       title: data.title || 'Exceptional Quality & Drape',
       content: data.content || data.comment,
       comment: data.content || data.comment,
@@ -292,12 +379,21 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
       helpfulCount: 0
     };
 
+    // Record immediately in local registry so duplicate submissions are blocked across reloads
+    recordReviewInLocalRegistry(reviewObj);
+
     if (onAddNewReview) {
       await onAddNewReview(resolvedProdId, reviewObj);
     }
 
     setIsSubmittingMap((prev) => ({ ...prev, [key]: false }));
-    setSubmittedMap((prev) => ({ ...prev, [key]: reviewObj }));
+    setSubmittedMap((prev) => ({
+      ...prev,
+      [key]: reviewObj,
+      [key.toLowerCase()]: reviewObj,
+      ...(item.name ? { [item.name.toLowerCase().trim()]: reviewObj } : {})
+    }));
+    setDirectReviews((prev) => [reviewObj, ...(Array.isArray(prev) ? prev : [])]);
   };
 
   return (
@@ -417,6 +513,30 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
             </p>
           </div>
 
+          {/* Banner if all pieces from this order have already been evaluated */}
+          {Array.isArray(activeOrder.items) && activeOrder.items.length > 0 && activeOrder.items.every((it) => Boolean(getExistingItemReview(it))) && (
+            <div style={{
+              backgroundColor: 'rgba(197, 160, 89, 0.09)',
+              border: '1px solid var(--gold-border)',
+              padding: '1.2rem 1.6rem',
+              borderRadius: '2px',
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px'
+            }}>
+              <ShieldCheck size={26} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ color: 'var(--gold-bright)', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '2px' }}>
+                  ALL ORDER EVALUATIONS COMPLETE & LOCKED
+                </div>
+                <div style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem' }}>
+                  All purchased garments from Order #{activeOrder.orderId || orderId} have been authenticated and sealed in the Maison archive. Thank you for your verified patron feedback.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {(activeOrder.items || []).map((item, idx) => {
               const itemKey = getItemId(item) || `item-${idx}`;
@@ -474,8 +594,11 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', marginBottom: '0.5rem' }}>
                         <Check size={18} color="var(--gold-bright)" />
                         <span style={{ fontSize: '0.74rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                          EVALUATION AUTHENTICATED & PUBLISHED
+                          EVALUATION AUTHENTICATED & SEALED
                         </span>
+                      </div>
+                      <div style={{ color: 'var(--gold-bright)', fontSize: '0.76rem', marginBottom: '0.8rem', opacity: 0.9 }}>
+                        ✓ Evaluation locked for Order #{activeOrder.orderId || orderId}. One verified evaluation permitted per purchased piece.
                       </div>
                       <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#fff', marginBottom: '0.4rem' }}>
                         {activeReviewData?.title || `Review Published for ${item.name}`}

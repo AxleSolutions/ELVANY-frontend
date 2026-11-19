@@ -49,7 +49,9 @@
 
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   background-color: #08090b;
   color: #ffffff;
   font-family: var(--font-sans);
@@ -61,6 +63,8 @@
    ========================================================================= */
 .admin-sidebar {
   width: 270px;
+  height: 100vh;
+  max-height: 100vh;
   background-color: #0e0f12;
   border-right: 1px solid var(--border-dark);
   display: flex;
@@ -68,6 +72,7 @@
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 100;
+  overflow: hidden;
 }
 
 .admin-sidebar.collapsed {
@@ -77,6 +82,7 @@
 .admin-sidebar-header {
   padding: 1.8rem 1.4rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .admin-sidebar-logo-wrap {
@@ -114,6 +120,8 @@
   flex-direction: column;
   gap: 0.4rem;
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 .admin-nav-section-label {
@@ -185,6 +193,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  flex-shrink: 0;
 }
 
 .admin-storefront-btn {
@@ -226,10 +235,37 @@
    ========================================================================= */
 .admin-main-container {
   flex: 1;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  overscroll-behavior: contain;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar,
+.admin-main-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-track,
+.admin-main-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb,
+.admin-main-container::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.25);
+  border-radius: 3px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb:hover,
+.admin-main-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-bright);
 }
 
 .admin-header {

@@ -64,6 +64,10 @@ export const PopupAdModal = ({
   useEffect(() => {
     const handleSync = (e) => {
       const ad = e.detail || popupAdSettings;
+      if (!ad || ad.enabled === false) {
+        setIsOpen(false);
+        return;
+      }
       if (ad?.enabled && ad?.imageUrl) {
         setIsOpen(true);
       }

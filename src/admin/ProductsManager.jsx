@@ -1,22 +1,62 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Search, Edit, Trash2, Layers, AlertCircle, Check, ExternalLink, Filter, Power, Eye, EyeOff, Tag } from 'lucide-react';
-import { getAllCategories, slugifyCategory } from '../services/categoryService';
+import { getAllCategories, slugifyCategory, addCustomCategory, deleteCustomCategory, reassignProductsCategory } from '../services/categoryService';
 import { CategoryManagerModal } from './components/CategoryManagerModal';
 
 export const ProductsManager = ({ 
   products = [], 
   onOpenModal, 
   onDeleteProduct,
-  onToggleStatus 
+  onToggleStatus,
+  onToggleStock,
+  onUpdateProducts 
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [catRevision, setCatRevision] = useState(0);
+  const [newCatInput, setNewCatInput] = useState('');
 
   const availableCategories = useMemo(() => {
     return getAllCategories(products);
   }, [products, catRevision]);
+
+  const handleQuickAddCategory = (e) => {
+    e?.preventDefault();
+    if (!newCatInput.trim()) return;
+    const res = addCustomCategory(newCatInput.trim());
+    if (res) {
+      setNewCatInput('');
+      setCatRevision(r => r + 1);
+    }
+  };
+
+  const handleQuickDeleteCategory = (cat) => {
+    const catId = cat.id || cat.key;
+    const count = products.filter(p => p.category === catId || slugifyCategory(p.category || '') === catId).length;
+    
+    if (count > 0) {
+      const confirmMsg = `There are ${count} garment(s) currently linked to "${cat.label}". If deleted, these garments will safely move to a default category. Continue?`;
+      if (!window.confirm(confirmMsg)) return;
+    } else {
+      if (!window.confirm(`Delete category "${cat.label}"?`)) return;
+    }
+
+    deleteCustomCategory(catId);
+
+    const remaining = getAllCategories(products).filter(c => c.id !== catId && c.key !== catId);
+    const fallbackCat = remaining[0]?.id || remaining[0]?.key || 'classic-crewneck';
+
+    if (count > 0 && onUpdateProducts) {
+      const updated = reassignProductsCategory(products, catId, fallbackCat);
+      onUpdateProducts(updated);
+    }
+
+    if (selectedCategory === catId) {
+      setSelectedCategory('all');
+    }
+    setCatRevision(r => r + 1);
+  };
 
   const filteredProducts = products.filter((p) => {
     const title = (p.title || p.name || '').toLowerCase();
@@ -99,6 +139,116 @@ export const ProductsManager = ({
             <Plus size={15} />
             <span>CREATE NEW GARMENT</span>
           </button>
+        </div>
+      </div>
+
+      {/* Category Customizer Banner / Panel */}
+      <div style={{
+        backgroundColor: '#0e0f12',
+        border: '1px solid var(--border-dark)',
+        borderRadius: '4px',
+        padding: '1rem 1.4rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.8rem'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Tag size={15} color="var(--gold-bright, #c5a059)" />
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.08em', color: '#fff', textTransform: 'uppercase' }}>
+              CUSTOMIZE CATEGORIES & SILHOUETTE PILLARS
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+              ({availableCategories.length} categories active)
+            </span>
+          </div>
+
+          {/* Quick Add Input */}
+          <form onSubmit={handleQuickAddCategory} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <input 
+              type="text"
+              placeholder="New category name..."
+              value={newCatInput}
+              onChange={(e) => setNewCatInput(e.target.value)}
+              style={{
+                backgroundColor: '#141518',
+                border: '1px solid var(--border-dark)',
+                color: '#fff',
+                padding: '6px 12px',
+                borderRadius: '2px',
+                fontSize: '0.78rem',
+                outline: 'none',
+                minWidth: '200px'
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!newCatInput.trim()}
+              className="btn-primary-gold"
+              style={{ padding: '6px 12px', fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            >
+              <Plus size={13} />
+              <span>ADD CATEGORY</span>
+            </button>
+          </form>
+        </div>
+
+        {/* Category Chips with Instant Delete Action */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', paddingTop: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>
+            Categories:
+          </span>
+          {availableCategories.map((cat) => {
+            const count = products.filter(p => p.category === cat.id || slugifyCategory(p.category || '') === cat.id).length;
+            return (
+              <div 
+                key={cat.id}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  backgroundColor: selectedCategory === cat.id ? 'rgba(197, 160, 89, 0.18)' : '#141518',
+                  border: selectedCategory === cat.id ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
+                  borderRadius: '20px',
+                  fontSize: '0.76rem',
+                  color: selectedCategory === cat.id ? 'var(--gold-bright)' : '#ffffff'
+                }}
+              >
+                <span 
+                  onClick={() => setSelectedCategory(cat.id)}
+                  style={{ cursor: 'pointer', fontWeight: 500 }}
+                  title={`Filter by ${cat.label}`}
+                >
+                  {cat.label} {count > 0 && `(${count})`}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickDeleteCategory(cat);
+                  }}
+                  title={`Delete category "${cat.label}"`}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(255, 107, 107, 0.7)',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ff4d4d'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 107, 107, 0.7)'}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -211,10 +361,37 @@ export const ProductsManager = ({
                       </td>
 
                       <td>
-                        <strong style={{ color: totalUnits === 0 ? '#ef4444' : totalUnits < 5 ? '#f59e0b' : '#fff' }}>
-                          {totalUnits} Units
-                          {totalUnits === 0 && <span style={{ display: 'block', fontSize: '0.65rem', color: '#ef4444', fontWeight: 700 }}>OUT OF STOCK</span>}
-                        </strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <strong style={{ color: totalUnits === 0 ? '#ef4444' : totalUnits < 5 ? '#f59e0b' : '#fff' }}>
+                            {totalUnits} Units
+                            {totalUnits === 0 && <span style={{ display: 'block', fontSize: '0.65rem', color: '#ef4444', fontWeight: 700 }}>OUT OF STOCK</span>}
+                          </strong>
+                          {onToggleStock && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const isCurrentlyOut = totalUnits === 0 || product.status === 'Sold Out' || product.isOutOfStock === true;
+                                onToggleStock(product.id, isCurrentlyOut);
+                              }}
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '0.66rem',
+                                fontWeight: 700,
+                                borderRadius: '2px',
+                                cursor: 'pointer',
+                                border: (totalUnits === 0 || product.status === 'Sold Out' || product.isOutOfStock === true) ? '1px solid var(--gold-bright)' : '1px solid rgba(239, 68, 68, 0.4)',
+                                backgroundColor: (totalUnits === 0 || product.status === 'Sold Out' || product.isOutOfStock === true) ? 'rgba(197, 160, 89, 0.15)' : 'rgba(239, 68, 68, 0.12)',
+                                color: (totalUnits === 0 || product.status === 'Sold Out' || product.isOutOfStock === true) ? 'var(--gold-bright)' : '#f87171',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s ease'
+                              }}
+                              title={totalUnits === 0 ? 'Click to restock piece (+25 units)' : 'Click to immediately mark as Out of Stock (Sold Out)'}
+                            >
+                              {(totalUnits === 0 || product.status === 'Sold Out' || product.isOutOfStock === true) ? '↺ RESTOCK (+25)' : '✕ SET OUT OF STOCK'}
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       <td>
@@ -301,6 +478,7 @@ export const ProductsManager = ({
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         products={products}
+        onUpdateProducts={onUpdateProducts}
         onCategoriesChanged={() => setCatRevision(r => r + 1)}
       />
     </div>

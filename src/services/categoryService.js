@@ -7,12 +7,49 @@
 const API_BASE = (import.meta.env?.VITE_API_BASE_URL || 'https://web-app-backend-production-19db.up.railway.app/api').replace(/\/+$/, '');
 const STORAGE_KEY = 'elvany_store_categories';
 const LEGACY_STORAGE_KEY = 'elvany_custom_categories';
+const DELETED_STORAGE_KEY = 'elvany_deleted_categories';
 
 export const INITIAL_DEFAULT_CATEGORIES = [
   { id: 'classic-crewneck', key: 'classic-crewneck', label: 'Classic Crewneck', isCustom: false },
   { id: 'relaxed-fit', key: 'relaxed-fit', label: 'Relaxed Fit', isCustom: false },
   { id: 'oversized', key: 'oversized', label: 'Oversized', isCustom: false }
 ];
+
+/**
+ * Deleted categories blacklist retrieval & mutation
+ */
+export function getDeletedCategoryKeys() {
+  try {
+    const raw = localStorage.getItem(DELETED_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return new Set(parsed);
+    }
+  } catch {}
+  return new Set();
+}
+
+export function markCategoryDeleted(idOrKey) {
+  if (!idOrKey) return;
+  const key = formatCategoryKey(idOrKey);
+  const deletedSet = getDeletedCategoryKeys();
+  deletedSet.add(idOrKey);
+  if (key) deletedSet.add(key);
+  try {
+    localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(Array.from(deletedSet)));
+  } catch {}
+}
+
+export function unmarkCategoryDeleted(idOrKey) {
+  if (!idOrKey) return;
+  const key = formatCategoryKey(idOrKey);
+  const deletedSet = getDeletedCategoryKeys();
+  deletedSet.delete(idOrKey);
+  if (key) deletedSet.delete(key);
+  try {
+    localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(Array.from(deletedSet)));
+  } catch {}
+}
 
 /**
  * Format label into slug key
@@ -133,6 +170,8 @@ export function addCustomCategory(label) {
   if (!cleanLabel) return null;
 
   const key = formatCategoryKey(cleanLabel);
+  unmarkCategoryDeleted(key);
+  unmarkCategoryDeleted(cleanLabel);
   const current = getStoredCategories();
 
   const existing = current.find(
@@ -182,6 +221,7 @@ export function updateCustomCategory(idOrKey, newLabel) {
  */
 export function deleteCustomCategory(idOrKey) {
   if (!idOrKey) return false;
+  markCategoryDeleted(idOrKey);
   const current = getStoredCategories();
   const filtered = current.filter(c => c.id !== idOrKey && c.key !== idOrKey);
   persistCategories(filtered);
@@ -195,31 +235,60 @@ export function deleteCustomCategory(idOrKey) {
 }
 
 /**
+ * Reassign any products linked to oldCatId to targetCatId
+ */
+export function reassignProductsCategory(products = [], oldCatId, targetCatId = 'classic-crewneck') {
+  if (!Array.isArray(products) || !oldCatId) return products;
+  const oldKey = formatCategoryKey(oldCatId);
+  const updated = products.map(p => {
+    const pCat = p.category || '';
+    const pKey = formatCategoryKey(pCat);
+    if (pCat === oldCatId || pKey === oldKey || pCat === oldKey) {
+      return { ...p, category: targetCatId };
+    }
+    return p;
+  });
+  try {
+    localStorage.setItem('elvany_catalog_cache', JSON.stringify(updated));
+  } catch {}
+  return updated;
+}
+
+/**
  * Get all available categories:
- * Merges stored categories with any category found on live products so no category is ever orphaned.
+ * Merges stored categories with any category found on live products, respecting deleted category blacklist.
  */
 export function getAllCategories(products = []) {
   const map = new Map();
+  const deletedKeys = getDeletedCategoryKeys();
 
   // 1. Load Stored Categories (User configured / custom + defaults)
   const stored = getStoredCategories();
   stored.forEach(c => {
     const k = c.key || c.id;
-    map.set(k, {
-      id: k,
-      key: k,
-      label: c.label || formatCategoryLabel(k),
-      isCustom: c.isCustom !== false
-    });
+    if (!deletedKeys.has(k) && !deletedKeys.has(c.id) && !deletedKeys.has(formatCategoryKey(c.label || ''))) {
+      map.set(k, {
+        id: k,
+        key: k,
+        label: c.label || formatCategoryLabel(k),
+        isCustom: c.isCustom !== false
+      });
+    }
   });
 
-  // 2. Discover any categories from live product catalog
+  // 2. Discover any categories from live product catalog (excluding deleted)
   if (Array.isArray(products)) {
     products.forEach(p => {
       const rawCat = p.category;
       if (rawCat && rawCat !== 'all') {
         const catKey = formatCategoryKey(rawCat);
-        if (catKey && !map.has(catKey) && !map.has(rawCat)) {
+        if (
+          catKey && 
+          !deletedKeys.has(catKey) && 
+          !deletedKeys.has(rawCat) && 
+          !map.has(catKey) && 
+          !map.has(rawCat)
+        ) {
           const readable = formatCategoryLabel(rawCat);
           map.set(catKey, {
             id: catKey,
@@ -229,6 +298,16 @@ export function getAllCategories(products = []) {
           });
         }
       }
+    });
+  }
+
+  // Ensure at least one default category remains if all were deleted
+  if (map.size === 0) {
+    map.set('classic-crewneck', {
+      id: 'classic-crewneck',
+      key: 'classic-crewneck',
+      label: 'Classic Crewneck',
+      isCustom: false
     });
   }
 

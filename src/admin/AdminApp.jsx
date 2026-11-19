@@ -81,13 +81,15 @@ export const AdminApp = ({
     }
   }, [popupAdSettings]);
 
-  const handleSavePopupAd = (updatedSettings) => {
+  const handleSavePopupAd = async (updatedSettings) => {
     setLocalPopupAd(updatedSettings);
     localStorage.setItem('elvany_popup_ad_settings', JSON.stringify(updatedSettings));
     if (onUpdatePopupAdSettings) {
       onUpdatePopupAdSettings(updatedSettings);
     }
-    showToast('Entrance popup advertisement updated!');
+    await savePopupAdSettings(updatedSettings);
+    window.dispatchEvent(new CustomEvent('elvany_popup_ad_updated', { detail: updatedSettings }));
+    showToast(`Entrance popup advertisement ${updatedSettings.enabled ? 'activated' : 'deactivated'}!`);
   };
 
 
@@ -455,20 +457,34 @@ export const AdminApp = ({
   const handleSaveProduct = async (savedData) => {
     try {
       const persisted = await saveProduct(savedData);
-      const isSoldOut = savedData.status === 'Sold Out' || savedData.status === 'Archived' || savedData.totalStock === 0;
+      const isSoldOut = savedData.status === 'Sold Out' || 
+        savedData.status === 'Archived' || 
+        savedData.status === 'Out of Stock' ||
+        savedData.isOutOfStock === true || 
+        savedData.inStock === false ||
+        savedData.totalStock === 0;
+
+      const cleanInv = {};
+      Object.entries(savedData.inventory || persisted.inventory || {}).forEach(([k, v]) => {
+        cleanInv[k] = isSoldOut ? 0 : Math.max(0, Number(v) || 0);
+      });
+
       const mergedProduct = {
-        ...savedData,
         ...persisted,
+        ...savedData,
         status: isSoldOut ? (savedData.status === 'Archived' ? 'Archived' : 'Sold Out') : (savedData.status || 'Active'),
         isOutOfStock: isSoldOut,
-        inStock: !isSoldOut
+        inStock: !isSoldOut,
+        totalStock: isSoldOut ? 0 : Object.values(cleanInv).reduce((a, b) => a + Number(b), 0),
+        inventory: cleanInv
       };
 
       if (editingProduct) {
         setProducts(prev => {
-          const next = prev.map(p => p.id === savedData.id ? mergedProduct : p);
+          const next = prev.map(p => (p.id === savedData.id || String(p.id) === String(savedData.id)) ? mergedProduct : p);
           if (onUpdateProducts) onUpdateProducts(next);
           try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
+          try { window.dispatchEvent(new CustomEvent('elvany_catalog_updated', { detail: next })); } catch {}
           return next;
         });
         showToast(`Garment "${savedData.title}" updated in database.`);
@@ -477,12 +493,49 @@ export const AdminApp = ({
           const next = [mergedProduct, ...prev];
           if (onUpdateProducts) onUpdateProducts(next);
           try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
+          try { window.dispatchEvent(new CustomEvent('elvany_catalog_updated', { detail: next })); } catch {}
           return next;
         });
         showToast(`New garment "${savedData.title}" added to catalog.`);
       }
     } catch (err) {
       console.warn('Database product save error:', err);
+    }
+  };
+
+  const handleToggleStock = async (productId, currentIsOutOfStock) => {
+    const targetProduct = products.find(p => p.id === productId || String(p.id) === String(productId));
+    if (!targetProduct) return;
+
+    const willBeOutOfStock = !currentIsOutOfStock;
+    const cleanInv = {};
+    const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+    defaultSizes.forEach(s => {
+      cleanInv[s] = willBeOutOfStock ? 0 : (targetProduct.inventory?.[s] > 0 ? targetProduct.inventory[s] : 5);
+    });
+
+    const updatedProduct = {
+      ...targetProduct,
+      status: willBeOutOfStock ? 'Sold Out' : 'Active',
+      isOutOfStock: willBeOutOfStock,
+      inStock: !willBeOutOfStock,
+      totalStock: willBeOutOfStock ? 0 : Object.values(cleanInv).reduce((a, b) => a + Number(b), 0),
+      inventory: cleanInv
+    };
+
+    setProducts(prev => {
+      const next = prev.map(p => (p.id === productId || String(p.id) === String(productId)) ? updatedProduct : p);
+      if (onUpdateProducts) onUpdateProducts(next);
+      try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(next)); } catch {}
+      try { window.dispatchEvent(new CustomEvent('elvany_catalog_updated', { detail: next })); } catch {}
+      return next;
+    });
+
+    showToast(`"${targetProduct.title}" marked as ${willBeOutOfStock ? 'Out of Stock (Sold Out)' : 'In Stock (Live)'}.`);
+    try {
+      await saveProduct(updatedProduct);
+    } catch (err) {
+      console.warn('Stock toggle save notice:', err);
     }
   };
 
@@ -804,6 +857,7 @@ export const AdminApp = ({
         activeTab={activeTab}
         onSelectTab={(tabId) => {
           setActiveTab(tabId);
+          document.querySelector('.admin-main-container')?.scrollTo({ top: 0, behavior: 'smooth' });
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onGoToStore={() => navigate('/')}
@@ -905,9 +959,15 @@ export const AdminApp = ({
               {activeTab === 'products' && (
                 <ProductsManager
                   products={products}
+                  onUpdateProducts={(updatedProducts) => {
+                    setProducts(updatedProducts);
+                    if (onUpdateProducts) onUpdateProducts(updatedProducts);
+                    try { localStorage.setItem('elvany_catalog_cache', JSON.stringify(updatedProducts)); } catch {}
+                  }}
                   onOpenModal={handleOpenProductModal}
                   onDeleteProduct={handleDeleteProduct}
                   onToggleStatus={handleToggleProductStatus}
+                  onToggleStock={handleToggleStock}
                 />
               )}
 

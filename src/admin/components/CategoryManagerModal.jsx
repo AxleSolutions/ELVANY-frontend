@@ -6,6 +6,7 @@ import {
   addCustomCategory, 
   updateCustomCategory, 
   deleteCustomCategory,
+  reassignProductsCategory,
   slugifyCategory 
 } from '../../services/categoryService';
 
@@ -13,7 +14,8 @@ export const CategoryManagerModal = ({
   isOpen, 
   onClose, 
   products = [], 
-  onCategoriesChanged 
+  onCategoriesChanged,
+  onUpdateProducts 
 }) => {
   const [categories, setCategories] = useState(() => getAllCategories(products));
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -43,7 +45,11 @@ export const CategoryManagerModal = ({
     const res = addCustomCategory(newCategoryName.trim());
     if (res) {
       setNewCategoryName('');
-      refreshCategories();
+      const updated = getAllCategories(products);
+      setCategories(updated);
+      if (onCategoriesChanged) {
+        onCategoriesChanged(updated);
+      }
       showToast(`Category "${res.label}" created successfully.`);
     }
   };
@@ -58,7 +64,11 @@ export const CategoryManagerModal = ({
     updateCustomCategory(catId, editingLabel.trim());
     setEditingId(null);
     setEditingLabel('');
-    refreshCategories();
+    const updated = getAllCategories(products);
+    setCategories(updated);
+    if (onCategoriesChanged) {
+      onCategoriesChanged(updated);
+    }
     showToast('Category renamed successfully.');
   };
 
@@ -67,13 +77,28 @@ export const CategoryManagerModal = ({
     const count = products.filter(p => p.category === catId || slugifyCategory(p.category || '') === catId).length;
     
     if (count > 0) {
-      const confirmMsg = `There are currently ${count} garment(s) linked to "${cat.label}". Are you sure you want to remove this category?`;
+      const confirmMsg = `There are currently ${count} garment(s) linked to "${cat.label}". If removed, these garments will be safely moved to a default category. Continue?`;
       if (!window.confirm(confirmMsg)) return;
+    } else {
+      if (!window.confirm(`Are you sure you want to delete category "${cat.label}"?`)) return;
     }
 
     deleteCustomCategory(catId);
-    refreshCategories();
-    showToast(`Category "${cat.label}" removed.`);
+    
+    // Reassign any existing products to a remaining category
+    const remaining = getAllCategories(products).filter(c => c.id !== catId && c.key !== catId);
+    const fallbackCat = remaining[0]?.id || remaining[0]?.key || 'classic-crewneck';
+    
+    if (count > 0 && onUpdateProducts) {
+      const updatedProducts = reassignProductsCategory(products, catId, fallbackCat);
+      onUpdateProducts(updatedProducts);
+    }
+
+    setCategories(remaining);
+    if (onCategoriesChanged) {
+      onCategoriesChanged(remaining);
+    }
+    showToast(`Category "${cat.label}" permanently deleted.`);
   };
 
   return (

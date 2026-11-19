@@ -205,6 +205,29 @@ export function App() {
     };
     window.addEventListener('elvany_popup_ad_updated', handlePopupAdSync);
 
+    // Listen for live catalog & stock updates from Admin panel
+    const handleCatalogSync = (e) => {
+      if (Array.isArray(e.detail)) {
+        setProductsList(e.detail);
+      } else if (e.detail && e.detail.id) {
+        setProductsList(prev => prev.map(p => (p.id === e.detail.id || String(p.id) === String(e.detail.id)) ? { ...p, ...e.detail } : p));
+      }
+    };
+    window.addEventListener('elvany_catalog_updated', handleCatalogSync);
+
+    // Cross-tab real-time sync via storage event
+    const handleStorageChange = (e) => {
+      if (e.key === 'elvany_catalog_cache' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProductsList(parsed);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     // Listen for order placements and status updates to instantly refresh client orders
     const handleOrderSync = async () => {
       try {
@@ -219,6 +242,8 @@ export function App() {
 
     return () => {
       window.removeEventListener('elvany_popup_ad_updated', handlePopupAdSync);
+      window.removeEventListener('elvany_catalog_updated', handleCatalogSync);
+      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('elvany_order_placed', handleOrderSync);
       window.removeEventListener('elvany_order_updated', handleOrderSync);
     };
