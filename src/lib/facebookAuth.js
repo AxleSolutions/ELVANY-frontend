@@ -18,8 +18,10 @@ export function initFacebookSdk() {
         window.FB.init({
           appId: appId,
           cookie: true,
-          xfbml: true,
-          version: 'v19.0'
+          xfbml: false,
+          version: 'v19.0',
+          autoLogAppEvents: false,
+          status: false
         });
       }
       resolve(window.FB);

@@ -322,7 +322,7 @@ export const CollectionPage = ({
                 className="product-card"
                 style={{
                   backgroundColor: '#121316',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
                   minHeight: '380px',
                   display: 'flex',
                   flexDirection: 'column',

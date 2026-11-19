@@ -1701,8 +1701,111 @@ img {
   font-weight: 300;
 }
 
-.collection-grid-container {
-  padding-top: 3.5rem;
+/* =========================================================================
+   PROMOTIONS PRIVILEGE CAROUSEL CONTROLS (DESKTOP & MOBILE ADJUSTMENTS)
+   ========================================================================= */
+.promotions-carousel-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+.promotions-nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.promotions-nav-btn:hover {
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.promotions-nav-text-mobile {
+  display: none;
+}
+
+.promotions-dashes-container {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .promotions-carousel-controls {
+    margin-top: 1.25rem;
+    padding-top: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .promotions-nav-btn {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    flex: 1 1 0;
+    justify-content: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .promotions-nav-btn:active {
+    border-color: var(--gold-bright);
+    background: rgba(197, 160, 89, 0.15);
+  }
+
+  .promotions-nav-text-desktop {
+    display: none;
+  }
+
+  .promotions-nav-text-mobile {
+    display: inline;
+    font-weight: 600;
+  }
+
+  .promotions-dashes-container {
+    gap: 0.4rem;
+    flex-shrink: 0;
+    padding: 0 0.25rem;
+  }
+
+  .promotions-dashes-container button {
+    height: 3px !important;
+  }
+}
+
+/* =========================================================================
+   DISTINCT WHITE PRODUCT CARD BORDERS FOR CLEAR CUSTOMER SEPARATION
+   ========================================================================= */
+.featured-tees-section .product-card {
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featured-tees-section .product-card:hover {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+
+@media (max-width: 768px) {
+  .featured-tees-section .product-card {
+    border: 1.5px solid rgba(255, 255, 255, 0.36) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55) !important;
+  }
 }
 
 /* =========================================================================

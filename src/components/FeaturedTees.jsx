@@ -58,7 +58,7 @@ export const FeaturedTees = ({
                 className="product-card"
                 style={{
                   backgroundColor: '#121316',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
                   minHeight: '400px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -128,7 +128,13 @@ export const FeaturedTees = ({
                   key={product.id} 
                   className="product-card"
                   onClick={() => onSelectProduct(product)}
-                  style={{ cursor: 'pointer', backgroundColor: '#121316', border: '1px solid var(--border-dark)', opacity: isOutOfStock ? 0.75 : 1 }}
+                  style={{ 
+                    cursor: 'pointer', 
+                    backgroundColor: '#121316', 
+                    border: '1px solid rgba(255, 255, 255, 0.28)', 
+                    boxShadow: '0 4px 18px rgba(0, 0, 0, 0.45)',
+                    opacity: isOutOfStock ? 0.75 : 1 
+                  }}
                 >
                   <div className="product-image-wrap" style={{ aspectRatio: '3/4' }}>
                     {isOutOfStock ? (

@@ -2184,8 +2184,6 @@ export async function uploadPopupAdImage(file) {
 const LOCAL_RESTOCK_KEY = 'elvany_restock_requests';
 const BACKUP_RESTOCK_KEY = 'elvany_restock_requests_backup';
 
-let hasRestockTable = null;
-
 function getStoredLocalRestockRequests() {
   try {
     const primary = JSON.parse(localStorage.getItem(LOCAL_RESTOCK_KEY) || '[]');
@@ -2205,43 +2203,6 @@ function persistLocalRestockRequests(list) {
     localStorage.setItem(LOCAL_RESTOCK_KEY, json);
     localStorage.setItem(BACKUP_RESTOCK_KEY, json);
   } catch {}
-}
-
-async function syncRestockRequestsToCloud(requests) {
-  if (!isSupabaseConfigured || !supabase || !Array.isArray(requests)) return;
-  try {
-    await supabase
-      .from('promotions')
-      .upsert({
-        code: 'MAISON_RESTOCK_REGISTRY',
-        title: 'Maison Restock and Re-Issue Requests Registry',
-        description: JSON.stringify(requests),
-        is_active: true,
-        discount_type: 'restock_registry',
-        discount_value: 0
-      }, { onConflict: 'code' });
-  } catch (err) {
-    console.warn('Restock cloud registry sync note:', err?.message || err);
-  }
-}
-
-async function getCloudRestockRequests() {
-  if (!isSupabaseConfigured || !supabase) return [];
-  try {
-    const { data, error } = await supabase
-      .from('promotions')
-      .select('description')
-      .eq('code', 'MAISON_RESTOCK_REGISTRY')
-      .maybeSingle();
-
-    if (!error && data?.description) {
-      const parsed = JSON.parse(data.description);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (err) {
-    console.warn('Cloud restock registry query note:', err?.message || err);
-  }
-  return [];
 }
 
 /**
@@ -2265,41 +2226,7 @@ export async function createRestockRequest(payload) {
     createdAt: new Date().toISOString()
   };
 
-  // 1. Try Direct Supabase Insert (only if table is known to exist)
-  if (isSupabaseConfigured && supabase && hasRestockTable !== false) {
-    try {
-      const isProdUuid = isUuid(payload.productId || '');
-      const { data: sbData, error: sbError } = await supabase
-        .from('restock_requests')
-        .insert({
-          product_id: isProdUuid ? payload.productId : null,
-          product_title: normalizedReq.productTitle,
-          product_image: normalizedReq.productImage,
-          variant_color: normalizedReq.variantColor,
-          size_code: normalizedReq.sizeCode,
-          customer_name: normalizedReq.customerName,
-          customer_email: normalizedReq.customerEmail,
-          customer_phone: normalizedReq.customerPhone,
-          notes: normalizedReq.notes,
-          status: normalizedReq.status
-        })
-        .select()
-        .maybeSingle();
-
-      if (sbError) {
-        if (sbError.code === '42P01' || sbError.code === 'PGRST204' || sbError.message?.includes('does not exist')) {
-          hasRestockTable = false;
-        }
-      } else if (sbData) {
-        hasRestockTable = true;
-        normalizedReq.id = sbData.id;
-      }
-    } catch (sbErr) {
-      hasRestockTable = false;
-    }
-  }
-
-  // 2. Persist locally first & broadcast live event
+  // 1. Persist locally first & broadcast live event
   const existing = getStoredLocalRestockRequests();
   const updated = [normalizedReq, ...existing.filter(r => r.id !== normalizedReq.id)];
   persistLocalRestockRequests(updated);
@@ -2308,10 +2235,7 @@ export async function createRestockRequest(payload) {
     window.dispatchEvent(new CustomEvent('elvany_restock_requested', { detail: normalizedReq }));
   } catch {}
 
-  // 3. Sync to Supabase Cloud Registry (guaranteed cloud persistence without 404s)
-  await syncRestockRequestsToCloud(updated);
-
-  // 4. Try Backend API
+  // 2. Persist to Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests`, {
       method: 'POST',
@@ -2340,56 +2264,13 @@ export async function getRestockRequests() {
   const map = new Map();
   localList.forEach(r => { if (r?.id) map.set(r.id, r); });
 
-  // 1. Fetch from Supabase Cloud Registry (reliable, always accessible)
-  try {
-    const cloudRegistry = await getCloudRestockRequests();
-    cloudRegistry.forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
-  } catch {}
-
-  // 2. Try Direct Supabase Query (only if table is not marked missing)
-  if (isSupabaseConfigured && supabase && hasRestockTable !== false) {
-    try {
-      const { data, error } = await supabase
-        .from('restock_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        if (error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('does not exist')) {
-          hasRestockTable = false;
-        }
-      } else if (Array.isArray(data)) {
-        hasRestockTable = true;
-        data.forEach(r => {
-          const item = {
-            id: r.id,
-            productId: r.product_id || null,
-            productTitle: r.product_title || 'Haute Atelier Garment',
-            productImage: r.product_image || '/images/hero_tshirt.webp',
-            variantColor: r.variant_color || 'Onyx Black',
-            sizeCode: cleanSizeCode(r.size_code || 'M'),
-            customerName: r.customer_name || 'VIP Client',
-            customerEmail: r.customer_email || '',
-            customerPhone: r.customer_phone || '',
-            notes: r.notes || '',
-            status: r.status || 'Pending Atelier Review',
-            createdAt: r.created_at || new Date().toISOString()
-          };
-          map.set(item.id, item);
-        });
-      }
-    } catch (sbErr) {
-      hasRestockTable = false;
-    }
-  }
-
-  // 3. Try Backend API
+  // 1. Fetch from Backend API (centralized backend storage, no 404/400 browser errors)
   try {
     const res = await fetch(`${apiUrl}/restock-requests`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        json.data.forEach(r => { if (r?.id && !map.has(r.id)) map.set(r.id, r); });
+        json.data.forEach(r => { if (r?.id) map.set(r.id, r); });
       }
     }
   } catch (apiErr) {
@@ -2416,17 +2297,7 @@ export async function updateRestockRequestStatus(id, status) {
   const updated = existing.map(r => r.id === id ? { ...r, status } : r);
   persistLocalRestockRequests(updated);
 
-  // 2. Sync to Supabase Cloud Registry
-  await syncRestockRequestsToCloud(updated);
-
-  // 3. Try direct Supabase update if table exists
-  if (isSupabaseConfigured && supabase && hasRestockTable) {
-    try {
-      await supabase.from('restock_requests').update({ status }).eq('id', id);
-    } catch {}
-  }
-
-  // 4. Backend API
+  // 2. Backend API
   try {
     const res = await fetch(`${apiUrl}/restock-requests/${id}`, {
       method: 'PATCH',
@@ -2455,17 +2326,7 @@ export async function deleteRestockRequest(id) {
   const updated = existing.filter(r => r.id !== id);
   persistLocalRestockRequests(updated);
 
-  // 2. Sync to Supabase Cloud Registry
-  await syncRestockRequestsToCloud(updated);
-
-  // 3. Try direct Supabase delete if table exists
-  if (isSupabaseConfigured && supabase && hasRestockTable) {
-    try {
-      await supabase.from('restock_requests').delete().eq('id', id);
-    } catch {}
-  }
-
-  // 4. Backend API
+  // 2. Backend API
   try {
     await fetch(`${apiUrl}/restock-requests/${id}`, { method: 'DELETE' });
   } catch (err) {

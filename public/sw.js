@@ -1,5 +1,5 @@
 // Maison ELVANY — Haute Couture Progressive Web App Service Worker
-const CACHE_NAME = 'elvany-pwa-v3';
+const CACHE_NAME = 'elvany-pwa-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -39,34 +39,57 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event: Stale-While-Revalidate for images/fonts, Network-First for APIs
+// Fetch Event: Stale-While-Revalidate for images/fonts, Network-First for same-origin navigation
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Do not intercept non-GET requests or backend API / payment requests
-  if (request.method !== 'GET' || url.pathname.startsWith('/api') || url.hostname.includes('payhere.lk')) {
-    return;
+  // 1. Only intercept same-origin requests or Google Fonts
+  // NEVER intercept third-party APIs/SDKs (Facebook, Supabase, Cloudinary, PayHere, etc.)
+  const isSameOrigin = url.origin === self.location.origin;
+  const isGoogleFont = url.origin.includes('fonts.googleapis.com') || url.origin.includes('fonts.gstatic.com');
+
+  if (
+    request.method !== 'GET' ||
+    (!isSameOrigin && !isGoogleFont) ||
+    url.pathname.startsWith('/api') ||
+    url.hostname.includes('facebook.com') ||
+    url.hostname.includes('facebook.net') ||
+    url.hostname.includes('payhere.lk') ||
+    url.hostname.includes('supabase.co') ||
+    url.hostname.includes('cloudinary.com')
+  ) {
+    return; // Pass through to native browser network handler
   }
 
-  // Google Fonts & Static Assets: Cache-First
-  if (url.origin.includes('fonts.googleapis.com') || url.origin.includes('fonts.gstatic.com') || url.pathname.startsWith('/logo/') || url.pathname.endsWith('.png') || url.pathname.endsWith('.svg')) {
+  // 2. Google Fonts & Static Assets: Cache-First
+  if (
+    isGoogleFont ||
+    url.pathname.startsWith('/logo/') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.webp')
+  ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         if (cachedResponse) return cachedResponse;
-        return fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return networkResponse;
-        });
+        return fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            return new Response('', { status: 408, statusText: 'Network request timed out' });
+          });
       })
     );
     return;
   }
 
-  // General Navigation: Network with Cache Fallback
+  // 3. Same-origin Navigation & Assets: Network with Cache Fallback
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -82,7 +105,7 @@ self.addEventListener('fetch', (event) => {
           if (request.mode === 'navigate') {
             return caches.match('/index.html');
           }
-          return null;
+          return new Response('', { status: 408, statusText: 'Offline or Network Timeout' });
         });
       })
   );

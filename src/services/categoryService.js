@@ -127,47 +127,28 @@ export function getStoredCategories() {
 }
 
 /**
- * Persist categories to local storage cache & sync to backend and Supabase Cloud
+ * Persist categories to local storage cache & sync to backend
  */
 function persistCategories(categories) {
   if (!Array.isArray(categories)) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
     
-    // 1. Asynchronously sync to backend API for multi-client & cloud persistence
+    // Asynchronously sync to backend API for multi-client persistence
     fetch(`${API_BASE}/categories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categories)
     }).catch(err => console.warn('Categories cloud sync note:', err?.message || err));
-
-    // 2. Direct Supabase Cloud persistence via promotions table
-    if (isSupabaseConfigured && supabase) {
-      supabase
-        .from('promotions')
-        .upsert({
-          code: 'STORE_CATEGORIES_CONFIG',
-          title: 'Store Product Categories Configuration',
-          description: JSON.stringify(categories),
-          is_active: true,
-          discount_type: 'category_config',
-          discount_value: 0
-        }, { onConflict: 'code' })
-        .then(({ error }) => {
-          if (error) console.warn('Supabase categories direct sync note:', error.message);
-        })
-        .catch(err => console.warn('Supabase categories direct sync error:', err));
-    }
   } catch (err) {
     console.warn('Failed to persist categories:', err);
   }
 }
 
 /**
- * Fetch categories from backend API or Supabase and update local cache
+ * Fetch categories from backend API and update local cache
  */
 export async function fetchCategories() {
-  // 1. Try Backend API
   try {
     const res = await fetch(`${API_BASE}/categories`);
     if (res.ok) {
@@ -178,28 +159,7 @@ export async function fetchCategories() {
       }
     }
   } catch (err) {
-    console.warn('Failed to fetch categories from server, checking cloud:', err?.message || err);
-  }
-
-  // 2. Try Supabase Cloud direct
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('promotions')
-        .select('*')
-        .eq('code', 'STORE_CATEGORIES_CONFIG')
-        .maybeSingle();
-
-      if (!error && data?.description) {
-        const parsed = JSON.parse(data.description);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-          return parsed;
-        }
-      }
-    } catch (sbErr) {
-      console.warn('Supabase categories query notice:', sbErr);
-    }
+    console.warn('Failed to fetch categories from server, using local cache:', err?.message || err);
   }
 
   return getStoredCategories();

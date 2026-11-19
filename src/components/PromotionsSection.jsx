@@ -326,39 +326,20 @@ export const PromotionsSection = ({
 
         {/* Slide Selector Controls & Segmented Indicators */}
         {activeOffers.length > 1 && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '2rem',
-            paddingTop: '1rem'
-          }}>
+          <div className="promotions-carousel-controls">
             <button
               type="button"
               onClick={handlePrev}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border-dark)',
-                color: '#ffffff',
-                padding: '0.6rem 1.2rem',
-                fontSize: '0.74rem',
-                letterSpacing: '0.12em',
-                borderRadius: '1px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'var(--transition-fast)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--gold-bright)'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-dark)'}
+              className="promotions-nav-btn"
+              title="Previous Atelier Offer"
             >
               <ChevronLeft size={14} />
-              <span>PREVIOUS PIECE OFFER</span>
+              <span className="promotions-nav-text-desktop">PREVIOUS PIECE OFFER</span>
+              <span className="promotions-nav-text-mobile">PREVIOUS</span>
             </button>
 
             {/* Segmented Dashes */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <div className="promotions-dashes-container">
               {activeOffers.map((offer, idx) => (
                 <button
                   key={offer.id}
@@ -367,7 +348,7 @@ export const PromotionsSection = ({
                   style={{
                     width: idx === currentIdx ? '42px' : '16px',
                     height: '4px',
-                    backgroundColor: idx === currentIdx ? 'var(--gold-bright)' : 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: idx === currentIdx ? 'var(--gold-bright)' : 'rgba(255, 255, 255, 0.25)',
                     border: 'none',
                     borderRadius: '2px',
                     cursor: 'pointer',
@@ -382,24 +363,11 @@ export const PromotionsSection = ({
             <button
               type="button"
               onClick={handleNext}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border-dark)',
-                color: '#ffffff',
-                padding: '0.6rem 1.2rem',
-                fontSize: '0.74rem',
-                letterSpacing: '0.12em',
-                borderRadius: '1px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'var(--transition-fast)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--gold-bright)'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-dark)'}
+              className="promotions-nav-btn"
+              title="Next Atelier Offer"
             >
-              <span>NEXT PIECE OFFER</span>
+              <span className="promotions-nav-text-desktop">NEXT PIECE OFFER</span>
+              <span className="promotions-nav-text-mobile">NEXT</span>
               <ChevronRight size={14} />
             </button>
           </div>
