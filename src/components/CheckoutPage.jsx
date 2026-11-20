@@ -2332,10 +2332,7 @@ export const CheckoutPage = ({
                     {rateLimitLock?.isLocked && (
                       <div style={{
                         marginBottom: '0.75rem',
-                        padding: '0.65rem 0.8rem',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.4)',
-                        borderRadius: '3px',
+                        padding: '0.2rem 0',
                         color: '#f87171',
                         fontSize: '0.72rem',
                         display: 'flex',

@@ -46,7 +46,8 @@ export const VouchersManager = ({
     notes: ''
   });
 
-  // Generate Cryptographic High-Entropy Voucher Code (12 chars across 3 blocks = Over 1 Quintillion combinations)
+  // Generate Cryptographic High-Entropy Voucher Code (8 characters across 2 blocks = Over 1.1 Trillion combinations)
+  // Format: ELV-XXXX-XXXX (e.g. ELV-8K3P-4X2W), ultra-clean, memorable and mistake-proof
   const generateRandomCode = (prefix = 'ELV') => {
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32-character unambiguous set (no 0, O, 1, I, L)
     const getChunk = (len = 4) => {
@@ -64,7 +65,7 @@ export const VouchersManager = ({
       }
       return str;
     };
-    return `${prefix}-${getChunk(4)}-${getChunk(4)}-${getChunk(4)}`;
+    return `${prefix}-${getChunk(4)}-${getChunk(4)}`;
   };
 
   const handleOpenCreateModal = () => {

@@ -2902,6 +2902,18 @@ export async function updateBespokeDesign(idOrCode, updateFields = {}) {
  */
 export const LOCAL_VOUCHERS_KEY = 'elvany_vouchers_registry';
 
+/**
+ * Normalizes voucher codes for foolproof matching across any device or format.
+ * Strips all spaces, dashes, punctuation, and converts to uppercase.
+ * Example: "elv-8k3p-4x2w" -> "ELV8K3P4X2W", "ELV 8K3P 4X2W" -> "ELV8K3P4X2W"
+ */
+export const normalizeVoucherCode = (code) => {
+  return String(code || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .trim();
+};
+
 export const getGoogleAppsScriptUrl = () => {
   return import.meta.env.VITE_GOOGLE_EMAIL_ENDPOINT || 'https://script.google.com/macros/s/AKfycbz_XKyqOJ3x72nKUyVfJDCGbyO_U3gWYCe61gxFF2osFWnx7RS29_cdgAqT8J7DX0h7/exec';
 };
@@ -2928,7 +2940,12 @@ export async function getVouchers() {
   } catch {}
 
   const mergedMap = new Map();
-  localVouchers.forEach(v => { if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v); });
+  localVouchers.forEach(v => { 
+    if (v?.code) {
+      const norm = normalizeVoucherCode(v.code);
+      if (norm) mergedMap.set(norm, v);
+    }
+  });
 
   // 1. Try Backend API (Direct Service-Role Access with zero RLS restrictions)
   try {
@@ -2938,7 +2955,10 @@ export async function getVouchers() {
       const json = await apiRes.json();
       if (json.data && Array.isArray(json.data)) {
         json.data.forEach(v => {
-          if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v);
+          if (v?.code) {
+            const norm = normalizeVoucherCode(v.code);
+            if (norm) mergedMap.set(norm, v);
+          }
         });
       }
     }
@@ -2947,21 +2967,48 @@ export async function getVouchers() {
   }
 
   // 2. Try Google Cloud Serverless Engine (Works 24/7 globally across all devices without servers)
+  let googleVoucherCodes = new Set();
+  const googleUrl = getGoogleAppsScriptUrl();
   try {
-    const googleUrl = getGoogleAppsScriptUrl();
     if (googleUrl) {
-      const gRes = await fetch(`${googleUrl}?action=get_vouchers`, { signal: AbortSignal.timeout(4000) });
+      const gRes = await fetch(`${googleUrl}?action=get_vouchers`, { signal: AbortSignal.timeout(4500) });
       if (gRes.ok) {
         const gJson = await gRes.json();
         if (gJson.vouchers && Array.isArray(gJson.vouchers)) {
           gJson.vouchers.forEach(v => {
-            if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v);
+            if (v?.code) {
+              const norm = normalizeVoucherCode(v.code);
+              if (norm) {
+                mergedMap.set(norm, v);
+                googleVoucherCodes.add(norm);
+              }
+            }
           });
         }
       }
     }
   } catch (gErr) {
     // Non-blocking Google Cloud check
+  }
+
+  // Auto-sync any vouchers created locally before script deployment to Google Cloud
+  if (googleUrl && localVouchers.length > 0) {
+    const unsynced = localVouchers.filter(lv => !googleVoucherCodes.has(normalizeVoucherCode(lv.code)));
+    if (unsynced.length > 0) {
+      setTimeout(() => {
+        unsynced.forEach(async (v) => {
+          try {
+            const payload = JSON.stringify({ action: 'save_voucher', voucher: v });
+            await fetch(googleUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: payload
+            }).catch(() => {});
+          } catch {}
+        });
+      }, 300);
+    }
   }
 
   // 3. Try Supabase promotions table directly
@@ -3006,7 +3053,10 @@ export async function getVouchers() {
             usedAt: extra.usedAt || null,
             createdAt: p.created_at
           };
-          if (v.code) mergedMap.set(v.code, v);
+          if (v.code) {
+            const norm = normalizeVoucherCode(v.code);
+            if (norm) mergedMap.set(norm, v);
+          }
         });
       }
     } catch (err) {
@@ -3098,12 +3148,23 @@ export async function saveVoucher(voucherData) {
   try {
     const googleUrl = getGoogleAppsScriptUrl();
     if (googleUrl) {
-      await fetch(googleUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'save_voucher', voucher: finalVoucher }),
-        signal: AbortSignal.timeout(4500)
-      });
+      const payloadStr = JSON.stringify({ action: 'save_voucher', voucher: finalVoucher });
+      try {
+        await fetch(googleUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payloadStr,
+          signal: AbortSignal.timeout(4500)
+        });
+      } catch (corsErr) {
+        // Fallback to mode: 'no-cors' if browser restricts 302 cross-origin redirect
+        await fetch(googleUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payloadStr
+        });
+      }
     }
   } catch (gErr) {
     console.warn('Google Cloud save_voucher notice:', gErr);
@@ -3194,12 +3255,22 @@ export async function deleteVoucher(voucherId, voucherCode) {
   try {
     const googleUrl = getGoogleAppsScriptUrl();
     if (googleUrl && cleanCode) {
-      await fetch(googleUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'delete_voucher', code: cleanCode, id: voucherId }),
-        signal: AbortSignal.timeout(4000)
-      });
+      const payloadStr = JSON.stringify({ action: 'delete_voucher', code: cleanCode, id: voucherId });
+      try {
+        await fetch(googleUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payloadStr,
+          signal: AbortSignal.timeout(4000)
+        });
+      } catch (corsErr) {
+        await fetch(googleUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: payloadStr
+        });
+      }
     }
   } catch (gErr) {}
 
@@ -3313,8 +3384,17 @@ export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmai
   }
 
   const cleanCode = inputCode.trim().toUpperCase();
+  const normInput = normalizeVoucherCode(inputCode);
+  if (!normInput) {
+    return { valid: false, error: 'Please enter a valid voucher code.' };
+  }
+
   const allVouchers = await getVouchers();
-  const voucher = allVouchers.find(v => v.code === cleanCode);
+  const voucher = allVouchers.find(v => {
+    if (!v?.code) return false;
+    const normStored = normalizeVoucherCode(v.code);
+    return normStored === normInput || v.code.toUpperCase().trim() === cleanCode;
+  });
 
   if (!voucher) {
     const attemptResult = recordVoucherFailedAttempt();
@@ -3419,8 +3499,12 @@ export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmai
 export async function redeemVoucher(code, orderId, customerEmail = '') {
   if (!code) return false;
   const cleanCode = code.trim().toUpperCase();
+  const normTarget = normalizeVoucherCode(code);
   const all = await getVouchers();
-  const found = all.find(v => v.code === cleanCode);
+  const found = all.find(v => {
+    if (!v?.code) return false;
+    return normalizeVoucherCode(v.code) === normTarget || v.code.toUpperCase().trim() === cleanCode;
+  });
 
   const updatedVoucher = {
     ...(found || { code: cleanCode }),
