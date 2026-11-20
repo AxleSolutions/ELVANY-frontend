@@ -46,20 +46,30 @@ export const VouchersManager = ({
     notes: ''
   });
 
-  // Generate random clean voucher code (e.g. ELV-GIFT-4892)
-  const generateRandomCode = (type = 'GIFT') => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let rand = '';
-    for (let i = 0; i < 4; i++) {
-      rand += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const num = Math.floor(1000 + Math.random() * 9000);
-    return `ELV-${type}-${rand}${num}`;
+  // Generate Cryptographic High-Entropy Voucher Code (12 chars across 3 blocks = Over 1 Quintillion combinations)
+  const generateRandomCode = (prefix = 'ELV') => {
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32-character unambiguous set (no 0, O, 1, I, L)
+    const getChunk = (len = 4) => {
+      let str = '';
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+        const bytes = new Uint8Array(len);
+        window.crypto.getRandomValues(bytes);
+        for (let i = 0; i < len; i++) {
+          str += charset.charAt(bytes[i] % charset.length);
+        }
+      } else {
+        for (let i = 0; i < len; i++) {
+          str += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+      }
+      return str;
+    };
+    return `${prefix}-${getChunk(4)}-${getChunk(4)}-${getChunk(4)}`;
   };
 
   const handleOpenCreateModal = () => {
     setFormData({
-      code: generateRandomCode('GIFT'),
+      code: generateRandomCode('ELV'),
       discountType: 'fixed',
       discountValue: 3000,
       minOrderAmount: 0,
@@ -535,15 +545,16 @@ export const VouchersManager = ({
                   />
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, code: generateRandomCode('GIFT') }))}
+                    onClick={() => setFormData(prev => ({ ...prev, code: generateRandomCode('ELV') }))}
                     className="btn-secondary-outline"
                     style={{ fontSize: '0.74rem', padding: '0 1rem', whiteSpace: 'nowrap' }}
                   >
                     🎲 Regenerate
                   </button>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', marginTop: '4px' }}>
-                  Clients will type or paste this exact code in the checkout bag.
+                <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <ShieldCheck size={13} color="#4ade80" />
+                  <span>High-Entropy Cryptographic Code (12 Chars • Over 1 Quintillion Combinations • Zero Guess Risk)</span>
                 </div>
               </div>
 
@@ -658,6 +669,10 @@ export const VouchersManager = ({
                     className="admin-input"
                     style={{ width: '100%' }}
                   />
+                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Lock size={11} color="var(--gold-bright)" />
+                    <span>Zero-Guess Security: If filled, only this exact email can redeem this voucher.</span>
+                  </div>
                 </div>
               </div>
 

@@ -33,11 +33,12 @@ import {
   Maximize2,
   CreditCard,
   Tag,
-  Ticket
+  Ticket,
+  ShieldAlert
 } from 'lucide-react';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
-import { validateVoucher, redeemVoucher } from '../services/dbService';
+import { validateVoucher, redeemVoucher, getVoucherRateLimitStatus } from '../services/dbService';
 import { 
   getPayHereParameters, 
   launchPayHerePayment, 
@@ -142,6 +143,23 @@ export const CheckoutPage = ({
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [voucherError, setVoucherError] = useState('');
   const [isCheckingVoucher, setIsCheckingVoucher] = useState(false);
+  const [rateLimitLock, setRateLimitLock] = useState(() => getVoucherRateLimitStatus());
+
+  // Monitor Rate Limit Status
+  useEffect(() => {
+    const status = getVoucherRateLimitStatus();
+    setRateLimitLock(status);
+  }, []);
+
+  // Strict Client Email Guard: Detach voucher if email changed away from assigned recipient
+  useEffect(() => {
+    if (appliedVoucher?.recipientEmail && email) {
+      if (email.trim().toLowerCase() !== appliedVoucher.recipientEmail.trim().toLowerCase()) {
+        setAppliedVoucher(null);
+        setVoucherError(`Voucher "${appliedVoucher.code}" was unlinked because checkout email was modified.`);
+      }
+    }
+  }, [email, appliedVoucher]);
 
   // Auto-scroll to top when switching checkout steps or confirming order
   useEffect(() => {
@@ -319,7 +337,7 @@ export const CheckoutPage = ({
   const deliveryFee = calculateDeliveryFee(subtotal, city);
   const baseOrderTotal = discountedSubtotal + deliveryFee;
 
-  // Handle Voucher Application & Verification
+  // Handle Voucher Application & Verification with Rate-Limiting Protection
   const handleApplyVoucher = async (e) => {
     if (e) e.preventDefault();
     const cleanCode = voucherInput.trim().toUpperCase();
@@ -327,15 +345,26 @@ export const CheckoutPage = ({
       setVoucherError('Please enter a voucher code');
       return;
     }
+
+    const currentThrottle = getVoucherRateLimitStatus();
+    if (currentThrottle.isLocked) {
+      setRateLimitLock(currentThrottle);
+      setVoucherError(`Security Lockout Active: Too many failed attempts. Voucher entry is locked for ${currentThrottle.remainingMinutes} more minute(s).`);
+      return;
+    }
+
     setVoucherError('');
     setIsCheckingVoucher(true);
     try {
       const res = await validateVoucher(cleanCode, subtotal, email);
+      const updatedThrottle = getVoucherRateLimitStatus();
+      setRateLimitLock(updatedThrottle);
+
       if (res.valid) {
         setAppliedVoucher(res.voucher);
         setVoucherError('');
       } else {
-        setVoucherError(res.message || 'Invalid or expired voucher code.');
+        setVoucherError(res.error || res.message || 'Invalid or expired voucher code.');
       }
     } catch (err) {
       setVoucherError('Unable to validate voucher. Please try again.');
@@ -2300,11 +2329,35 @@ export const CheckoutPage = ({
                   </div>
                 ) : (
                   <div>
+                    {rateLimitLock?.isLocked && (
+                      <div style={{
+                        marginBottom: '0.75rem',
+                        padding: '0.65rem 0.8rem',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        borderRadius: '3px',
+                        color: '#f87171',
+                        fontSize: '0.72rem',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '7px'
+                      }}>
+                        <ShieldAlert size={15} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#ef4444', marginBottom: '2px' }}>
+                            SECURITY LOCKOUT ACTIVE
+                          </strong>
+                          <span>Voucher verification locked for {rateLimitLock.remainingMinutes} min due to 5 failed attempts. Please contact concierge support if needed.</span>
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <input
                         type="text"
                         placeholder="ENTER VOUCHER CODE"
                         value={voucherInput}
+                        disabled={rateLimitLock?.isLocked}
                         onChange={(e) => {
                           setVoucherInput(e.target.value.toUpperCase());
                           if (voucherError) setVoucherError('');
@@ -2312,37 +2365,38 @@ export const CheckoutPage = ({
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            handleApplyVoucher();
+                            if (!rateLimitLock?.isLocked) handleApplyVoucher();
                           }
                         }}
                         style={{
                           flex: 1,
-                          backgroundColor: '#07080a',
+                          backgroundColor: rateLimitLock?.isLocked ? '#121316' : '#07080a',
                           border: voucherError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.15)',
                           borderRadius: '2px',
                           padding: '0.55rem 0.75rem',
-                          color: '#ffffff',
+                          color: rateLimitLock?.isLocked ? 'rgba(255,255,255,0.3)' : '#ffffff',
                           fontSize: '0.76rem',
                           letterSpacing: '0.08em',
                           textTransform: 'uppercase',
                           fontFamily: 'inherit',
-                          outline: 'none'
+                          outline: 'none',
+                          cursor: rateLimitLock?.isLocked ? 'not-allowed' : 'text'
                         }}
                       />
                       <button
                         type="button"
                         onClick={handleApplyVoucher}
-                        disabled={isCheckingVoucher || !voucherInput.trim()}
+                        disabled={isCheckingVoucher || !voucherInput.trim() || rateLimitLock?.isLocked}
                         style={{
-                          backgroundColor: voucherInput.trim() ? '#c5a059' : 'rgba(255,255,255,0.08)',
-                          color: voucherInput.trim() ? '#000000' : 'rgba(255,255,255,0.4)',
+                          backgroundColor: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#c5a059' : 'rgba(255,255,255,0.08)',
+                          color: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#000000' : 'rgba(255,255,255,0.4)',
                           border: 'none',
                           borderRadius: '2px',
                           padding: '0.55rem 1rem',
                           fontSize: '0.74rem',
                           fontWeight: 700,
                           letterSpacing: '0.06em',
-                          cursor: voucherInput.trim() && !isCheckingVoucher ? 'pointer' : 'not-allowed',
+                          cursor: (voucherInput.trim() && !isCheckingVoucher && !rateLimitLock?.isLocked) ? 'pointer' : 'not-allowed',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
@@ -2357,7 +2411,7 @@ export const CheckoutPage = ({
                       </button>
                     </div>
 
-                    {voucherError && (
+                    {voucherError && !rateLimitLock?.isLocked && (
                       <div style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <AlertCircle size={12} />
                         <span>{voucherError}</span>

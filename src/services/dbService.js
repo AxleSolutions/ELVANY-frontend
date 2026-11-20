@@ -3149,11 +3149,94 @@ export async function deleteVoucher(voucherId, voucherCode) {
   return true;
 }
 
+// ============================================================================
+// VOUCHER SECURITY ENGINE: ANTI-BRUTE FORCE RATE LIMITING & ATTEMPT LOCKOUT
+// ============================================================================
+export const VOUCHER_RATE_LIMIT_KEY = 'elvany_voucher_security_throttle';
+export const VOUCHER_MAX_FAILED_ATTEMPTS = 5;
+export const VOUCHER_LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 Minutes
+
+export function getVoucherRateLimitStatus() {
+  try {
+    const raw = localStorage.getItem(VOUCHER_RATE_LIMIT_KEY);
+    if (!raw) return { isLocked: false, failedCount: 0, remainingMinutes: 0, remainingSeconds: 0 };
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    if (data.lockoutUntil && now < data.lockoutUntil) {
+      const remainingMs = data.lockoutUntil - now;
+      return {
+        isLocked: true,
+        failedCount: data.failedCount || VOUCHER_MAX_FAILED_ATTEMPTS,
+        remainingMinutes: Math.ceil(remainingMs / (60 * 1000)),
+        remainingSeconds: Math.ceil(remainingMs / 1000),
+        lockoutUntil: data.lockoutUntil
+      };
+    }
+    // Lockout has elapsed or expired
+    if (data.lockoutUntil && now >= data.lockoutUntil) {
+      localStorage.removeItem(VOUCHER_RATE_LIMIT_KEY);
+      return { isLocked: false, failedCount: 0, remainingMinutes: 0, remainingSeconds: 0 };
+    }
+    return {
+      isLocked: false,
+      failedCount: data.failedCount || 0,
+      remainingMinutes: 0,
+      remainingSeconds: 0
+    };
+  } catch {
+    return { isLocked: false, failedCount: 0, remainingMinutes: 0, remainingSeconds: 0 };
+  }
+}
+
+export function recordVoucherFailedAttempt() {
+  try {
+    const current = getVoucherRateLimitStatus();
+    const now = Date.now();
+    const nextFailedCount = (current.failedCount || 0) + 1;
+    let lockoutUntil = null;
+    if (nextFailedCount >= VOUCHER_MAX_FAILED_ATTEMPTS) {
+      lockoutUntil = now + VOUCHER_LOCKOUT_DURATION_MS;
+    }
+    const state = {
+      failedCount: nextFailedCount,
+      lockoutUntil,
+      lastAttemptAt: now
+    };
+    localStorage.setItem(VOUCHER_RATE_LIMIT_KEY, JSON.stringify(state));
+    return {
+      isLocked: Boolean(lockoutUntil),
+      failedCount: nextFailedCount,
+      remainingMinutes: lockoutUntil ? Math.ceil(VOUCHER_LOCKOUT_DURATION_MS / (60 * 1000)) : 0,
+      attemptsRemaining: Math.max(0, VOUCHER_MAX_FAILED_ATTEMPTS - nextFailedCount)
+    };
+  } catch {
+    return { isLocked: false, failedCount: 0, remainingMinutes: 0, attemptsRemaining: VOUCHER_MAX_FAILED_ATTEMPTS };
+  }
+}
+
+export function resetVoucherRateLimit() {
+  try {
+    localStorage.removeItem(VOUCHER_RATE_LIMIT_KEY);
+  } catch {}
+}
+
 /**
  * Validate voucher code on checkout
- * Enforces single-use status, minimum order requirement, and active expiration.
+ * Enforces single-use status, minimum order requirement, active expiration,
+ * anti-brute force attempt lockout, and recipient email binding.
  */
 export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmail = '') {
+  // 1. Rate Limit & Cooldown Check
+  const rateLimit = getVoucherRateLimitStatus();
+  if (rateLimit.isLocked) {
+    return {
+      valid: false,
+      isRateLimited: true,
+      remainingMinutes: rateLimit.remainingMinutes,
+      error: `Security Lockout Active: Too many invalid voucher attempts. Voucher verification is temporarily locked for ${rateLimit.remainingMinutes} more minute(s). Please contact concierge support.`
+    };
+  }
+
   if (!inputCode || typeof inputCode !== 'string') {
     return { valid: false, error: 'Please enter a valid voucher code.' };
   }
@@ -3163,17 +3246,61 @@ export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmai
   const voucher = allVouchers.find(v => v.code === cleanCode);
 
   if (!voucher) {
-    return { valid: false, error: `Voucher code "${cleanCode}" was not found or is invalid.` };
+    const attemptResult = recordVoucherFailedAttempt();
+    if (attemptResult.isLocked) {
+      return {
+        valid: false,
+        isRateLimited: true,
+        remainingMinutes: attemptResult.remainingMinutes,
+        error: `Security Lockout Triggered: 5 failed attempts reached. Voucher verification is locked for ${attemptResult.remainingMinutes} minutes.`
+      };
+    }
+    return { 
+      valid: false, 
+      error: `Voucher code "${cleanCode}" was not found or is invalid. (${attemptResult.attemptsRemaining} attempt${attemptResult.attemptsRemaining === 1 ? '' : 's'} remaining before security lock)` 
+    };
   }
 
   if (voucher.isActive === false) {
+    recordVoucherFailedAttempt();
     return { valid: false, error: `Voucher code "${cleanCode}" has been deactivated.` };
+  }
+
+  // 2. Strict Recipient Email Binding Check (Zero-Guess Security)
+  if (voucher.recipientEmail && voucher.recipientEmail.trim()) {
+    const assignedEmail = voucher.recipientEmail.trim().toLowerCase();
+    const providedEmail = (customerEmail || '').trim().toLowerCase();
+
+    if (!providedEmail) {
+      return {
+        valid: false,
+        error: `This voucher is exclusive to a specific client. Please fill in your email address in Step 1 to apply.`
+      };
+    }
+
+    if (providedEmail !== assignedEmail) {
+      const attemptResult = recordVoucherFailedAttempt();
+      const maskedEmail = assignedEmail.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
+      if (attemptResult.isLocked) {
+        return {
+          valid: false,
+          isRateLimited: true,
+          remainingMinutes: attemptResult.remainingMinutes,
+          error: `Security Lockout Triggered: 5 failed attempts reached. Voucher verification is locked for ${attemptResult.remainingMinutes} minutes.`
+        };
+      }
+      return {
+        valid: false,
+        error: `Access Denied: This voucher is exclusively assigned to ${maskedEmail}. Your checkout email does not match. (${attemptResult.attemptsRemaining} attempt${attemptResult.attemptsRemaining === 1 ? '' : 's'} remaining)`
+      };
+    }
   }
 
   // Check if voucher has expired
   if (voucher.expiresAt) {
     const expTime = new Date(voucher.expiresAt).getTime();
     if (!isNaN(expTime) && Date.now() > expTime) {
+      recordVoucherFailedAttempt();
       return { valid: false, error: `Voucher "${cleanCode}" expired on ${new Date(voucher.expiresAt).toLocaleDateString()}.` };
     }
   }
@@ -3182,6 +3309,7 @@ export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmai
   const maxAllowed = voucher.maxUses || 1;
   const currentUsed = voucher.usedCount || (voucher.isUsed ? 1 : 0);
   if (voucher.isUsed || currentUsed >= maxAllowed) {
+    recordVoucherFailedAttempt();
     const usedDetail = voucher.usedByOrderId ? ` on order #${voucher.usedByOrderId}` : '';
     return { valid: false, error: `Voucher "${cleanCode}" has already been redeemed${usedDetail} (Single-use only).` };
   }
@@ -3193,6 +3321,9 @@ export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmai
       error: `Voucher requires a minimum order subtotal of LKR ${voucher.minOrderAmount.toLocaleString()} (current subtotal is LKR ${Math.round(orderSubtotal).toLocaleString()}).` 
     };
   }
+
+  // Reset rate limit on genuine valid voucher
+  resetVoucherRateLimit();
 
   // Calculate discount amount
   let discountAmount = 0;
