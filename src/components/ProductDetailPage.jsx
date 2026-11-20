@@ -6,7 +6,7 @@ import { RestockRequestModal } from './RestockRequestModal';
 import { MobileStickyBuyBar } from './MobileStickyBuyBar';
 import { SizeChartModal } from './SizeChartModal';
 import { KokoLogo } from './PaymentLogos';
-import { cleanSizeCode } from '../services/dbService';
+import { cleanSizeCode, isOfferActive as isOfferLive } from '../services/dbService';
 
 export const STANDARD_SIZES_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
@@ -165,11 +165,16 @@ export const ProductDetailPage = ({
   const { id } = useParams();
   const product = propProduct || products.find((p) => p.id === id || p.slug === id) || products[0] || PRODUCTS[0] || {};
 
-  // Check if this product has an active promotional offer
-  const activeOffer = offers.find(o => o.isActive && o.productId === product?.id);
-  const isOfferActive = !!activeOffer;
+  // Check if this product has an active, unexpired promotional offer with units remaining
+  const activeOffer = (offers || []).find(o => 
+    isOfferLive(o) && (
+      (o.productId && (String(o.productId) === String(product?.id) || String(o.productId) === String(product?.slug))) ||
+      (o.productName && (product?.title || product?.name) && o.productName.trim().toLowerCase() === (product?.title || product?.name).trim().toLowerCase())
+    )
+  );
+  const isOfferActive = Boolean(activeOffer);
   const effectivePrice = isOfferActive ? activeOffer.offerPriceLKR : (product?.priceLKR || 18500);
-  const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.priceLKR || 18500) : null;
+  const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.originalPriceLKR || product?.priceLKR || 18500) : null;
   const savings = isOfferActive ? (originalPrice - effectivePrice) : 0;
 
   const isGarmentOutOfStock = product.status === 'Sold Out' ||
@@ -647,10 +652,13 @@ export const ProductDetailPage = ({
                         priceLKR: effectivePrice,
                         originalPriceLKR: originalPrice,
                         color: selectedColor,
-                        isOfferApplied: true
+                        isOfferApplied: true,
+                        offerCode: activeOffer?.code
                       } : {
                         ...product,
-                        color: selectedColor
+                        priceLKR: effectivePrice,
+                        color: selectedColor,
+                        isOfferApplied: false
                       };
                       const addQty = Math.min(qty, selectedSizeStock);
                       onAddToCart(productToAdd, selectedSize, addQty);

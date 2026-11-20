@@ -352,7 +352,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
     }
 
     const clientName = activeOrder.customer_name || activeOrder.customerName || activeOrder.delivery_address?.recipientName || 'Verified Client';
-    const clientLoc = activeOrder.delivery_address?.city || activeOrder.customerLocation || 'Colombo, Sri Lanka';
+    const clientLoc = activeOrder.delivery_address?.city || activeOrder.customerLocation || 'Sri Lanka';
     const resolvedProdId = item.productId || item.product_id || item.id;
     const resolvedOrderCode = activeOrder.order_code || activeOrder.orderId || activeOrder.id || orderId;
 

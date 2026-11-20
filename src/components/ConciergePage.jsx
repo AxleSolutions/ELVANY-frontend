@@ -21,7 +21,7 @@ export const ConciergePage = () => {
     },
     {
       q: 'What are the delivery timelines across Sri Lanka?',
-      a: 'Orders placed before 2:00 PM are processed same-day. Complimentary white-glove express courier delivers within 24 to 48 hours to Colombo, Kandy, Galle, and island-wide destinations.'
+      a: 'Orders placed before 2:00 PM are processed same-day. Complimentary white-glove express courier delivers within 24 to 48 hours across Kandy, Galle, and all island-wide destinations.'
     },
     {
       q: 'Can I schedule a private fabric consultation or bespoke order?',

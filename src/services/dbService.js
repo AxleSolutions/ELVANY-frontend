@@ -545,7 +545,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
 
       const structuredAddress = {
         ...(completeOrder.deliveryAddress || {}),
-        location: completeOrder.customerLocation || completeOrder.deliveryAddress?.location || 'Colombo, Sri Lanka',
+        location: completeOrder.customerLocation || completeOrder.deliveryAddress?.location || 'Sri Lanka',
         deliveryFeeLKR: completeOrder.deliveryFeeLKR || 0,
         paymentType: detectedPaymentType,
         specificPaymentMethod: detectedSpecificMethod,
@@ -701,7 +701,7 @@ export async function getOrders() {
             customerName: o.customer_name || o.customerName,
             customerEmail: o.customer_email || o.customerEmail,
             customerPhone: o.customer_phone || o.customerPhone,
-            customerLocation: o.delivery_address?.location || o.customerLocation || 'Colombo, Sri Lanka',
+            customerLocation: o.delivery_address?.location || o.customerLocation || 'Sri Lanka',
             deliveryAddress: o.delivery_address || o.deliveryAddress,
             // Accurate live tracking number: check direct field, column, delivery_address JSONB, or courier notes
             trackingNumber: o.trackingNumber || o.tracking_number || o.delivery_address?.trackingNumber || o.deliveryAddress?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || (typeof o.courier_notes === 'string' && !o.courier_notes.includes(' ') ? o.courier_notes : null) || null,
@@ -769,7 +769,7 @@ export async function getOrders() {
             customerName: o.customer_name,
             customerEmail: o.customer_email,
             customerPhone: o.customer_phone,
-            customerLocation: o.delivery_address?.location || 'Colombo, Sri Lanka',
+            customerLocation: o.delivery_address?.location || 'Sri Lanka',
             deliveryAddress: o.delivery_address,
             orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at,
@@ -1326,6 +1326,60 @@ export async function updateProductStock(productId, inventoryMap) {
  * PROMOTIONS & PRIVILEGE OFFERS SERVICES
  * =========================================================================
  */
+
+const OFFER_ALLOCATION_STORAGE_KEY = 'elvany_offers_allocation_data';
+
+export function getStoredOfferAllocations() {
+  try {
+    const raw = localStorage.getItem(OFFER_ALLOCATION_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch {}
+  return {};
+}
+
+export function saveStoredOfferAllocation(idOrCode, allocationData) {
+  if (!idOrCode) return;
+  try {
+    const all = getStoredOfferAllocations();
+    const key = String(idOrCode);
+    all[key] = {
+      ...(all[key] || {}),
+      ...allocationData,
+      updatedAt: Date.now()
+    };
+    localStorage.setItem(OFFER_ALLOCATION_STORAGE_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+/**
+ * Centrally validates if an offer is currently live, active, non-expired, and has stock
+ */
+export function isOfferActive(offer) {
+  if (!offer) return false;
+  if (offer.isActive === false || offer.is_active === false) return false;
+
+  // Check expiration date/time
+  const expiry = offer.endsAt || offer.expires_at || offer.expiresAt;
+  if (expiry) {
+    const expTime = new Date(expiry).getTime();
+    if (!isNaN(expTime) && Date.now() >= expTime) {
+      return false; // Offer has expired
+    }
+  }
+
+  // Check remaining units stock
+  if (offer.remainingUnits !== undefined && offer.remainingUnits !== null) {
+    if (Number(offer.remainingUnits) <= 0) {
+      return false; // All allocated units claimed/sold out
+    }
+  }
+
+  return true;
+}
+
 function mapPromotionToOffer(p, productsMap = {}) {
   const productId = Array.isArray(p.applied_product_ids) && p.applied_product_ids.length > 0
     ? p.applied_product_ids[0]
@@ -1351,6 +1405,23 @@ function mapPromotionToOffer(p, productsMap = {}) {
     'XS', 'S', 'M', 'L', 'XL', '2XL'
   ]).map(cleanSizeCode);
 
+  const storedAllocations = getStoredOfferAllocations();
+  const storedForThis = storedAllocations[String(p.id)] || (p.code ? storedAllocations[String(p.code)] : null) || {};
+
+  const totalAllocation = typeof p.total_allocation === 'number'
+    ? p.total_allocation
+    : (typeof storedForThis.totalAllocation === 'number'
+        ? storedForThis.totalAllocation
+        : (typeof p.totalAllocation === 'number' ? p.totalAllocation : 25));
+
+  const remainingUnits = typeof p.remaining_units === 'number'
+    ? p.remaining_units
+    : (typeof storedForThis.remainingUnits === 'number'
+        ? storedForThis.remainingUnits
+        : (typeof p.remainingUnits === 'number' ? p.remainingUnits : 12));
+
+  const soldUnits = Math.max(0, totalAllocation - remainingUnits);
+
   return {
     id: p.id,
     code: p.code,
@@ -1369,8 +1440,9 @@ function mapPromotionToOffer(p, productsMap = {}) {
     discountType: p.discount_type || 'fixed_amount',
     discountValue: discountVal,
     minOrderAmount: parseFloat(p.min_order_amount_lkr || 0),
-    remainingUnits: p.remaining_units !== undefined ? p.remaining_units : null,
-    totalAllocation: p.total_allocation !== undefined ? p.total_allocation : null,
+    remainingUnits,
+    totalAllocation,
+    soldUnits,
     availableSizes: sizes,
     isActive: p.is_active !== false,
     endsAt: p.expires_at || p.ends_at || p.endsAt || null,
@@ -1427,7 +1499,18 @@ export async function getOffers() {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data;
+        const storedAlloc = getStoredOfferAllocations();
+        return json.data.map(o => {
+          const alloc = storedAlloc[String(o.id)] || (o.code ? storedAlloc[String(o.code)] : null) || {};
+          const totalAllocation = typeof alloc.totalAllocation === 'number' ? alloc.totalAllocation : (o.totalAllocation || 25);
+          const remainingUnits = typeof alloc.remainingUnits === 'number' ? alloc.remainingUnits : (o.remainingUnits !== undefined ? o.remainingUnits : 12);
+          return {
+            ...o,
+            totalAllocation,
+            remainingUnits,
+            soldUnits: Math.max(0, totalAllocation - remainingUnits)
+          };
+        });
       }
     }
   } catch (apiErr) {
@@ -1447,6 +1530,18 @@ export async function saveOffer(offerData) {
 
   const appliedProducts = offerData.productId ? [offerData.productId] : [];
 
+  const totalAllocation = parseInt(offerData.totalAllocation !== undefined ? offerData.totalAllocation : 25, 10);
+  const remainingUnits = parseInt(offerData.remainingUnits !== undefined ? offerData.remainingUnits : 12, 10);
+  const soldUnits = Math.max(0, totalAllocation - remainingUnits);
+
+  const offerToValidate = {
+    ...offerData,
+    remainingUnits,
+    totalAllocation,
+    soldUnits
+  };
+  const isCurrentlyActive = isOfferActive(offerToValidate);
+
   const promotionPayload = {
     code: (offerData.code || `ELVANY-${Date.now().toString().slice(-4)}`).toUpperCase().trim(),
     title: offerData.title || offerData.productName || 'Privilege Allocation',
@@ -1459,6 +1554,40 @@ export async function saveOffer(offerData) {
     expires_at: offerData.endsAt || offerData.expiresAt || null
   };
 
+  // Always save allocation data to local persistent registry
+  if (offerData.id) {
+    saveStoredOfferAllocation(offerData.id, { totalAllocation, remainingUnits, soldUnits });
+  }
+  if (offerData.code) {
+    saveStoredOfferAllocation(offerData.code, { totalAllocation, remainingUnits, soldUnits });
+  }
+
+  // Helper to sync product offer status in local cache
+  const syncProductOfferFlagInCache = (prodId, hasActive) => {
+    try {
+      const raw = localStorage.getItem('elvany_catalog_cache');
+      if (raw) {
+        const cat = JSON.parse(raw);
+        if (Array.isArray(cat)) {
+          const updated = cat.map(p => {
+            if (String(p.id) === String(prodId) || String(p.slug) === String(prodId)) {
+              return { ...p, isOfferApplied: hasActive, is_offer_applied: hasActive };
+            }
+            return p;
+          });
+          localStorage.setItem('elvany_catalog_cache', JSON.stringify(updated));
+        }
+      }
+    } catch {}
+  };
+
+  let finalSaved = {
+    ...offerData,
+    totalAllocation,
+    remainingUnits,
+    soldUnits,
+    discountValue: discountVal
+  };
 
   if (isSupabaseConfigured && supabase) {
     try {
@@ -1470,10 +1599,15 @@ export async function saveOffer(offerData) {
           .single();
 
         if (!error && inserted) {
+          finalSaved = { ...finalSaved, ...inserted, id: inserted.id };
+          saveStoredOfferAllocation(inserted.id, { totalAllocation, remainingUnits, soldUnits });
+          if (inserted.code) saveStoredOfferAllocation(inserted.code, { totalAllocation, remainingUnits, soldUnits });
+
           if (offerData.productId) {
-            await supabase.from('products').update({ is_offer_applied: true }).eq('id', offerData.productId);
+            await supabase.from('products').update({ is_offer_applied: isCurrentlyActive }).eq('id', offerData.productId);
+            syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
           }
-          return { ...offerData, ...inserted, id: inserted.id };
+          return finalSaved;
         }
       } else {
         const { data: updated, error } = await supabase
@@ -1484,10 +1618,12 @@ export async function saveOffer(offerData) {
           .single();
 
         if (!error && updated) {
+          finalSaved = { ...finalSaved, ...updated };
           if (offerData.productId) {
-            await supabase.from('products').update({ is_offer_applied: true }).eq('id', offerData.productId);
+            await supabase.from('products').update({ is_offer_applied: isCurrentlyActive }).eq('id', offerData.productId);
+            syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
           }
-          return { ...offerData, ...updated };
+          return finalSaved;
         }
       }
     } catch (err) {
@@ -1503,29 +1639,60 @@ export async function saveOffer(offerData) {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...offerData, discountValue: discountVal })
+      body: JSON.stringify(finalSaved)
     });
     if (res.ok) {
       const data = await res.json();
-      return { ...offerData, ...(data.data || {}) };
+      finalSaved = { ...finalSaved, ...(data.data || {}) };
     }
   } catch (apiErr) {
     console.warn('API save offer error:', apiErr);
   }
 
-  return offerData;
+  if (offerData.productId) {
+    syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
+  }
+
+  return finalSaved;
 }
 
 export async function toggleOfferStatus(offerId, nextActiveState) {
+  let targetProductId = null;
+  try {
+    const rawOffers = localStorage.getItem('elvany_offers_cache');
+    if (rawOffers) {
+      const parsed = JSON.parse(rawOffers);
+      const found = (parsed || []).find(o => o.id === offerId);
+      if (found && found.productId) targetProductId = found.productId;
+    }
+  } catch {}
+
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase
         .from('promotions')
         .update({ is_active: nextActiveState })
         .eq('id', offerId);
+
+      if (targetProductId && !nextActiveState) {
+        await supabase.from('products').update({ is_offer_applied: false }).eq('id', targetProductId);
+      }
     } catch (err) {
       console.warn('Supabase toggle offer status error:', err);
     }
+  }
+
+  if (targetProductId && !nextActiveState) {
+    try {
+      const raw = localStorage.getItem('elvany_catalog_cache');
+      if (raw) {
+        const cat = JSON.parse(raw);
+        if (Array.isArray(cat)) {
+          const updated = cat.map(p => String(p.id) === String(targetProductId) ? { ...p, isOfferApplied: false, is_offer_applied: false } : p);
+          localStorage.setItem('elvany_catalog_cache', JSON.stringify(updated));
+        }
+      }
+    } catch {}
   }
 
   // Also sync to backend API
@@ -1542,23 +1709,47 @@ export async function toggleOfferStatus(offerId, nextActiveState) {
 }
 
 export async function deleteOffer(offerId) {
+  let targetProductId = null;
+  try {
+    const rawOffers = localStorage.getItem('elvany_offers_cache');
+    if (rawOffers) {
+      const parsed = JSON.parse(rawOffers);
+      const found = (parsed || []).find(o => o.id === offerId);
+      if (found && found.productId) targetProductId = found.productId;
+    }
+  } catch {}
+
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from('promotions').delete().eq('id', offerId);
+      if (targetProductId) {
+        await supabase.from('products').update({ is_offer_applied: false }).eq('id', targetProductId);
+      }
     } catch (err) {
       console.warn('Supabase delete offer error:', err);
     }
   }
 
+  if (targetProductId) {
+    try {
+      const raw = localStorage.getItem('elvany_catalog_cache');
+      if (raw) {
+        const cat = JSON.parse(raw);
+        if (Array.isArray(cat)) {
+          const updated = cat.map(p => String(p.id) === String(targetProductId) ? { ...p, isOfferApplied: false, is_offer_applied: false } : p);
+          localStorage.setItem('elvany_catalog_cache', JSON.stringify(updated));
+        }
+      }
+    } catch {}
+  }
+
   // Also sync to backend API
   try {
     const apiUrl = getApiUrl();
-    await fetch(`${apiUrl}/offers/${offerId}`, {
-      method: 'DELETE'
-    });
+    await fetch(`${apiUrl}/offers/${offerId}`, { method: 'DELETE' });
   } catch {}
 
-  return offerId;
+  return { id: offerId, success: true };
 }
 
 /**
@@ -1648,7 +1839,7 @@ export async function getReviews() {
             comment: cleanContent,
             imageUrl: imgUrl,
             images: imgs,
-            location: r.clientLocation || r.client_location || 'Colombo, Sri Lanka',
+            location: r.clientLocation || r.client_location || 'Sri Lanka',
             date: r.date || new Date().toLocaleDateString(),
             status: r.status || 'Approved',
             isFeatured: !!r.isFeatured,
@@ -1717,7 +1908,7 @@ export async function getReviews() {
         comment: cleanContent,
         imageUrl: imgUrl,
         images: imgs,
-        location: r.client_location || 'Colombo, Sri Lanka',
+        location: r.client_location || 'Sri Lanka',
         date: new Date(r.created_at || Date.now()).toLocaleDateString(),
         status: r.status === 'published' ? 'Approved' : (r.status || 'Approved'),
         isFeatured: r.is_featured || false,
@@ -1768,7 +1959,7 @@ export async function addReview(reviewData) {
         productId: reviewData.productId,
         orderId: reviewData.orderId || null,
         clientName: reviewData.author || reviewData.clientName || reviewData.customerName,
-        clientLocation: reviewData.location || 'Colombo, Sri Lanka',
+        clientLocation: reviewData.location || 'Sri Lanka',
         rating: Number(reviewData.rating) || 5,
         title: reviewData.title || 'Exceptional Craftsmanship',
         comment: commentWithTags,
@@ -1821,7 +2012,7 @@ export async function addReview(reviewData) {
           product_id: dbProductId,
           order_id: dbOrderId,
           client_name: reviewData.author || reviewData.clientName || reviewData.customerName,
-          client_location: reviewData.location || 'Colombo, Sri Lanka',
+          client_location: reviewData.location || 'Sri Lanka',
           rating: Number(reviewData.rating) || 5,
           title: reviewData.title || 'Exceptional Craftsmanship',
           comment: commentWithTags,

@@ -130,16 +130,51 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                 </div>
 
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.74rem', color: 'var(--text-light-muted)', flexWrap: 'wrap' }}>
-                  <Flame size={13} color="#f87171" />
-                  <span>{offer.remainingUnits || 5} pieces left in allocation</span>
-                  <span>•</span>
-                  <span>Code: <strong style={{ color: 'var(--gold-bright)' }}>{offer.code || 'ATELIERVIP'}</strong></span>
+                {/* Scarcity Allocation Tracker & Red Line */}
+                {(() => {
+                  const totalAlloc = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0 ? offer.totalAllocation : 25;
+                  const remaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0 ? offer.remainingUnits : 12;
+                  const sold = typeof offer.soldUnits === 'number' ? offer.soldUnits : Math.max(0, totalAlloc - remaining);
+                  const soldPercent = Math.min(100, Math.max(4, Math.round((sold / totalAlloc) * 100)));
+
+                  return (
+                    <div style={{ marginTop: '0.8rem', padding: '0.7rem 0.9rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Flame size={13} color="#ef4444" />
+                          <span style={{ color: '#fff', fontWeight: 600 }}>
+                            <strong style={{ color: '#f87171' }}>{sold} sold</strong> • <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong> ({totalAlloc} total batch)
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.68rem', color: '#f87171', fontWeight: 700, background: 'rgba(239, 68, 68, 0.15)', padding: '2px 6px', borderRadius: '2px' }}>
+                          {soldPercent}% Claimed
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div style={{ width: `${soldPercent}%`, height: '100%', background: 'linear-gradient(90deg, #dc2626, #ef4444)' }} />
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.74rem', color: 'var(--text-light-muted)', flexWrap: 'wrap', marginTop: '0.6rem' }}>
+                  <span>Promo Code: <strong style={{ color: 'var(--gold-bright)', fontFamily: 'monospace' }}>{offer.code || 'ATELIERVIP'}</strong></span>
                 </div>
 
-                {/* Expiry Timer Badge */}
+                {/* Expiry Timer & Deactivation Badge */}
                 {(() => {
                   const expiry = offer.endsAt || offer.expires_at || offer.expiresAt;
+                  const remaining = typeof offer.remainingUnits === 'number' ? offer.remainingUnits : 12;
+                  const isDepleted = remaining <= 0;
+
+                  if (isDepleted) {
+                    return (
+                      <div style={{ marginTop: '0.6rem', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '2px', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                        <span>🔴 DEPLETED: All units sold. Offer deactivated across storefront.</span>
+                      </div>
+                    );
+                  }
+
                   if (!expiry) return null;
                   const diff = new Date(expiry).getTime() - Date.now();
                   const isExpired = diff <= 0;
@@ -152,7 +187,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                       <span>{isExpired ? '⚠️ EXPIRED' : '⏳ ACTIVE TIMER:'}</span>
                       <span>
                         {isExpired 
-                          ? 'Auto-hidden from storefront' 
+                          ? 'Auto-hidden from slideshow & discount deactivated storefront-wide' 
                           : `${days > 0 ? `${days}d ` : ''}${hours}h ${mins}m remaining (Ends ${new Date(expiry).toLocaleDateString()})`}
                       </span>
                     </div>

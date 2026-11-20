@@ -35,7 +35,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Colombo &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
             </td>
           </tr>
 
@@ -80,7 +80,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
               <p style="margin: 0 0 8px 0;">You received this private dispatch as a registered patron of Maison ELVANY.</p>
-              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Colombo, Sri Lanka</p>
+              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
 

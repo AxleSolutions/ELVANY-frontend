@@ -97,7 +97,7 @@ export const CheckoutPage = ({
           phone: userProfile?.phone || '',
           address: defaultAddr.streetAddress || '',
           apartment: defaultAddr.apartment || '',
-          city: defaultAddr.city || 'Colombo',
+          city: defaultAddr.city || 'Kandy',
           postalCode: defaultAddr.postalCode || '',
           country: defaultAddr.country || 'Sri Lanka',
           hasAddress: true
@@ -114,7 +114,7 @@ export const CheckoutPage = ({
         phone: userProfile.phone || '',
         address: userProfile.address || '',
         apartment: userProfile.apartment || '',
-        city: userProfile.city || 'Colombo',
+        city: userProfile.city || 'Kandy',
         postalCode: userProfile.postalCode || '',
         country: userProfile.country || 'Sri Lanka',
         hasAddress: true
@@ -151,7 +151,7 @@ export const CheckoutPage = ({
   const [lastName, setLastName] = useState(isLoggedIn ? (savedDefault?.lastName || initialNameParts.slice(1).join(' ') || '') : '');
   const [address, setAddress] = useState(isLoggedIn ? (savedDefault?.address || '') : '');
   const [apartment, setApartment] = useState(isLoggedIn ? (savedDefault?.apartment || '') : '');
-  const [city, setCity] = useState(isLoggedIn && savedDefault?.city ? savedDefault.city : 'Colombo');
+  const [city, setCity] = useState(isLoggedIn && savedDefault?.city ? savedDefault.city : 'Kandy');
   const [postalCode, setPostalCode] = useState(isLoggedIn ? (savedDefault?.postalCode || '') : '');
   const [country, setCountry] = useState('Sri Lanka');
   const [deliveryNotes, setDeliveryNotes] = useState('');
@@ -456,7 +456,7 @@ export const CheckoutPage = ({
             recipientName: `${firstName} ${lastName}`.trim() || 'Client',
             streetAddress: address,
             apartment: apartment || '',
-            city: city || 'Colombo',
+            city: city || 'Kandy',
             postalCode: postalCode || '',
             country: country || 'Sri Lanka'
           };

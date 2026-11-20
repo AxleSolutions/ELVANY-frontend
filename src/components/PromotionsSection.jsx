@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Flame, Clock, ShieldCheck, Gift, Percent, Zap, Eye } from 'lucide-react';
+import { isOfferActive } from '../services/dbService';
 
 export const PromotionsSection = ({ 
   offers = [], 
@@ -17,18 +18,8 @@ export const PromotionsSection = ({
     return () => clearInterval(tickInterval);
   }, []);
 
-  // Filter only active & non-expired offers
-  const activeOffers = offers.filter((o) => {
-    if (!o.isActive) return false;
-    const expiryTimestamp = o.endsAt || o.expires_at || o.expiresAt;
-    if (expiryTimestamp) {
-      const exp = new Date(expiryTimestamp).getTime();
-      if (!isNaN(exp) && currentTime >= exp) {
-        return false; // Offer has expired -> auto disappears
-      }
-    }
-    return true;
-  });
+  // Filter only active, non-expired offers with stock remaining
+  const activeOffers = offers.filter((o) => isOfferActive(o));
 
   const SLIDE_DURATION = 8000; // 8s per offer slide
 
@@ -158,16 +149,16 @@ export const PromotionsSection = ({
               const savingsAmount = origPrice - offerPrice;
               const percentOff = origPrice > 0 ? Math.round((savingsAmount / origPrice) * 100) : 0;
 
-              // Only show claimed/scarcity data if genuine valid allocation and remaining data exists; otherwise cleanly remove
-              const hasTotal = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0;
-              const hasRemaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0;
-              const isStaleFixedArtifact = offer.totalAllocation === 25 && offer.remainingUnits === 6;
-
-              const canShowScarcity = hasTotal && hasRemaining && (offer.totalAllocation >= offer.remainingUnits) && !isStaleFixedArtifact;
-              const claimedPercent = canShowScarcity 
-                ? Math.round(((offer.totalAllocation - offer.remainingUnits) / offer.totalAllocation) * 100)
-                : null;
-              const remainingUnits = (hasRemaining && !isStaleFixedArtifact) ? offer.remainingUnits : null;
+              const totalAlloc = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0
+                ? offer.totalAllocation
+                : 25;
+              const remaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0
+                ? offer.remainingUnits
+                : 12;
+              const sold = typeof offer.soldUnits === 'number'
+                ? offer.soldUnits
+                : Math.max(0, totalAlloc - remaining);
+              const soldPercent = Math.min(100, Math.max(4, Math.round((sold / totalAlloc) * 100)));
 
               return (
                 <div 
@@ -211,22 +202,16 @@ export const PromotionsSection = ({
                         </div>
                       )}
 
-                      {/* Bottom Scarcity Banner (Only shown when enough genuine data exists) */}
-                      {(remainingUnits !== null || claimedPercent !== null) && (
-                        <div className="offer-scarcity-pill">
-                          {remainingUnits !== null && (
-                            <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <Flame size={13} color="var(--gold-bright)" />
-                              <span>{remainingUnits} left</span>
-                            </span>
-                          )}
-                          {claimedPercent !== null && (
-                            <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
-                              {claimedPercent}% claimed
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {/* Bottom Scarcity Banner */}
+                      <div className="offer-scarcity-pill">
+                        <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Flame size={13} color="#ef4444" />
+                          <span>{remaining} remaining</span>
+                        </span>
+                        <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
+                          {sold} sold
+                        </span>
+                      </div>
                     </div>
 
                     {/* Right Column: Offer Headline, Price Comparison & Direct Product Redirect CTA */}
@@ -276,6 +261,69 @@ export const PromotionsSection = ({
                             <div className="offer-savings-amount">
                               LKR {savingsAmount.toLocaleString()}
                             </div>
+                          </div>
+                        </div>
+
+                        {/* Red Line Allocation & Scarcity Tracker */}
+                        <div className="offer-scarcity-tracker" style={{
+                          margin: '0 0 1.5rem 0',
+                          padding: '0.9rem 1.2rem',
+                          background: 'rgba(239, 68, 68, 0.05)',
+                          border: '1px solid rgba(239, 68, 68, 0.28)',
+                          borderRadius: '2px'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '0.6rem',
+                            fontSize: '0.82rem',
+                            flexWrap: 'wrap',
+                            gap: '0.5rem'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                              <Flame size={15} color="#ef4444" style={{ filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.7))' }} />
+                              <span style={{ color: '#ffffff', fontWeight: 700, letterSpacing: '0.02em', fontSize: '0.85rem' }}>
+                                <strong style={{ color: '#f87171' }}>{sold} sold</strong>
+                                <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>•</span>
+                                <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong>
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              color: '#f87171',
+                              letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              padding: '3px 8px',
+                              borderRadius: '2px',
+                              border: '1px solid rgba(239, 68, 68, 0.35)'
+                            }}>
+                              {soldPercent}% Claimed
+                            </span>
+                          </div>
+
+                          {/* Visual Red Progress Line */}
+                          <div style={{
+                            width: '100%',
+                            height: '6px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            borderRadius: '999px',
+                            overflow: 'hidden',
+                            position: 'relative',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)'
+                          }}>
+                            <div 
+                              style={{
+                                width: `${soldPercent}%`,
+                                height: '100%',
+                                background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 70%, #f87171 100%)',
+                                borderRadius: '999px',
+                                boxShadow: '0 0 14px rgba(239, 68, 68, 0.75)',
+                                transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+                              }}
+                            />
                           </div>
                         </div>
 

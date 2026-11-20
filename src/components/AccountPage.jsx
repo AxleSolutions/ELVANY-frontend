@@ -14,7 +14,6 @@ export const CITIES_LIST = [
   'Anuradhapura',
   'Badulla',
   'Batticaloa',
-  'Colombo',
   'Galle',
   'Gampaha',
   'Hambantota',
@@ -303,7 +302,7 @@ export const AccountPage = ({
   const [newAddressForm, setNewAddressForm] = useState({
     recipientName: '',
     streetAddress: '',
-    city: 'Colombo',
+    city: 'Kandy',
     postalCode: '',
     country: 'Sri Lanka'
   });
@@ -357,7 +356,7 @@ export const AccountPage = ({
     setNewAddressForm({
       recipientName: '',
       streetAddress: '',
-      city: 'Colombo',
+      city: 'Kandy',
       postalCode: '',
       country: 'Sri Lanka'
     });

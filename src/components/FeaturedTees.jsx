@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Eye, ShoppingBag, Check, Ruler, Loader2, Bell } from 'lucide-react';
+import { isOfferActive } from '../services/dbService';
 
 export const FeaturedTees = ({ 
   products = [], 
@@ -100,28 +101,23 @@ export const FeaturedTees = ({
                 (product.inventory && Object.keys(product.inventory).length > 0 && Object.values(product.inventory).every(v => Number(v) <= 0));
 
               const activeOffer = (offers || []).find(
-                (o) => o.isActive !== false && (
-                  (o.productId && (o.productId === product.id || o.productId === product.slug)) ||
+                (o) => isOfferActive(o) && (
+                  (o.productId && (String(o.productId) === String(product.id) || String(o.productId) === String(product.slug))) ||
                   (o.productName && (product.name || product.title) && o.productName.trim().toLowerCase() === (product.name || product.title).trim().toLowerCase())
                 )
               );
 
-              const hasOffer = Boolean(activeOffer || (product.is_offer_applied && product.offerPriceLKR));
-              const originalPrice = activeOffer
-                ? (activeOffer.originalPriceLKR || product.originalPriceLKR || product.priceLKR || product.price || 18500)
-                : (product.originalPriceLKR || product.priceLKR || product.price || 18500);
-
-              const offerPrice = activeOffer
-                ? activeOffer.offerPriceLKR
-                : (product.offerPriceLKR || null);
+              const hasOffer = Boolean(activeOffer);
+              const originalPrice = product.originalPriceLKR || product.priceLKR || product.price || 18500;
+              const offerPrice = activeOffer ? activeOffer.offerPriceLKR : null;
 
               const isDiscounted = Boolean(hasOffer && offerPrice && Number(offerPrice) < Number(originalPrice));
               const savings = isDiscounted ? (Number(originalPrice) - Number(offerPrice)) : 0;
               const badgeLabel = activeOffer?.badge || product.badge || 'SPECIAL OFFER';
 
               const productToAdd = isDiscounted
-                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true }
-                : product;
+                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true, offerCode: activeOffer?.code }
+                : { ...product, priceLKR: originalPrice, price: originalPrice, isOfferApplied: false };
 
               return (
                 <article 

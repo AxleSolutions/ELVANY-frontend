@@ -134,7 +134,7 @@ export const AdminDashboard = ({
           value={`${activeOrdersCount} Parcels`}
           trend={activeOrdersCount > 0 ? `${activeOrdersCount} Active Dispatch` : "0 Pending Dispatch"}
           isPositive={activeOrdersCount > 0}
-          subtext="Colombo & Island-wide"
+          subtext="Island-wide Dispatch"
           icon={ShoppingBag}
         />
         <StatCard

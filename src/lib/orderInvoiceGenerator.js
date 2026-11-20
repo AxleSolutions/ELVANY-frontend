@@ -120,7 +120,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
           ${order.customerName || 'Valued Client'}
         </div>
         <div style="font-size: 11.5px; color: #555555; margin-top: 3px; line-height: 1.45;">
-          ${order.customerLocation || 'Colombo, Sri Lanka'}<br/>
+          ${order.customerLocation || 'Sri Lanka'}<br/>
           ${order.customerPhone ? `Contact: ${order.customerPhone}<br/>` : ''}
           ${order.customerEmail ? `Email: ${order.customerEmail}` : ''}
         </div>

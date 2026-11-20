@@ -140,7 +140,7 @@ export async function sendOrderConfirmationReceipt(order) {
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Colombo &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
             </td>
           </tr>
 
@@ -242,7 +242,7 @@ export async function sendOrderConfirmationReceipt(order) {
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
               <p style="margin: 0 0 6px 0;">For inquiries or bespoke adjustments, contact your concierge at <a href="mailto:concierge@elvany.com" style="color: #c5a059; text-decoration: none;">concierge@elvany.com</a>.</p>
-              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Colombo, Sri Lanka</p>
+              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
 
@@ -291,7 +291,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Colombo &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
             </td>
           </tr>
 
@@ -332,7 +332,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
               <p style="margin: 0 0 6px 0;">This email was sent to <strong style="color: #a1a1aa;">${email}</strong> as part of your Maison ELVANY membership.</p>
-              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Colombo, Sri Lanka</p>
+              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
 

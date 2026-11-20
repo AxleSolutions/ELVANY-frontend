@@ -87,15 +87,6 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
           <div>© 2026 ELVANY. ALL RIGHTS RESERVED.</div>
           <div className="footer-legal-links">
             <span>SRI LANKA</span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-            <a 
-              href="/admin" 
-              style={{ color: 'var(--text-light-muted)', textDecoration: 'none', fontSize: '0.72rem' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--gold-bright)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-light-muted)'}
-            >
-              ATELIER ADMIN
-            </a>
           </div>
         </div>
       </div>

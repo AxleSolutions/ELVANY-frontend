@@ -238,7 +238,7 @@ export const ContactSection = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 1.4rem', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-dark)', borderRadius: '2px', fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
               <Clock size={15} color="var(--gold-primary)" />
               <div>
-                <strong>Concierge Hours:</strong> Monday – Sunday • 9:00 AM – 9:00 PM (Colombo Time)
+                <strong>Concierge Hours:</strong> Monday – Sunday • 9:00 AM – 9:00 PM (Sri Lanka Time)
               </div>
             </div>
 

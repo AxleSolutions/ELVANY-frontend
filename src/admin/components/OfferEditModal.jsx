@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Tag, Gift, Percent, Image, DollarSign, Clock, Calendar } from 'lucide-react';
+import { X, Save, Sparkles, Tag, Gift, Percent, Image, DollarSign, Clock, Calendar, Flame } from 'lucide-react';
 
 export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }) => {
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     originalPriceLKR: 18500,
     offerPriceLKR: 15500,
     discountTag: 'SAVE LKR 3,000',
-    remainingUnits: 6,
+    remainingUnits: 12,
     totalAllocation: 25,
     availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
     sizesText: 'XS, S, M, L, XL, 2XL',
@@ -36,6 +36,8 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
       setFormData({
         ...offer,
         productId: offer.productId || null,
+        totalAllocation: typeof offer.totalAllocation === 'number' ? offer.totalAllocation : (offer.total_allocation || 25),
+        remainingUnits: typeof offer.remainingUnits === 'number' ? offer.remainingUnits : (offer.remaining_units !== undefined ? offer.remaining_units : 12),
         sizesText: sizesArray.join(', '),
         endsAt: existingEndsAt
       });
@@ -75,7 +77,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
         originalPriceLKR: defOrigPrice,
         offerPriceLKR: defOfferPrice,
         discountTag: `SAVE LKR ${(defOrigPrice - defOfferPrice).toLocaleString()}`,
-        remainingUnits: 6,
+        remainingUnits: 12,
         totalAllocation: 25,
         availableSizes: defSizes,
         sizesText: defSizes.join(', '),
@@ -142,10 +144,17 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
       computedEndsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
     }
 
+    const totalAlloc = parseInt(formData.totalAllocation, 10) || 25;
+    const remain = parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10);
+    const sold = Math.max(0, totalAlloc - remain);
+
     const finalOffer = {
       ...formData,
       productName: formData.productName || formData.title,
       availableSizes: parsedSizes,
+      totalAllocation: totalAlloc,
+      remainingUnits: remain,
+      soldUnits: sold,
       endsAt: computedEndsAt,
       expires_at: computedEndsAt,
       expiresAt: computedEndsAt
@@ -321,10 +330,10 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                 <label className="form-label">Remaining Units Left in Batch</label>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max="500"
-                  value={formData.remainingUnits}
-                  onChange={(e) => setFormData({ ...formData, remainingUnits: parseInt(e.target.value) || 1 })}
+                  value={formData.remainingUnits !== undefined ? formData.remainingUnits : 12}
+                  onChange={(e) => setFormData({ ...formData, remainingUnits: Math.max(0, parseInt(e.target.value, 10) || 0) })}
                   className="form-input admin-input"
                 />
               </div>
@@ -335,12 +344,69 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                   type="number"
                   min="1"
                   max="500"
-                  value={formData.totalAllocation}
-                  onChange={(e) => setFormData({ ...formData, totalAllocation: parseInt(e.target.value) || 25 })}
+                  value={formData.totalAllocation || 25}
+                  onChange={(e) => setFormData({ ...formData, totalAllocation: Math.max(1, parseInt(e.target.value, 10) || 25) })}
                   className="form-input admin-input"
                 />
               </div>
             </div>
+
+            {/* Live Storefront Red Line Scarcity Preview */}
+            {(() => {
+              const previewTotal = Math.max(1, parseInt(formData.totalAllocation, 10) || 25);
+              const previewRemain = Math.max(0, parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10));
+              const previewSold = Math.max(0, previewTotal - previewRemain);
+              const previewPercent = Math.min(100, Math.max(4, Math.round((previewSold / previewTotal) * 100)));
+
+              return (
+                <div style={{
+                  padding: '0.85rem 1.1rem',
+                  background: 'rgba(239, 68, 68, 0.05)',
+                  border: '1px solid rgba(239, 68, 68, 0.28)',
+                  borderRadius: '2px',
+                  marginTop: '-0.3rem',
+                  marginBottom: '0.4rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', fontSize: '0.78rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Flame size={14} color="#ef4444" style={{ filter: 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.6))' }} />
+                      <span style={{ color: '#ffffff', fontWeight: 600 }}>
+                        Storefront Live Red Line: <strong style={{ color: '#f87171' }}>{previewSold} sold</strong> • <strong style={{ color: '#ffffff' }}>{previewRemain} remaining</strong>
+                      </span>
+                    </div>
+                    <span style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      color: '#f87171',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      padding: '2px 7px',
+                      borderRadius: '2px',
+                      border: '1px solid rgba(239, 68, 68, 0.3)'
+                    }}>
+                      {previewPercent}% Claimed
+                    </span>
+                  </div>
+
+                  <div style={{
+                    width: '100%',
+                    height: '5px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    borderRadius: '999px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${previewPercent}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 70%, #f87171 100%)',
+                      borderRadius: '999px',
+                      boxShadow: '0 0 10px rgba(239, 68, 68, 0.7)'
+                    }} />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Sizes Specification */}
             <div className="form-group">

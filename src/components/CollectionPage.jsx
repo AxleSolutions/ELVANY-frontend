@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { Home, Eye, ShoppingBag, Check, Ruler, Bell } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { getAllCategories, slugifyCategory, formatCategoryKey, formatCategoryLabel } from '../services/categoryService';
+import { isOfferActive } from '../services/dbService';
 
 export const CollectionPage = ({
   products = [],
@@ -127,14 +128,13 @@ export const CollectionPage = ({
   // Helper to resolve offer details for a given product
   const getProductOfferInfo = (product) => {
     const activeOffer = (offers || []).find(
-      (o) => o.isActive !== false && (
+      (o) => isOfferActive(o) && (
         (o.productId && (String(o.productId) === String(product.id) || String(o.productId) === String(product.slug))) ||
         (o.productName && (product.name || product.title) && o.productName.trim().toLowerCase() === (product.name || product.title).trim().toLowerCase())
       )
     );
 
     const originalPrice = parseFloat(
-      activeOffer?.originalPriceLKR || 
       product.originalPriceLKR || 
       product.original_price_lkr || 
       product.base_price_lkr || 
@@ -146,37 +146,15 @@ export const CollectionPage = ({
     let offerPrice = null;
     if (activeOffer && activeOffer.offerPriceLKR !== undefined && activeOffer.offerPriceLKR !== null) {
       offerPrice = parseFloat(activeOffer.offerPriceLKR);
-    } else if (product.offerPriceLKR !== undefined && product.offerPriceLKR !== null) {
-      offerPrice = parseFloat(product.offerPriceLKR);
-    } else if (product.offer_price_lkr !== undefined && product.offer_price_lkr !== null) {
-      offerPrice = parseFloat(product.offer_price_lkr);
-    } else if (product.is_offer_applied || product.isOfferApplied) {
-      if (product.discount_value) {
-        const dVal = parseFloat(product.discount_value);
-        offerPrice = product.discount_type === 'percentage'
-          ? Math.round(originalPrice * (1 - dVal / 100))
-          : Math.max(0, originalPrice - dVal);
-      } else if (offers && offers.length > 0) {
-        const anyActive = offers.find(o => o.isActive !== false);
-        if (anyActive) {
-          if (anyActive.discountType === 'percentage' && anyActive.discountValue) {
-            offerPrice = Math.round(originalPrice * (1 - anyActive.discountValue / 100));
-          } else if (anyActive.discountValue) {
-            offerPrice = Math.max(0, originalPrice - anyActive.discountValue);
-          } else if (anyActive.offerPriceLKR) {
-            offerPrice = anyActive.offerPriceLKR;
-          }
-        }
-      }
     }
 
-    const isDiscounted = Boolean(offerPrice && Number(offerPrice) > 0 && Number(offerPrice) < originalPrice);
+    const isDiscounted = Boolean(activeOffer && offerPrice && Number(offerPrice) > 0 && Number(offerPrice) < originalPrice);
     const savings = isDiscounted ? (originalPrice - Number(offerPrice)) : 0;
     const discountPercent = isDiscounted && originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0;
 
     return {
       activeOffer,
-      hasOffer: isDiscounted || Boolean(product.is_offer_applied || product.isOfferApplied),
+      hasOffer: isDiscounted,
       isDiscounted,
       offerPrice: isDiscounted ? Number(offerPrice) : null,
       originalPrice,
@@ -365,8 +343,8 @@ export const CollectionPage = ({
               const { activeOffer, isDiscounted, offerPrice, originalPrice, savings, discountPercent } = getProductOfferInfo(product);
 
               const productToAdd = isDiscounted
-                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true }
-                : product;
+                ? { ...product, priceLKR: offerPrice, price: offerPrice, originalPriceLKR: originalPrice, isOfferApplied: true, offerCode: activeOffer?.code }
+                : { ...product, priceLKR: originalPrice, price: originalPrice, isOfferApplied: false };
 
               return (
                 <article 

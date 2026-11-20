@@ -381,7 +381,7 @@ export const AdminApp = ({
                 tier: p.vip_tier || 'Private Client',
                 totalOrders: p.orders_count || 0,
                 totalSpendLKR: p.total_spent || 0,
-                location: p.city ? `${p.city}, Sri Lanka` : 'Colombo, Sri Lanka',
+                location: p.city ? `${p.city}, Sri Lanka` : 'Sri Lanka',
                 joinedDate: new Date(p.created_at || Date.now()).toLocaleDateString()
               })));
             }

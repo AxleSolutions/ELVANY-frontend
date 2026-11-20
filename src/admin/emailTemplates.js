@@ -52,7 +52,7 @@ function wrapEmailHtml(contentHtml, preheaderText = '') {
                       ELVANY
                     </div>
                     <div style="font-size: 8px; letter-spacing: 0.28em; color: #c5a059; text-transform: uppercase; margin-top: 4px;">
-                      HAUTE ATELIER • COLOMBO
+                      HAUTE ATELIER • SRI LANKA
                     </div>
                   </td>
                 </tr>
@@ -75,7 +75,7 @@ function wrapEmailHtml(contentHtml, preheaderText = '') {
                 <tr>
                   <td align="center" style="color: #7d828c; font-size: 11px; line-height: 1.6; padding-bottom: 16px;">
                     You are receiving this communication as a valued private client or subscriber of Maison ELVANY.<br/>
-                    Flagship Atelier: Colombo, Sri Lanka • Worldwide Courier Dispatch
+                    Flagship Atelier: Sri Lanka • Worldwide Courier Dispatch
                   </td>
                 </tr>
                 <tr>

@@ -85,7 +85,7 @@ Thank you for selecting ELVANY. Our concierge remains at your disposal should yo
 
 Warmest regards,
 *ELVANY Atelier Desk*
-Colombo, Sri Lanka
+Sri Lanka
 WhatsApp Concierge: +94 71 909 2726`;
 };
 
