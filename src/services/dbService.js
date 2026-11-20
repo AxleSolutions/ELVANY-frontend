@@ -1329,6 +1329,39 @@ export async function updateProductStock(productId, inventoryMap) {
 
 const OFFER_ALLOCATION_STORAGE_KEY = 'elvany_offers_allocation_data';
 
+export function parseBadgeAllocation(rawBadge) {
+  if (!rawBadge || typeof rawBadge !== 'string') {
+    return { cleanBadge: 'SPECIAL PRIVILEGE', soldUnits: null, remainingUnits: null, totalAllocation: null };
+  }
+  const match = rawBadge.match(/\s*\[ALLOC:(\d+)\/(\d+)\/(\d+)\]\s*$/i);
+  if (match) {
+    const sold = parseInt(match[1], 10);
+    const remain = parseInt(match[2], 10);
+    const total = parseInt(match[3], 10);
+    const cleanBadge = rawBadge.replace(/\s*\[ALLOC:\d+\/\d+\/\d+\]\s*$/i, '').trim() || 'SPECIAL PRIVILEGE';
+    return {
+      cleanBadge,
+      soldUnits: isNaN(sold) ? null : sold,
+      remainingUnits: isNaN(remain) ? null : remain,
+      totalAllocation: isNaN(total) ? null : total
+    };
+  }
+  return { cleanBadge: rawBadge.trim(), soldUnits: null, remainingUnits: null, totalAllocation: null };
+}
+
+export function formatBadgeWithAllocation(cleanBadge, soldUnits, remainingUnits, totalAllocation) {
+  const base = (cleanBadge || 'SPECIAL PRIVILEGE').replace(/\s*\[ALLOC:\d+\/\d+\/\d+\]\s*$/i, '').trim();
+  const sold = Math.max(0, parseInt(soldUnits, 10) || 0);
+  const remain = Math.max(0, parseInt(remainingUnits, 10) || 0);
+  const total = Math.max(sold + remain, parseInt(totalAllocation, 10) || (sold + remain) || 25);
+  const tag = ` [ALLOC:${sold}/${remain}/${total}]`;
+  if ((base.length + tag.length) > 80) {
+    const truncatedBase = base.slice(0, 80 - tag.length);
+    return `${truncatedBase}${tag}`;
+  }
+  return `${base}${tag}`;
+}
+
 export function getStoredOfferAllocations() {
   try {
     const raw = localStorage.getItem(OFFER_ALLOCATION_STORAGE_KEY);
@@ -1405,26 +1438,33 @@ function mapPromotionToOffer(p, productsMap = {}) {
     'XS', 'S', 'M', 'L', 'XL', '2XL'
   ]).map(cleanSizeCode);
 
+  const alloc = parseBadgeAllocation(p.badge_label);
   const storedAllocations = getStoredOfferAllocations();
   const storedForThis = storedAllocations[String(p.id)] || (p.code ? storedAllocations[String(p.code)] : null) || {};
 
   const remainingUnits = typeof p.remaining_units === 'number'
     ? p.remaining_units
-    : (typeof storedForThis.remainingUnits === 'number'
-        ? storedForThis.remainingUnits
-        : (typeof p.remainingUnits === 'number' ? p.remainingUnits : 12));
+    : (alloc.remainingUnits !== null
+        ? alloc.remainingUnits
+        : (typeof storedForThis.remainingUnits === 'number'
+            ? storedForThis.remainingUnits
+            : (typeof p.remainingUnits === 'number' ? p.remainingUnits : 12)));
 
   let soldUnits = typeof p.sold_units === 'number'
     ? p.sold_units
-    : (typeof storedForThis.soldUnits === 'number'
-        ? storedForThis.soldUnits
-        : (typeof p.soldUnits === 'number' ? p.soldUnits : null));
+    : (alloc.soldUnits !== null
+        ? alloc.soldUnits
+        : (typeof storedForThis.soldUnits === 'number'
+            ? storedForThis.soldUnits
+            : (typeof p.soldUnits === 'number' ? p.soldUnits : null)));
 
   let totalAllocation = typeof p.total_allocation === 'number'
     ? p.total_allocation
-    : (typeof storedForThis.totalAllocation === 'number'
-        ? storedForThis.totalAllocation
-        : (typeof p.totalAllocation === 'number' ? p.totalAllocation : 25));
+    : (alloc.totalAllocation !== null
+        ? alloc.totalAllocation
+        : (typeof storedForThis.totalAllocation === 'number'
+            ? storedForThis.totalAllocation
+            : (typeof p.totalAllocation === 'number' ? p.totalAllocation : 25)));
 
   if (soldUnits === null) {
     soldUnits = Math.max(0, totalAllocation - remainingUnits);
@@ -1436,7 +1476,7 @@ function mapPromotionToOffer(p, productsMap = {}) {
     id: p.id,
     code: p.code,
     title: p.title,
-    badge: p.badge_label || 'SPECIAL PRIVILEGE',
+    badge: alloc.cleanBadge || 'SPECIAL PRIVILEGE',
     productName: targetProduct?.title || targetProduct?.name || p.title,
     productId: targetProduct?.id || null,
     productImage: galleryImage,
@@ -1536,7 +1576,6 @@ export async function getOffers() {
 }
 
 export async function saveOffer(offerData) {
-  const isNew = !offerData.id || !isUuid(offerData.id);
   const originalPrice = parseFloat(offerData.originalPriceLKR || 18500);
   const offerPrice = parseFloat(offerData.offerPriceLKR || 15500);
   const discountVal = offerData.discountValue !== undefined 
@@ -1565,10 +1604,15 @@ export async function saveOffer(offerData) {
   };
   const isCurrentlyActive = isOfferActive(offerToValidate);
 
+  const cleanBadge = (offerData.badge || 'SPECIAL PRIVILEGE').trim();
+  const encodedBadge = formatBadgeWithAllocation(cleanBadge, soldUnits, remainingUnits, totalAllocation);
+
+  const promotionCode = (offerData.code || `ELVANY-${Date.now().toString().slice(-4)}`).toUpperCase().trim();
+
   const promotionPayload = {
-    code: (offerData.code || `ELVANY-${Date.now().toString().slice(-4)}`).toUpperCase().trim(),
+    code: promotionCode,
     title: offerData.title || offerData.productName || 'Privilege Allocation',
-    badge_label: (offerData.badge || 'SPECIAL PRIVILEGE').slice(0, 80),
+    badge_label: encodedBadge,
     discount_type: offerData.discountType === 'percentage' ? 'percentage' : 'fixed_amount',
     discount_value: discountVal,
     min_order_amount_lkr: parseFloat(offerData.minOrderAmount || 0),
@@ -1576,6 +1620,23 @@ export async function saveOffer(offerData) {
     is_active: offerData.isActive !== false,
     expires_at: offerData.endsAt || offerData.expiresAt || null
   };
+
+  let targetId = isUuid(offerData.id) ? offerData.id : null;
+
+  if (!targetId && isSupabaseConfigured && supabase) {
+    try {
+      const { data: existingPromo } = await supabase
+        .from('promotions')
+        .select('id')
+        .eq('code', promotionCode)
+        .maybeSingle();
+      if (existingPromo?.id) {
+        targetId = existingPromo.id;
+      }
+    } catch {}
+  }
+
+  const isNew = !targetId;
 
   // Always save allocation data to local persistent registry
   if (offerData.id) {
@@ -1609,7 +1670,8 @@ export async function saveOffer(offerData) {
     totalAllocation,
     remainingUnits,
     soldUnits,
-    discountValue: discountVal
+    discountValue: discountVal,
+    badge: cleanBadge
   };
 
   if (isSupabaseConfigured && supabase) {
@@ -1622,7 +1684,15 @@ export async function saveOffer(offerData) {
           .single();
 
         if (!error && inserted) {
-          finalSaved = { ...finalSaved, ...inserted, id: inserted.id };
+          finalSaved = {
+            ...finalSaved,
+            ...inserted,
+            id: inserted.id,
+            badge: cleanBadge,
+            soldUnits,
+            remainingUnits,
+            totalAllocation
+          };
           saveStoredOfferAllocation(inserted.id, { totalAllocation, remainingUnits, soldUnits });
           if (inserted.code) saveStoredOfferAllocation(inserted.code, { totalAllocation, remainingUnits, soldUnits });
 
@@ -1630,22 +1700,62 @@ export async function saveOffer(offerData) {
             await supabase.from('products').update({ is_offer_applied: isCurrentlyActive }).eq('id', offerData.productId);
             syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
           }
+
+          try {
+            const rawOffers = localStorage.getItem('elvany_offers_cache');
+            if (rawOffers) {
+              const parsed = JSON.parse(rawOffers);
+              if (Array.isArray(parsed)) {
+                parsed.unshift(finalSaved);
+                localStorage.setItem('elvany_offers_cache', JSON.stringify(parsed));
+              }
+            }
+          } catch {}
+
           return finalSaved;
         }
       } else {
         const { data: updated, error } = await supabase
           .from('promotions')
           .update(promotionPayload)
-          .eq('id', offerData.id)
+          .eq('id', targetId)
           .select()
           .single();
 
         if (!error && updated) {
-          finalSaved = { ...finalSaved, ...updated };
+          finalSaved = {
+            ...finalSaved,
+            ...updated,
+            id: updated.id,
+            badge: cleanBadge,
+            soldUnits,
+            remainingUnits,
+            totalAllocation
+          };
+          saveStoredOfferAllocation(updated.id, { totalAllocation, remainingUnits, soldUnits });
+          if (updated.code) saveStoredOfferAllocation(updated.code, { totalAllocation, remainingUnits, soldUnits });
+
           if (offerData.productId) {
             await supabase.from('products').update({ is_offer_applied: isCurrentlyActive }).eq('id', offerData.productId);
             syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
           }
+
+          try {
+            const rawOffers = localStorage.getItem('elvany_offers_cache');
+            if (rawOffers) {
+              const parsed = JSON.parse(rawOffers);
+              if (Array.isArray(parsed)) {
+                const idx = parsed.findIndex(o => String(o.id) === String(finalSaved.id) || String(o.code) === String(finalSaved.code));
+                if (idx >= 0) {
+                  parsed[idx] = { ...parsed[idx], ...finalSaved };
+                } else {
+                  parsed.unshift(finalSaved);
+                }
+                localStorage.setItem('elvany_offers_cache', JSON.stringify(parsed));
+              }
+            }
+          } catch {}
+
           return finalSaved;
         }
       }

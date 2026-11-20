@@ -437,16 +437,22 @@ export const AdminApp = ({
   const handleSaveOffer = async (savedData) => {
     try {
       const persisted = await saveOffer(savedData);
+      const mergedOffer = { ...savedData, ...persisted };
       let nextOffers;
       if (editingOffer) {
-        nextOffers = localOffers.map(o => o.id === savedData.id ? { ...savedData, ...persisted } : o);
+        nextOffers = localOffers.map(o => 
+          (o.id === savedData.id || (persisted?.id && o.id === persisted.id) || (savedData.code && o.code === savedData.code))
+            ? mergedOffer 
+            : o
+        );
         showToast(`Privilege offer "${savedData.title}" updated in database.`);
       } else {
-        nextOffers = [{ ...savedData, ...persisted }, ...localOffers];
+        nextOffers = [mergedOffer, ...localOffers];
         showToast(`New privilege offer "${savedData.title}" created.`);
       }
       setLocalOffers(nextOffers);
       if (onUpdateOffers) onUpdateOffers(nextOffers);
+      try { localStorage.setItem('elvany_offers_cache', JSON.stringify(nextOffers)); } catch {}
     } catch (err) {
       console.warn('Database offer save error:', err);
     }
@@ -458,6 +464,7 @@ export const AdminApp = ({
     const nextOffers = localOffers.map(o => o.id === offerId ? { ...o, isActive: nextState } : o);
     setLocalOffers(nextOffers);
     if (onUpdateOffers) onUpdateOffers(nextOffers);
+    try { localStorage.setItem('elvany_offers_cache', JSON.stringify(nextOffers)); } catch {}
     showToast(`Offer visibility set to: ${nextState ? 'Active (Live)' : 'Hidden'}`);
     await toggleOfferStatus(offerId, nextState);
   };
@@ -467,6 +474,7 @@ export const AdminApp = ({
       const nextOffers = localOffers.filter(o => o.id !== offerId);
       setLocalOffers(nextOffers);
       if (onUpdateOffers) onUpdateOffers(nextOffers);
+      try { localStorage.setItem('elvany_offers_cache', JSON.stringify(nextOffers)); } catch {}
       showToast('Offer removed from database.');
       await deleteOffer(offerId);
     }
