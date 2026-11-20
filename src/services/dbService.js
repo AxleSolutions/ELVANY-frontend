@@ -2894,16 +2894,20 @@ export async function updateBespokeDesign(idOrCode, updateFields = {}) {
 }
 
 /**
- * =========================================================================
- * ATELIER VOUCHERS & GIFT CARDS SYSTEM
- * =========================================================================
+ * ============================================================================
+ * ATELIER VOUCHERS & GIFT CARDS CLOUD ENGINE (TRIPLE-REDUNDANT PERSISTENCE)
+ * ============================================================================
  * Provides single-use, secure, database-persisted promotional voucher codes
  * that can be generated in Admin and redeemed on Checkout.
  */
 export const LOCAL_VOUCHERS_KEY = 'elvany_vouchers_registry';
 
+export const getGoogleAppsScriptUrl = () => {
+  return import.meta.env.VITE_GOOGLE_EMAIL_ENDPOINT || 'https://script.google.com/macros/s/AKfycbz_XKyqOJ3x72nKUyVfJDCGbyO_U3gWYCe61gxFF2osFWnx7RS29_cdgAqT8J7DX0h7/exec';
+};
+
 /**
- * Fetch all registered vouchers (Supabase live stream with local registry cache)
+ * Fetch all registered vouchers (Backend API + Google Cloud + Supabase + Local Cache)
  */
 export async function getVouchers() {
   let localVouchers = [];
@@ -2912,7 +2916,7 @@ export async function getVouchers() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        // Strip any test/sample mock codes so only genuine admin-created vouchers exist
+        // Strip any mock/sample codes
         localVouchers = parsed.filter(v => 
           v?.code && 
           !v.code.toLowerCase().includes('sample') && 
@@ -2923,7 +2927,44 @@ export async function getVouchers() {
     }
   } catch {}
 
-  // 1. Fetch from Supabase promotions table (which supports standard discount_type enum)
+  const mergedMap = new Map();
+  localVouchers.forEach(v => { if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v); });
+
+  // 1. Try Backend API (Direct Service-Role Access with zero RLS restrictions)
+  try {
+    const apiUrl = getApiUrl();
+    const apiRes = await fetch(`${apiUrl}/vouchers`, { signal: AbortSignal.timeout(3500) });
+    if (apiRes.ok) {
+      const json = await apiRes.json();
+      if (json.data && Array.isArray(json.data)) {
+        json.data.forEach(v => {
+          if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v);
+        });
+      }
+    }
+  } catch (apiErr) {
+    // Backend offline / static hosting mode
+  }
+
+  // 2. Try Google Cloud Serverless Engine (Works 24/7 globally across all devices without servers)
+  try {
+    const googleUrl = getGoogleAppsScriptUrl();
+    if (googleUrl) {
+      const gRes = await fetch(`${googleUrl}?action=get_vouchers`, { signal: AbortSignal.timeout(4000) });
+      if (gRes.ok) {
+        const gJson = await gRes.json();
+        if (gJson.vouchers && Array.isArray(gJson.vouchers)) {
+          gJson.vouchers.forEach(v => {
+            if (v?.code) mergedMap.set(v.code.toUpperCase().trim(), v);
+          });
+        }
+      }
+    }
+  } catch (gErr) {
+    // Non-blocking Google Cloud check
+  }
+
+  // 3. Try Supabase promotions table directly
   if (isSupabaseConfigured && supabase) {
     try {
       const { data: promoVouchers, error: promoErr } = await supabase
@@ -2933,7 +2974,7 @@ export async function getVouchers() {
         .order('created_at', { ascending: false });
 
       if (!promoErr && Array.isArray(promoVouchers)) {
-        const mapped = promoVouchers.map(p => {
+        promoVouchers.forEach(p => {
           let extra = {};
           try {
             const rawBadge = p.badge_label || '';
@@ -2946,7 +2987,7 @@ export async function getVouchers() {
           const isPercentage = extra.discountType === 'percentage' || p.discount_type === 'percentage';
           const isUsed = Boolean(extra.isUsed || (extra.usedCount >= (extra.maxUses || 1)));
 
-          return {
+          const v = {
             id: p.id,
             code: String(p.code || '').toUpperCase().trim(),
             discountType: isPercentage ? 'percentage' : 'fixed',
@@ -2965,36 +3006,25 @@ export async function getVouchers() {
             usedAt: extra.usedAt || null,
             createdAt: p.created_at
           };
+          if (v.code) mergedMap.set(v.code, v);
         });
-
-        // Merge Supabase vouchers with local cache seamlessly
-        const mergedMap = new Map();
-        mapped.forEach(v => mergedMap.set(v.code, v));
-        if (Array.isArray(localVouchers)) {
-          localVouchers.forEach(v => {
-            if (v?.code && !mergedMap.has(v.code)) {
-              mergedMap.set(v.code, v);
-            }
-          });
-        }
-
-        const result = Array.from(mergedMap.values());
-        try {
-          localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(result));
-        } catch {}
-        return result;
       }
     } catch (err) {
       console.warn('Supabase getVouchers notice:', err);
     }
   }
 
-  return Array.isArray(localVouchers) ? localVouchers : [];
+  const finalVouchers = Array.from(mergedMap.values());
+  try {
+    localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(finalVouchers));
+  } catch {}
+
+  return finalVouchers;
 }
 
 /**
  * Create or update a voucher
- * Persists directly to Supabase with valid Postgres enum compatibility.
+ * Persists across Local Storage, Backend API, Google Cloud Engine, and Supabase.
  */
 export async function saveVoucher(voucherData) {
   const code = String(voucherData.code || `ELV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().trim();
@@ -3012,13 +3042,8 @@ export async function saveVoucher(voucherData) {
   const notes = voucherData.notes || '';
   const usedByOrderId = voucherData.usedByOrderId || null;
   const usedByEmail = voucherData.usedByEmail || null;
-  const usedAt = voucherAtIso(voucherData.usedAt);
+  const usedAt = voucherData.usedAt || null;
   const createdAt = voucherData.createdAt || new Date().toISOString();
-
-  function voucherAtIso(val) {
-    if (!val) return null;
-    return val;
-  }
 
   const finalVoucher = {
     id,
@@ -3056,7 +3081,35 @@ export async function saveVoucher(voucherData) {
     console.warn('Local voucher save notice:', err);
   }
 
-  // 2. Persist to Supabase Database with enum compatibility ('percentage' or 'fixed_amount')
+  // 2. Persist to Backend API (with full Service-Role Supabase write)
+  try {
+    const apiUrl = getApiUrl();
+    await fetch(`${apiUrl}/vouchers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(finalVoucher),
+      signal: AbortSignal.timeout(3500)
+    });
+  } catch (apiErr) {
+    // Non-blocking API save
+  }
+
+  // 3. Persist to Google Cloud Serverless Dispatcher (24/7 cross-device cloud persistence)
+  try {
+    const googleUrl = getGoogleAppsScriptUrl();
+    if (googleUrl) {
+      await fetch(googleUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'save_voucher', voucher: finalVoucher }),
+        signal: AbortSignal.timeout(4500)
+      });
+    }
+  } catch (gErr) {
+    console.warn('Google Cloud save_voucher notice:', gErr);
+  }
+
+  // 4. Persist directly to Supabase promotions table
   if (isSupabaseConfigured && supabase) {
     try {
       const extraPayload = {
@@ -3084,7 +3137,6 @@ export async function saveVoucher(voucherData) {
         expires_at: expiresAt
       };
 
-      // Check if code already exists in promotions
       const { data: existingPromo } = await supabase
         .from('promotions')
         .select('id')
@@ -3110,24 +3162,52 @@ export async function saveVoucher(voucherData) {
 }
 
 /**
- * Delete a voucher permanently
+ * Delete a voucher permanently across all tiers
  */
 export async function deleteVoucher(voucherId, voucherCode) {
+  const cleanCode = (voucherCode || '').toUpperCase().trim();
+
+  // 1. Remove from local storage
   try {
     const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
-        const filtered = list.filter(v => v.id !== voucherId && v.code !== voucherCode);
+        const filtered = list.filter(v => v.id !== voucherId && v.code !== cleanCode);
         localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(filtered));
       }
     }
   } catch {}
 
+  // 2. Remove from Backend API
+  try {
+    const apiUrl = getApiUrl();
+    if (cleanCode) {
+      await fetch(`${apiUrl}/vouchers/${cleanCode}`, {
+        method: 'DELETE',
+        signal: AbortSignal.timeout(3500)
+      });
+    }
+  } catch (apiErr) {}
+
+  // 3. Remove from Google Cloud Engine
+  try {
+    const googleUrl = getGoogleAppsScriptUrl();
+    if (googleUrl && cleanCode) {
+      await fetch(googleUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'delete_voucher', code: cleanCode, id: voucherId }),
+        signal: AbortSignal.timeout(4000)
+      });
+    }
+  } catch (gErr) {}
+
+  // 4. Remove from Supabase
   if (isSupabaseConfigured && supabase) {
     try {
-      if (voucherCode) {
-        await supabase.from('promotions').delete().eq('code', voucherCode);
+      if (cleanCode) {
+        await supabase.from('promotions').delete().eq('code', cleanCode);
       }
       if (voucherId && isUuid(voucherId)) {
         await supabase.from('promotions').delete().eq('id', voucherId);
