@@ -68,7 +68,7 @@ export const AccountModal = ({
               </span>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)' }}>
-              Maison ELVANY Private Account • Verified Session
+              ELVANY Private Account • Verified Session
             </p>
           </div>
 

@@ -92,7 +92,7 @@ export const SubmitReviewPage = ({ onAddNewReview }) => {
               Evaluation Recorded
             </h2>
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.94rem', lineHeight: 1.6, maxWidth: '480px', margin: '0 auto 2.5rem auto' }}>
-              Thank you, {author}. Your verified evaluation for <strong>{currentProduct.name}</strong> has been authenticated and published to the Maison product archive.
+              Thank you, {author}. Your verified evaluation for <strong>{currentProduct.name}</strong> has been authenticated and published to the product archive.
             </p>
 
             <button 
@@ -130,7 +130,7 @@ export const SubmitReviewPage = ({ onAddNewReview }) => {
                 Submit Client Review
               </h1>
               <p style={{ color: 'var(--text-light-muted)', fontSize: '0.86rem', marginTop: '0.4rem' }}>
-                Invitation portal for verified patrons of Maison ELVANY.
+                Invitation portal for verified patrons of ELVANY.
               </p>
             </div>
 

@@ -845,7 +845,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                     WhatsApp Customer Shipping Notice
                   </h3>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                    Maison ELVANY Atelier Dispatch Notification
+                    ELVANY Atelier Dispatch Notification
                   </div>
                 </div>
               </div>

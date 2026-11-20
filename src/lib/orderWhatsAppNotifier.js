@@ -1,5 +1,5 @@
 /**
- * Utilities for formatting WhatsApp dispatch and shipping messages for Maison ELVANY orders.
+ * Utilities for formatting WhatsApp dispatch and shipping messages for ELVANY orders.
  */
 
 /**
@@ -63,7 +63,7 @@ export const generateShippingWhatsAppMessage = (order, trackingNumber = null, cu
 
   const customNoteSection = customNote && customNote.trim() ? `\n📝 *ATELIER DISPATCH NOTE:*\n${customNote.trim()}\n` : '';
 
-  return `✨ *MAISON ELVANY — ORDER DISPATCH & SHIPPING NOTIFICATION* ✨
+  return `✨ *ELVANY — ORDER DISPATCH & SHIPPING NOTIFICATION* ✨
 
 Dear ${customerName},
 

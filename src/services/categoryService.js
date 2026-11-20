@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — Dynamic Category Management Service
+ * ELVANY — Dynamic Category Management Service
  * Supports fully customizable categories that can be created, updated, and deleted
  * dynamically in the Admin Panel and reflected immediately across both Admin and Client storefront.
  */

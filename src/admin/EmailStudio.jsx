@@ -22,7 +22,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maison ELVANY</title>
+  <title>ELVANY</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
@@ -35,7 +35,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Haute Couture &bull; Atelier</p>
             </td>
           </tr>
 
@@ -70,7 +70,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
             <td style="padding: 0 32px 36px 32px;">
               <div style="background-color: #1a1a1a; border: 1px dashed rgba(197, 160, 89, 0.4); padding: 20px; text-align: center; border-radius: 4px;">
                 <p style="margin: 0 0 6px 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #c5a059;">Complimentary Privilege</p>
-                <div style="font-size: 20px; font-weight: 600; letter-spacing: 0.2em; color: #ffffff; margin: 4px 0;">MAISON-VIP</div>
+                <div style="font-size: 20px; font-weight: 600; letter-spacing: 0.2em; color: #ffffff; margin: 4px 0;">ELVANY-VIP</div>
                 <p style="margin: 6px 0 0 0; font-size: 12px; color: #71717a;">Apply at checkout for 15% off your next curation.</p>
               </div>
             </td>
@@ -79,7 +79,7 @@ const DEFAULT_STARTER_HTML = `<!DOCTYPE html>
           <!-- Footer -->
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
-              <p style="margin: 0 0 8px 0;">You received this private dispatch as a registered patron of Maison ELVANY.</p>
+              <p style="margin: 0 0 8px 0;">You received this private dispatch as a registered patron of ELVANY.</p>
               <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
@@ -103,7 +103,7 @@ export function EmailStudio() {
 
   // Email Code & Details
   const [subject, setSubject] = useState('Privilege Invitation | The New ELVANY Collection');
-  const [senderName, setSenderName] = useState(() => localStorage.getItem('elvany_email_sender_name') || 'Maison ELVANY');
+  const [senderName, setSenderName] = useState(() => localStorage.getItem('elvany_email_sender_name') || 'ELVANY');
   const [fromEmail, setFromEmail] = useState(() => localStorage.getItem('elvany_email_from_address') || '');
   const [htmlCode, setHtmlCode] = useState(() => localStorage.getItem('elvany_saved_email_html') || DEFAULT_STARTER_HTML);
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'mobile'
@@ -397,7 +397,7 @@ export function EmailStudio() {
       recipients: list,
       subject: emailSubject,
       htmlBody: emailHtml,
-      senderName: senderName || 'Maison ELVANY',
+      senderName: senderName || 'ELVANY',
       fromEmail: fromEmail.trim() || undefined
     };
 
@@ -661,7 +661,7 @@ export function EmailStudio() {
                     setSenderName(e.target.value);
                     localStorage.setItem('elvany_email_sender_name', e.target.value);
                   }}
-                  placeholder="Maison ELVANY"
+                  placeholder="ELVANY"
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
@@ -786,7 +786,7 @@ export function EmailStudio() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (window.confirm('Reset code to default luxury Maison ELVANY template?')) {
+                    if (window.confirm('Reset code to default luxury ELVANY template?')) {
                       setHtmlCode(DEFAULT_STARTER_HTML);
                     }
                   }}

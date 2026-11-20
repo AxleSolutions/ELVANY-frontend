@@ -88,7 +88,7 @@ export const AdminHeader = ({
       case 'reviews': return 'Client Evaluations & Moderation';
       case 'customers': return 'Private Client Registry & CRM';
       case 'restockRequests': return 'Garment Re-Issue Demand Hub';
-      case 'settings': return 'Maison Brand & Concierge Settings';
+      case 'settings': return 'Brand & Concierge Settings';
       default: return 'Atelier Backoffice';
     }
   };
@@ -106,7 +106,7 @@ export const AdminHeader = ({
         </button>
 
         <div>
-          <div className="admin-breadcrumb-top">MAISON ELVANY</div>
+          <div className="admin-breadcrumb-top">ELVANY</div>
           <h1 className="admin-header-title">{getPageTitle()}</h1>
         </div>
       </div>

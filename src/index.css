@@ -5647,7 +5647,7 @@ img {
 }
 
 .checkout-card-details-inner::after {
-  content: 'MAISON ELVANY';
+  content: 'ELVANY';
   position: absolute;
   bottom: 8px;
   right: 14px;
@@ -6167,7 +6167,7 @@ img {
 }
 
 /* =========================================================================
-   MAISON ELVANY LUXURY MOBILE DECLUTTERING & SPACING SYSTEM (< 768px & < 480px)
+   ELVANY LUXURY MOBILE DECLUTTERING & SPACING SYSTEM (< 768px & < 480px)
    ========================================================================= */
 
 @media (max-width: 768px) {
@@ -8027,7 +8027,7 @@ img {
 }
 
 /* ==========================================================================
-   MAISON ELVANY — LUXURY PROGRESSIVE WEB APP (PWA) INSTALL PROMPT
+   ELVANY — LUXURY PROGRESSIVE WEB APP (PWA) INSTALL PROMPT
    ========================================================================== */
 .pwa-install-banner {
   position: fixed;

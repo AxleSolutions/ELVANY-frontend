@@ -1675,7 +1675,7 @@ export const AccountPage = ({
                 Unlink {authProvider} Account
               </h3>
               <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', lineHeight: 1.5 }}>
-                Unlinking your {authProvider} account will convert your Maison ELVANY profile to standalone email & password authentication.
+                Unlinking your {authProvider} account will convert your ELVANY profile to standalone email & password authentication.
               </p>
             </div>
 
@@ -1779,7 +1779,7 @@ export const AccountPage = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
-                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                  <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}

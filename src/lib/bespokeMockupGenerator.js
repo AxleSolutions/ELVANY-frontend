@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — Bespoke Atelier Garment Mockup Generator
+ * ELVANY — Bespoke Atelier Garment Mockup Generator
  * Produces ultra high-resolution, 4-angle (Front, Back, Left Sleeve, Right Sleeve) 
  * rendered blueprints of customized T-shirts.
  */
@@ -260,7 +260,7 @@ export async function generateBespokeMockupCollage({
   ctx.fillStyle = '#c5a059';
   ctx.font = 'bold 13px sans-serif';
   ctx.letterSpacing = '2px';
-  ctx.fillText('MAISON ELVANY • BESPOKE 4-AXIS ATELIER BLUEPRINT', 35, 42);
+  ctx.fillText('ELVANY • BESPOKE 4-AXIS ATELIER BLUEPRINT', 35, 42);
 
   // Configuration Info Tag
   ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';

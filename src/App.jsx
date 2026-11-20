@@ -545,7 +545,7 @@ const safeSaveCartToLocalStorage = (cart) => {
       return updated;
     });
 
-    addToast(`Client review by ${reviewObj.author} published to Maison archive.`);
+    addToast(`Client review by ${reviewObj.author} published to Atelier archive.`);
     try {
       await addReview({ productId: matched?.id || productId, ...reviewObj });
     } catch (err) {
@@ -721,12 +721,12 @@ const safeSaveCartToLocalStorage = (cart) => {
 
     // Automatic Executive Redirect if logged in with elvanywear@gmail.com
     if (email && email.toLowerCase().trim() === 'elvanywear@gmail.com') {
-      addToast('Atelier Executive Recognized. Opening Maison Admin Desk.');
+      addToast('Atelier Executive Recognized. Opening Admin Desk.');
       triggerPageTransition('/elvanyadmin');
       return;
     }
 
-    addToast(`Authenticated as ${name}. Welcome to Maison ELVANY.`);
+    addToast(`Authenticated as ${name}. Welcome to ELVANY.`);
   };
 
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
@@ -752,7 +752,7 @@ const safeSaveCartToLocalStorage = (cart) => {
         console.warn('Sign out notice:', err);
       }
     }
-    addToast('Signed out of Maison ELVANY session.');
+    addToast('Signed out of ELVANY session.');
     triggerPageTransition('/');
   };
 
@@ -1174,7 +1174,7 @@ const safeSaveCartToLocalStorage = (cart) => {
         </Routes>
       </React.Suspense>
 
-      {/* Maison Footer */}
+      {/* Footer */}
       {!isAdminView && (
         <Footer
           onNavigateToCollection={navigateToCollection}
@@ -1255,7 +1255,7 @@ const safeSaveCartToLocalStorage = (cart) => {
               Confirm Sign Out
             </h3>
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', lineHeight: 1.5, marginBottom: '2rem' }}>
-              Are you sure you wish to conclude your private Maison ELVANY session? You can sign in again at any time.
+              Are you sure you wish to conclude your private ELVANY session? You can sign in again at any time.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

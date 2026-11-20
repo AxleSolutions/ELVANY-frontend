@@ -86,7 +86,7 @@ export const AdminDashboard = ({
       <div className="admin-welcome-card">
         <div>
           <span className="admin-badge-gold">ATELIER EXECUTIVE DESK</span>
-          <h2 className="admin-welcome-title">Maison Overview & Performance</h2>
+          <h2 className="admin-welcome-title">Overview & Performance</h2>
           <p className="admin-welcome-desc">
             Live telemetry for Florence craftsmanship, Sri Lanka VIP dispatch, and client evaluations.
           </p>
@@ -365,11 +365,11 @@ export const AdminDashboard = ({
 
       </div>
 
-      {/* Maison Garment Catalog Overview */}
+      {/* Garment Catalog Overview */}
       <div className="admin-card" style={{ marginTop: '1.5rem' }}>
         <div className="admin-card-header">
           <div>
-            <h3 className="admin-card-title">Maison Garment Catalog ({products.length})</h3>
+            <h3 className="admin-card-title">Garment Catalog ({products.length})</h3>
             <p className="admin-card-subtitle">Active styles, inventory distribution, and atelier pricing</p>
           </div>
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>

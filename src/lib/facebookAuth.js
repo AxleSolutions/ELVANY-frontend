@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — Direct Facebook JavaScript SDK Authentication
+ * ELVANY — Direct Facebook JavaScript SDK Authentication
  * Allows direct Facebook Popup login without third-party OAuth intermediaries.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — PayHere Card Payment Gateway Service
+ * ELVANY — PayHere Card Payment Gateway Service
  * Securely communicates with backend hash generator and wraps PayHere.js SDK
  */
 
@@ -47,7 +47,7 @@ export async function getPayHereParameters(orderData) {
 
   if (!res.ok) {
     const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.message || 'Failed to authenticate payment with Maison payment gateway.');
+    throw new Error(errJson.message || 'Failed to authenticate payment with ELVANY payment gateway.');
   }
 
   const result = await res.json();

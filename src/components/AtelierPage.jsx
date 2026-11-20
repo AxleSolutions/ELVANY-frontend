@@ -221,7 +221,7 @@ export const AtelierPage = ({ onBackToHome, onNavigateToCollection }) => {
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <div className="section-tag">GLOBAL SHOWROOMS</div>
-            <h2 className="section-main-title">Maison Boutiques & Showrooms</h2>
+            <h2 className="section-main-title">Boutiques & Showrooms</h2>
           </div>
 
           <div style={{

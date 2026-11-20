@@ -193,7 +193,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
             <Sparkles size={28} color="var(--gold-bright)" className="animate-spin" />
           </div>
           <div style={{ color: 'var(--gold-bright)', fontSize: '0.74rem', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>
-            MAISON ELVANY • VERIFIED PASSPORT
+            ELVANY • VERIFIED PASSPORT
           </div>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.7rem', color: '#ffffff', marginBottom: '0.6rem', fontWeight: 400 }}>
             Authenticating Order #{orderId || ''}...
@@ -244,7 +244,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
             Client Evaluation Locked
           </h2>
           <p style={{ color: 'var(--text-light-secondary)', lineHeight: 1.6, fontSize: '0.88rem', marginBottom: '1.8rem' }}>
-            Maison ELVANY guarantees authenticated reviews. Client evaluations are unlocked exclusively once your parcel has been successfully delivered and handed over by our courier network.
+            ELVANY guarantees authenticated reviews. Client evaluations are unlocked exclusively once your parcel has been successfully delivered and handed over by our courier network.
           </p>
           <div style={{
             display: 'inline-flex',
@@ -453,7 +453,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
 
               <div>
                 <div style={{ color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.2rem' }}>
-                  MAISON ELVANY CLIENT ORDER
+                  ELVANY CLIENT ORDER
                 </div>
                 <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 400, color: '#fff', margin: 0 }}>
                   Order #{activeOrder.orderId}
@@ -509,7 +509,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
               Garment Authenticated Evaluations
             </h2>
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.86rem', margin: 0 }}>
-              Submit your experience with the cut, fabric, weight, and longevity. Upload photos of your garment to be featured in our official Maison client archive.
+              Submit your experience with the cut, fabric, weight, and longevity. Upload photos of your garment to be featured in our official client archive.
             </p>
           </div>
 
@@ -531,7 +531,7 @@ export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewRev
                   ALL ORDER EVALUATIONS COMPLETE & LOCKED
                 </div>
                 <div style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem' }}>
-                  All purchased garments from Order #{activeOrder.orderId || orderId} have been authenticated and sealed in the Maison archive. Thank you for your verified patron feedback.
+                  All purchased garments from Order #{activeOrder.orderId || orderId} have been authenticated and sealed in the Atelier archive. Thank you for your verified patron feedback.
                 </div>
               </div>
             </div>

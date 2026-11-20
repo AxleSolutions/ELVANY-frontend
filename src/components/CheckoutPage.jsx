@@ -557,7 +557,7 @@ export const CheckoutPage = ({
             firstName,
             lastName,
             email,
-            description: `Maison ELVANY Order ${newOrder.orderId}`,
+            description: `ELVANY Order ${newOrder.orderId}`,
             returnUrl,
             cancelUrl,
             items: cart
@@ -599,28 +599,38 @@ export const CheckoutPage = ({
 
 
 
-  // If order was confirmed, show the Maison Acquisition Passport
+  // If order was confirmed, show the Acquisition Passport
   if (confirmedOrder) {
     return (
-      <div className="checkout-page" style={{ minHeight: '100vh', backgroundColor: '#090a0c', color: '#ffffff', padding: '4rem 0 6rem 0' }}>
-        <div className="container" style={{ maxWidth: '780px' }}>
+      <div className="checkout-page" style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#090a0c', 
+        color: '#ffffff', 
+        padding: '2rem 1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div className="container" style={{ maxWidth: '740px', width: '100%', margin: 'auto' }}>
           
           <div style={{
             backgroundColor: '#0d0e12',
             border: '1px solid var(--gold-border)',
             borderRadius: '2px',
-            padding: '3.5rem 2.5rem',
+            padding: '2.2rem 2rem 2.4rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.85)'
+            boxShadow: '0 20px 60px rgba(0,0,0,0.85)',
+            width: '100%',
+            boxSizing: 'border-box'
           }}>
-            {/* Maison ELVANY Official Brand Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
+            {/* ELVANY Official Brand Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.8rem' }}>
               <img 
                 src="/logo/Main.png" 
                 alt="ELVANY" 
                 style={{ 
-                  maxHeight: '56px', 
-                  maxWidth: '220px', 
+                  maxHeight: '44px', 
+                  maxWidth: '180px', 
                   objectFit: 'contain'
                 }} 
               />
@@ -628,20 +638,20 @@ export const CheckoutPage = ({
 
             <div style={{
               color: 'var(--gold-bright)',
-              fontSize: '0.74rem',
+              fontSize: '0.7rem',
               fontWeight: 700,
-              letterSpacing: '0.22em',
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              marginBottom: '0.5rem'
+              marginBottom: '0.35rem'
             }}>
-              MAISON ELVANY • ACQUISITION CONFIRMED
+              ELVANY • ACQUISITION CONFIRMED
             </div>
 
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(2rem, 3.5vw, 2.6rem)', color: '#ffffff', fontWeight: 400, margin: '0 0 1rem 0' }}>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 2.8vw, 2.1rem)', color: '#ffffff', fontWeight: 400, margin: '0 0 0.5rem 0' }}>
               Order Passport #{confirmedOrder.orderId}
             </h1>
 
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.92rem', maxWidth: '540px', margin: '0 auto 2rem auto', lineHeight: 1.6 }}>
+            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.85rem', maxWidth: '520px', margin: '0 auto 1.2rem auto', lineHeight: 1.5 }}>
               Thank you, <strong style={{ color: '#ffffff' }}>{confirmedOrder.customerName}</strong>. Your acquisition has been registered and verified by the Florentine atelier.
             </p>
 
@@ -650,43 +660,43 @@ export const CheckoutPage = ({
               backgroundColor: '#07080a',
               border: '1px solid var(--border-dark)',
               borderRadius: '2px',
-              padding: '1.8rem',
+              padding: '1.2rem 1.4rem',
               textAlign: 'left',
-              marginBottom: '2.5rem'
+              marginBottom: '1.5rem'
             }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.9rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', display: 'block' }}>DELIVERY DESTINATION</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#ffffff' }}>{confirmedOrder.customerLocation}</strong>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>DELIVERY DESTINATION</span>
+                  <strong style={{ fontSize: '0.84rem', color: '#ffffff' }}>{confirmedOrder.customerLocation}</strong>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', display: 'block' }}>PAYMENT METHOD</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#ffffff' }}>{confirmedOrder.paymentMethod}</strong>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>PAYMENT METHOD</span>
+                  <strong style={{ fontSize: '0.84rem', color: '#ffffff' }}>{confirmedOrder.paymentMethod}</strong>
                   {confirmedOrder.hasSlipAttached ? (
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Bank Transfer Receipt Attached</span>
+                    <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Bank Transfer Receipt Attached</span>
                   ) : confirmedOrder.paymentMethod?.toLowerCase().includes('cod') || confirmedOrder.paymentMethod?.includes('Cash') ? (
-                    <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Cash Collection Upon Handover</span>
+                    <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Cash Collection Upon Handover</span>
                   ) : null}
 
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', display: 'block' }}>ESTIMATED DISPATCH</span>
-                  <strong style={{ fontSize: '0.88rem', color: 'var(--gold-bright)' }}>Next Business Day (Island-Wide)</strong>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ESTIMATED DISPATCH</span>
+                  <strong style={{ fontSize: '0.84rem', color: 'var(--gold-bright)' }}>Next Business Day (Island-Wide)</strong>
                 </div>
               </div>
 
-              {/* Items List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Items List (Capped with smooth scroll if many items so card fits within viewport) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', maxHeight: '150px', overflowY: 'auto', paddingRight: '4px' }}>
                 {confirmedOrder.items.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                      <img src={item.image} alt={item.name} style={{ width: '40px', height: '48px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <img src={item.image} alt={item.name} style={{ width: '36px', height: '42px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} />
                       <div>
-                        <div style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 500 }}>{item.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light-muted)' }}>{item.selectedSize} • {item.color} • Qty: {item.quantity}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>{item.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>{item.selectedSize} • {item.color} • Qty: {item.quantity}</div>
                       </div>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 700, fontSize: '0.92rem' }}>
                       {formatLKR(item.priceLKR * item.quantity)}
                     </span>
                   </div>
@@ -694,60 +704,22 @@ export const CheckoutPage = ({
               </div>
 
               {confirmedOrder.savingsLKR > 0 && (
-                <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--gold-bright)' }}>Privilege Atelier Savings Applied:</span>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--gold-bright)', fontWeight: 700 }}>-LKR {confirmedOrder.savingsLKR.toLocaleString()}</span>
+                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--gold-bright)' }}>Privilege Atelier Savings Applied:</span>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 700 }}>-LKR {confirmedOrder.savingsLKR.toLocaleString()}</span>
                 </div>
               )}
 
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+              <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
                   {formatLKR(confirmedOrder.totalLKR)}
                 </span>
               </div>
             </div>
 
-            {/* Return & Exchange Policy Guidelines */}
-            <div style={{
-              backgroundColor: '#0a0b0e',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderLeft: '3px solid var(--gold-bright)',
-              borderRadius: '2px',
-              padding: '1.25rem 1.5rem',
-              textAlign: 'left',
-              marginBottom: '2rem'
-            }}>
-              <div style={{
-                color: 'var(--gold-bright)',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                marginBottom: '0.6rem'
-              }}>
-                Return & Exchange Guidelines
-              </div>
-              <ul style={{
-                margin: 0,
-                paddingLeft: '1.1rem',
-                fontSize: '0.8rem',
-                color: 'var(--text-light-secondary)',
-                lineHeight: 1.65,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.35rem'
-              }}>
-                <li>Garments can be returned or exchanged within <strong>7 days</strong> from delivery handover in original, unworn condition.</li>
-                <li><strong>Return Delivery Fees:</strong> If you are returning the item, delivery fees should be handled by you.</li>
-                <li><strong>Damaged Goods:</strong> If return is due to damage or defect only, ELVANY will handle and cover the delivery fees.</li>
-                <li><strong>Exchange Delivery Fees:</strong> If you are exchanging the item, both delivery fees (return courier & replacement dispatch) should be handled by you.</li>
-                <li><strong>Refund Processing:</strong> Any funds or refunds will be received after the package is safely received and verified by our atelier.</li>
-              </ul>
-            </div>
-
-            {/* Action CTAs */}
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {/* Action CTAs (Directly visible in viewport without page scroll) */}
+            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button 
                 type="button"
                 className="btn-primary-gold"
@@ -760,17 +732,17 @@ export const CheckoutPage = ({
                     setIsDownloadingPassport(false);
                   }
                 }}
-                style={{ padding: '1rem 1.8rem' }}
+                style={{ padding: '0.85rem 1.6rem', fontSize: '0.82rem' }}
                 title="Download official offline passport PDF"
               >
                 {isDownloadingPassport ? (
                   <>
-                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
                     <span>GENERATING PDF...</span>
                   </>
                 ) : (
                   <>
-                    <Download size={16} />
+                    <Download size={15} />
                     <span>DOWNLOAD ORDER PASSPORT</span>
                   </>
                 )}
@@ -780,17 +752,17 @@ export const CheckoutPage = ({
                 type="button"
                 className="btn-outline-gold"
                 onClick={() => navigate('/account?tab=orders')}
-                style={{ padding: '1rem 2rem' }}
+                style={{ padding: '0.85rem 1.6rem', fontSize: '0.82rem' }}
               >
                 <span>VIEW IN MY ORDERS</span>
-                <ArrowRight size={16} />
+                <ArrowRight size={15} />
               </button>
 
               <button 
                 type="button"
                 className="btn-outline-gold"
                 onClick={() => navigate('/')}
-                style={{ padding: '1rem 2rem' }}
+                style={{ padding: '0.85rem 1.6rem', fontSize: '0.82rem' }}
               >
                 <span>RETURN TO STORE</span>
               </button>
@@ -1860,7 +1832,7 @@ export const CheckoutPage = ({
                     <div className="checkout-bank-details">
                       <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '0.9rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Building2 size={16} />
-                        <span>Maison ELVANY Official Bank Account</span>
+                        <span>ELVANY Official Bank Account</span>
                       </div>
 
                       {/* Luxury Bank Card Slip */}
@@ -2264,7 +2236,7 @@ export const CheckoutPage = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
-                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                  <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}

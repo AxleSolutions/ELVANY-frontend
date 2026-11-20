@@ -22,7 +22,7 @@ export const ConciergeSettings = ({ settings, onSaveSettings }) => {
           <div className="admin-card-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <Phone size={17} color="var(--gold-bright)" />
-              <h3 className="admin-card-title">Maison Advisory Hotlines & Email</h3>
+              <h3 className="admin-card-title">Advisory Hotlines & Email</h3>
             </div>
             <span className="admin-badge-gold">PUBLIC CONCIERGE</span>
           </div>
@@ -122,7 +122,7 @@ export const ConciergeSettings = ({ settings, onSaveSettings }) => {
 
           <button type="submit" className="btn-primary-gold" style={{ padding: '0.95rem 2rem' }}>
             <Save size={15} />
-            <span>SAVE MAISON CONFIGURATION</span>
+            <span>SAVE CONFIGURATION</span>
           </button>
         </div>
 

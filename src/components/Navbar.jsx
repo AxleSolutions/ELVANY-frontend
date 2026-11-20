@@ -190,7 +190,7 @@ export const Navbar = ({
               <button 
                 className="nav-login-btn"
                 onClick={handleProfileClick}
-                title={loggedInUser ? `Maison Account: ${loggedInUser}` : 'Log In'}
+                title={loggedInUser ? `Account: ${loggedInUser}` : 'Log In'}
                 style={{ gap: '0.4rem' }}
               >
                 {loggedInUser ? (

@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — Haute Email Template Engine
+ * ELVANY — Haute Email Template Engine
  * Generates fully responsive, cross-client compatible HTML email designs
  * with dark luxury aesthetic, KaTeX/font fallbacks, and bulletproof tables.
  */
@@ -16,7 +16,7 @@ function wrapEmailHtml(contentHtml, preheaderText = '') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maison ELVANY</title>
+  <title>ELVANY</title>
   <style>
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -33,7 +33,7 @@ function wrapEmailHtml(contentHtml, preheaderText = '') {
 <body style="margin: 0; padding: 0; background-color: #08090a; color: #f4ede4;">
   <!-- Preheader preview text (invisible in body, shows in inbox snippet) -->
   <div style="display: none; font-size: 1px; color: #08090a; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
-    ${preheaderText || 'Maison ELVANY — Haute Heavyweight T-Shirts & Noble Cotton Essentials.'}
+    ${preheaderText || 'ELVANY — Haute Heavyweight T-Shirts & Noble Cotton Essentials.'}
   </div>
 
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #08090a;">
@@ -74,7 +74,7 @@ function wrapEmailHtml(contentHtml, preheaderText = '') {
                 </tr>
                 <tr>
                   <td align="center" style="color: #7d828c; font-size: 11px; line-height: 1.6; padding-bottom: 16px;">
-                    You are receiving this communication as a valued private client or subscriber of Maison ELVANY.<br/>
+                    You are receiving this communication as a valued private client or subscriber of ELVANY.<br/>
                     Flagship Atelier: Sri Lanka • Worldwide Courier Dispatch
                   </td>
                 </tr>
@@ -198,7 +198,7 @@ export function generatePrivilegeOfferTemplate(options = {}) {
     </tr>
   `;
 
-  return wrapEmailHtml(content, `${headline} — ${discountCode ? `${discountValue} with code ${discountCode}` : 'Exclusive privilege from Maison ELVANY'}`);
+  return wrapEmailHtml(content, `${headline} — ${discountCode ? `${discountValue} with code ${discountCode}` : 'Exclusive privilege from ELVANY'}`);
 }
 
 /**
@@ -254,7 +254,7 @@ export function generateCollectionLaunchTemplate(options = {}) {
     </tr>
   `;
 
-  return wrapEmailHtml(content, `${headline} — Available now at Maison ELVANY.`);
+  return wrapEmailHtml(content, `${headline} — Available now at ELVANY.`);
 }
 
 /**
@@ -335,10 +335,10 @@ export function generateRestockNotificationTemplate(options = {}) {
  */
 export function generateAnnouncementTemplate(options = {}) {
   const {
-    headline = 'Maison ELVANY Bulletin',
+    headline = 'ELVANY Bulletin',
     subheadline = 'ATELIER DISPATCH',
     message = 'We welcome you to explore our refined curation of luxury everyday heavyweight cotton apparel.',
-    ctaText = 'VISIT MAISON ELVANY',
+    ctaText = 'VISIT ELVANY',
     ctaUrl = SITE_URL
   } = options;
 

@@ -1,4 +1,4 @@
-// Maison ELVANY — Haute Couture Progressive Web App Service Worker
+// ELVANY — Haute Couture Progressive Web App Service Worker
 const CACHE_NAME = 'elvany-pwa-v4';
 const STATIC_ASSETS = [
   '/',

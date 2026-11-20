@@ -112,7 +112,7 @@ export const CartDrawer = ({
                 EXPRESS COURIER LOGISTICS
               </div>
               <p className="cart-confirmed-box-desc">
-                Your Maison Florence garment parcel has been registered for tailoring reconciliation and express courier delivery. You can monitor live fulfillment telemetry from your account.
+                Your Florence garment parcel has been registered for tailoring reconciliation and express courier delivery. You can monitor live fulfillment telemetry from your account.
               </p>
 
               <button
@@ -439,7 +439,7 @@ export const CartDrawer = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
-                  <span>MAISON ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
+                  <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}

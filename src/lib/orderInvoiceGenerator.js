@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 import { MAIN_LOGO_BASE64 } from './mainLogoBase64.js';
 
 /**
- * Generate luxury invoice HTML for Maison ELVANY
+ * Generate luxury invoice HTML for ELVANY
  * Ultra-professional haute couture atelier passport with clean typography,
  * Main-2.png official brand mark, explicit Koko BNPL surcharge breakdown, and verified credentials.
  */
@@ -115,7 +115,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
       align-items: center;
       border-bottom: 2px solid #c5a059;
     ">
-      <!-- Left: White Haute Logo Mark (Main-2.png) -->
+      <!-- Left: Haute Logo Mark (Main-5.png) -->
       <div style="display: flex; flex-direction: column; align-items: flex-start;">
         <img 
           src="${MAIN_LOGO_BASE64}" 
@@ -129,7 +129,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
 
       <!-- Right: Document Passport Credentials -->
       <div style="text-align: right;">
-        <div style="display: inline-block; background: rgba(197, 160, 89, 0.15); border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 2px; padding: 3px 10px; font-size: 9.5px; font-weight: 800; color: #e2be75; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 6px;">
+        <div style="font-size: 10px; font-weight: 800; color: #c5a059; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 5px;">
           OFFICIAL ATELIER PASSPORT & INVOICE
         </div>
         <div style="font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: 0.05em; font-family: monospace;">
@@ -178,9 +178,6 @@ export function generateInvoiceHtml(order, isScreenView = false) {
           </div>
           <div style="font-size: 13px; color: #111215; font-weight: 700;">
             ${isKoko ? 'Koko Buy Now Pay Later (3x Instalments)' : (order.paymentMethod || 'Online Settlement')}
-          </div>
-          <div style="display: flex; align-items: center; gap: 5px; color: #15803d; font-weight: 700; font-size: 11.5px; margin-top: 4px;">
-            <span>✓</span> <span>Authenticated & Verified</span>
           </div>
           <div style="font-size: 11px; color: #55555c; margin-top: 6px; line-height: 1.45;">
             ${(order.trackingNumber || order.tracking_number) 
@@ -331,7 +328,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
       <!-- Atelier Guarantee & Verification Footer -->
       <div style="border-top: 1px solid #eaeaea; padding-top: 16px; text-align: center; font-size: 10px; color: #77777e; line-height: 1.5;">
         <div style="font-weight: 800; color: #8c6d2d; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px;">
-          ★ MAISON ELVANY NOBLE ATELIER CERTIFICATE OF AUTHENTICITY ★
+          ★ ELVANY NOBLE ATELIER CERTIFICATE OF AUTHENTICITY ★
         </div>
         <div>
           This passport verifies genuine acquisition registered on www.elvanywear.com.<br/>
@@ -342,6 +339,71 @@ export function generateInvoiceHtml(order, isScreenView = false) {
     </div>
   </div>
   `;
+}
+
+/**
+ * Generates the luxury invoice as a base64 string for automated email attachments
+ */
+export async function generateInvoicePdfBase64(order) {
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '794px'; // Standard A4 width at 96 DPI
+  container.style.backgroundColor = '#ffffff';
+  container.innerHTML = generateInvoiceHtml(order, false);
+  document.body.appendChild(container);
+
+  try {
+    const cardEl = container.querySelector('.invoice-card') || container;
+
+    // Render high-resolution canvas (2x scale for ultra crisp text and borders)
+    const canvas = await html2canvas(cardEl, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+    if (imgHeight <= pageHeight) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeight);
+    } else {
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+    }
+
+    const dataUri = pdf.output('datauristring');
+    const base64Data = dataUri.indexOf(',') !== -1 ? dataUri.split(',')[1] : dataUri;
+    return base64Data;
+  } catch (err) {
+    console.warn('Background invoice PDF generation error:', err);
+    return null;
+  } finally {
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
+  }
 }
 
 /**

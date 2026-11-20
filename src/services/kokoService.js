@@ -1,5 +1,5 @@
 /**
- * Maison ELVANY — Koko Buy Now Pay Later (BNPL) Payment Service
+ * ELVANY — Koko Buy Now Pay Later (BNPL) Payment Service
  * Connects frontend with backend RSA signature generator and initiates Koko checkout flow
  */
 
@@ -50,7 +50,7 @@ export async function launchKokoPayment({
   firstName,
   lastName,
   email,
-  description = 'Maison ELVANY Order',
+  description = 'ELVANY Order',
   returnUrl,
   cancelUrl,
   items = []

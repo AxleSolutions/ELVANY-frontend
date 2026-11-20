@@ -122,7 +122,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         setIsLoading(false);
         return;
       }
-      const resolvedName = profile.name || 'Maison Client';
+      const resolvedName = profile.name || 'Client';
       const resolvedEmail = profile.email || 'client@facebook.com';
       setClientDisplayName(resolvedName);
       setIsLoading(false);
@@ -587,7 +587,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               <Check size={28} />
             </div>
             <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '0.4rem', color: '#fff' }}>
-              {isPasswordResetMode ? 'Password Updated' : (isRegister ? 'Welcome to the Maison' : 'Welcome Back')}
+              {isPasswordResetMode ? 'Password Updated' : (isRegister ? 'Welcome to ELVANY' : 'Welcome Back')}
               {clientDisplayName ? `, ${clientDisplayName}` : ''}
             </h3>
             {socialProvider && (
@@ -769,7 +769,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             ) : (
               <form onSubmit={handleForgotPassword}>
                 <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', lineHeight: 1.6, marginBottom: '1.5rem', textAlign: 'center' }}>
-                  Enter the email address registered with your Maison ELVANY account. We will dispatch a secure recovery link to your inbox.
+                  Enter the email address registered with your ELVANY account. We will dispatch a secure recovery link to your inbox.
                 </p>
 
                 {authError && (
@@ -889,7 +889,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             </div>
 
             <p style={{ color: 'var(--text-light-muted)', fontSize: '0.82rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-              Please check your email <strong style={{ color: '#ffffff' }}>inbox</strong> and <strong style={{ color: '#ffffff' }}>spam</strong> folder, and click the confirmation link to activate your Maison ELVANY atelier passport.
+              Please check your email <strong style={{ color: '#ffffff' }}>inbox</strong> and <strong style={{ color: '#ffffff' }}>spam</strong> folder, and click the confirmation link to activate your ELVANY atelier passport.
             </p>
 
             {resendMessage && (
@@ -988,7 +988,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 textTransform: 'uppercase',
                 marginBottom: '0.4rem'
               }}>
-                MAISON ELVANY CLIENTELE
+                ELVANY CLIENTELE
               </div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 500 }}>
                 {isRegister ? 'Create Client Account' : 'Client Log In'}
@@ -1157,7 +1157,7 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 <span>
                   {isLoading 
                     ? 'AUTHENTICATING CLIENT...' 
-                    : (isRegister ? 'CREATE ACCOUNT' : 'LOG IN TO MAISON')}
+                    : (isRegister ? 'CREATE ACCOUNT' : 'LOG IN TO ATELIER')}
                 </span>
                 {!isLoading && <ArrowRight size={14} />}
               </button>

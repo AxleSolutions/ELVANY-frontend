@@ -135,7 +135,7 @@ export const PwaInstallPrompt = () => {
     <aside 
       className="pwa-install-banner"
       role="region"
-      aria-label="Install Maison ELVANY App"
+      aria-label="Install ELVANY App"
       data-lenis-prevent="true"
     >
       <div className="pwa-install-inner">
@@ -154,7 +154,7 @@ export const PwaInstallPrompt = () => {
           <div className="pwa-icon-wrap">
             <img 
               src="/logo/Main-4.png" 
-              alt="Maison ELVANY" 
+              alt="ELVANY" 
               className="pwa-app-icon" 
             />
             <span className="pwa-crest-badge">★</span>
@@ -167,7 +167,7 @@ export const PwaInstallPrompt = () => {
               <span>ATELIER PROGRESSIVE APP</span>
             </div>
             <h4 className="pwa-title">
-              Install Maison ELVANY
+              Install ELVANY
             </h4>
             <p className="pwa-description">
               Add to your home screen for instantaneous access.

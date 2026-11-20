@@ -120,7 +120,7 @@ export const Hero = ({ onExploreClick }) => {
           {/* Atelier Eyebrow Subheader Badge */}
           <div className="hero-eyebrow-tag">
             <span className="hero-eyebrow-line" />
-            <span>MAISON ELVANY • SIGNATURE CRAFT</span>
+            <span>ELVANY • SIGNATURE CRAFT</span>
           </div>
 
           {/* Robust CSS Grid Stacking Stage Container */}

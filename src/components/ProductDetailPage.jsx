@@ -746,7 +746,7 @@ export const ProductDetailPage = ({
               <div className="pdp-trust-item">
                 <Shield size={18} color="var(--gold-bright)" />
                 <div>
-                  <div className="pdp-trust-title">Maison Certified</div>
+                  <div className="pdp-trust-title">Atelier Certified</div>
                   <div className="pdp-trust-desc">Includes QR provenance passport</div>
                 </div>
               </div>

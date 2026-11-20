@@ -1,5 +1,5 @@
 /**
- * MAISON ELVANY — AUTOMATED EMAIL NOTIFICATION SERVICE
+ * ELVANY — AUTOMATED EMAIL NOTIFICATION SERVICE
  * Dispatches automated transactional emails (Order Confirmation Receipts,
  * Welcome & Verification notifications) directly through the Google Apps Script gateway.
  */
@@ -15,7 +15,7 @@ export function getEmailEndpoint() {
 /**
  * Resilient email dispatcher with CORS + no-cors fallback
  */
-export async function sendEmail({ to, subject, htmlBody, senderName = 'Maison ELVANY', fromEmail }) {
+export async function sendEmail({ to, subject, htmlBody, senderName = 'ELVANY', fromEmail, attachments }) {
   const endpoint = getEmailEndpoint();
   if (!endpoint || !to) return { success: false, error: 'Missing endpoint or recipient' };
 
@@ -32,10 +32,11 @@ export async function sendEmail({ to, subject, htmlBody, senderName = 'Maison EL
     action: 'send_email',
     to: cleanRecipients,
     recipients: cleanRecipients,
-    subject: subject || 'Notice from Maison ELVANY',
-    htmlBody: htmlBody || '<p>Greetings from Maison ELVANY.</p>',
-    senderName: senderName || 'Maison ELVANY Concierge',
-    fromEmail: fromEmail || localStorage.getItem('elvany_email_from_address') || undefined
+    subject: subject || 'Notice from ELVANY',
+    htmlBody: htmlBody || '<p>Greetings from ELVANY.</p>',
+    senderName: senderName || 'ELVANY Concierge',
+    fromEmail: fromEmail || localStorage.getItem('elvany_email_from_address') || undefined,
+    attachments: (Array.isArray(attachments) && attachments.length > 0) ? attachments : undefined
   };
 
   const serialized = JSON.stringify(payload);
@@ -75,9 +76,10 @@ export async function sendEmail({ to, subject, htmlBody, senderName = 'Maison EL
 }
 
 /**
- * Dispatches an official order confirmation & itemized receipt to the client
+ * Dispatches an official order confirmation & itemized receipt to the client,
+ * with the official generated PDF bill attached.
  */
-export async function sendOrderConfirmationReceipt(order) {
+export async function sendOrderConfirmationReceipt(order, options = {}) {
   if (!order || !order.customerEmail) {
     console.warn('sendOrderConfirmationReceipt: missing order or customer email');
     return { success: false, error: 'Missing customer email' };
@@ -92,6 +94,25 @@ export async function sendOrderConfirmationReceipt(order) {
   const paymentMethod = order.paymentMethod || 'Direct Payment';
   const orderDate = order.orderDate || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const address = order.deliveryAddress?.location || order.customerLocation || 'Address on file';
+
+  // Automatically generate official PDF invoice attachment if not pre-passed
+  let pdfAttachment = null;
+  try {
+    let rawB64 = options.pdfBase64;
+    if (!rawB64) {
+      const { generateInvoicePdfBase64 } = await import('../lib/orderInvoiceGenerator');
+      rawB64 = await generateInvoicePdfBase64(order);
+    }
+    if (rawB64) {
+      pdfAttachment = {
+        name: `ELVANY_Order_Passport_${orderId}.pdf`,
+        mimeType: 'application/pdf',
+        base64: rawB64
+      };
+    }
+  } catch (pdfErr) {
+    console.warn('PDF invoice attachment generation notice:', pdfErr);
+  }
 
   // Build itemized rows
   const itemsHtml = items.map(item => {
@@ -127,7 +148,7 @@ export async function sendOrderConfirmationReceipt(order) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maison ELVANY — Order Confirmation</title>
+  <title>ELVANY — Order Confirmation</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
@@ -140,7 +161,7 @@ export async function sendOrderConfirmationReceipt(order) {
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Haute Couture &bull; Atelier</p>
             </td>
           </tr>
 
@@ -214,6 +235,20 @@ export async function sendOrderConfirmationReceipt(order) {
             </td>
           </tr>
 
+          <!-- Official PDF Invoice Attachment Callout Banner -->
+          <tr>
+            <td style="padding: 0 32px 18px 32px;">
+              <div style="background-color: #16171c; border: 1px solid rgba(197, 160, 89, 0.4); border-left: 4px solid #c5a059; border-radius: 4px; padding: 14px 18px; font-size: 12px; color: #e2be75;">
+                <div style="font-weight: 700; color: #ffffff; font-size: 12px; letter-spacing: 0.06em; margin-bottom: 3px;">
+                  📎 OFFICIAL ORDER PASSPORT &amp; INVOICE ATTACHED (PDF)
+                </div>
+                <div style="font-size: 11px; color: #a1a1aa; line-height: 1.5;">
+                  Your official printable acquisition passport (<code>ELVANY_Order_Passport_${orderId}.pdf</code>) is attached to this email for your permanent records.
+                </div>
+              </div>
+            </td>
+          </tr>
+
           <!-- Delivery Address & Concierge Notice -->
           <tr>
             <td style="padding: 0 32px 32px 32px;">
@@ -248,7 +283,7 @@ export async function sendOrderConfirmationReceipt(order) {
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
               <p style="margin: 0 0 6px 0;">For inquiries or bespoke adjustments, contact your concierge at <a href="mailto:concierge@elvany.com" style="color: #c5a059; text-decoration: none;">concierge@elvany.com</a>.</p>
-              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Sri Lanka</p>
+              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
 
@@ -262,9 +297,10 @@ export async function sendOrderConfirmationReceipt(order) {
 
   return sendEmail({
     to: order.customerEmail,
-    subject: `Order Confirmation #${orderId} | Maison ELVANY`,
+    subject: `Order Confirmation #${orderId} | ELVANY`,
     htmlBody,
-    senderName: 'Maison ELVANY'
+    senderName: 'ELVANY',
+    attachments: pdfAttachment ? [pdfAttachment] : undefined
   });
 }
 
@@ -284,7 +320,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Maison ELVANY</title>
+  <title>Welcome to ELVANY</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
@@ -297,7 +333,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
           <tr>
             <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
-              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Maison &bull; Haute Couture</p>
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Haute Couture &bull; Atelier</p>
             </td>
           </tr>
 
@@ -308,7 +344,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
                 Client Register Enrolled
               </span>
               <h2 style="margin: 0 0 16px 0; font-size: 28px; line-height: 1.3; font-weight: 300; color: #ffffff; letter-spacing: -0.01em;">
-                Welcome to the Maison
+                Welcome to ELVANY
               </h2>
               <p style="margin: 0 auto 24px auto; max-width: 480px; font-size: 14px; line-height: 1.7; color: #a1a1aa;">
                 Dear <strong style="color: #ffffff;">${patronName}</strong>, your private account has been successfully created. You now have priority access to seasonal drops, atelier bespoke tailoring, and private client services.
@@ -317,7 +353,7 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
               <!-- Privilege Code Card -->
               <div style="background-color: #1a1a1e; border: 1px dashed rgba(197, 160, 89, 0.4); border-radius: 4px; padding: 20px; margin: 20px auto; max-width: 420px; text-align: center;">
                 <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #c5a059; margin-bottom: 6px;">Your Inaugural Privilege</div>
-                <div style="font-size: 22px; font-weight: 700; letter-spacing: 0.2em; color: #ffffff; margin: 4px 0;">MAISON-WELCOME</div>
+                <div style="font-size: 22px; font-weight: 700; letter-spacing: 0.2em; color: #ffffff; margin: 4px 0;">ELVANY-WELCOME</div>
                 <div style="font-size: 12px; color: #71717a; margin-top: 6px;">Enjoy 10% privilege on your inaugural collection order.</div>
               </div>
 
@@ -337,8 +373,8 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
           <!-- Footer -->
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
-              <p style="margin: 0 0 6px 0;">This email was sent to <strong style="color: #a1a1aa;">${email}</strong> as part of your Maison ELVANY membership.</p>
-              <p style="margin: 0;">&copy; 2026 Maison ELVANY Atelier &bull; Sri Lanka</p>
+              <p style="margin: 0 0 6px 0;">This email was sent to <strong style="color: #a1a1aa;">${email}</strong> as part of your ELVANY membership.</p>
+              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
 
@@ -352,8 +388,8 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
 
   return sendEmail({
     to: email,
-    subject: `Welcome to Maison ELVANY | Your Private Client Access`,
+    subject: `Welcome to ELVANY | Your Private Client Access`,
     htmlBody,
-    senderName: 'Maison ELVANY'
+    senderName: 'ELVANY'
   });
 }

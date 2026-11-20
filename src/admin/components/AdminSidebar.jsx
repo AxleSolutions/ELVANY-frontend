@@ -26,7 +26,7 @@ export const AdminSidebar = ({
     { id: 'restockRequests', label: 'Demand & Re-Issues', icon: Bell, badge: restockRequestsCount > 0 ? `${restockRequestsCount} Demands` : null },
     { id: 'reviews', label: 'Client Evaluations', icon: Star, badge: `${pendingReviewsCount} Pending` },
     { id: 'customers', label: 'Client Registry', icon: Users, badge: null },
-    { id: 'settings', label: 'Maison Settings', icon: Settings, badge: null }
+    { id: 'settings', label: 'Settings', icon: Settings, badge: null }
   ];
 
 

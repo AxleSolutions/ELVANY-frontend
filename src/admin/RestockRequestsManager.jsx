@@ -160,7 +160,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
     const piece = `${req.productTitle} (${req.variantColor}, Size ${req.sizeCode})`;
     
     if (type === 'restocked') {
-      return `Dear ${name},\n\nWe are delighted to inform you that the piece you registered interest for — ${piece} — has now arrived and is available for priority acquisition at Maison ELVANY.\n\nPlease visit our boutique or private client online portal to secure your piece.\n\nWarm regards,\nELVANY Atelier Team`;
+      return `Dear ${name},\n\nWe are delighted to inform you that the piece you registered interest for — ${piece} — has now arrived and is available for priority acquisition at ELVANY.\n\nPlease visit our boutique or private client online portal to secure your piece.\n\nWarm regards,\nELVANY Atelier Team`;
     }
     if (type === 'production') {
       return `Dear ${name},\n\nFollowing elevated private client interest, our atelier has officially scheduled a limited production re-issue for ${piece}.\n\nWe will notify you immediately once your piece is completed and inspected by our master tailors.\n\nWarm regards,\nELVANY Atelier Concierge`;
@@ -500,7 +500,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                 // Sanitize phone for WhatsApp
                 const cleanPhone = (req.customerPhone || '').replace(/[^0-9]/g, '');
                 const waNumber = cleanPhone.startsWith('0') ? `94${cleanPhone.slice(1)}` : cleanPhone;
-                const waMessage = encodeURIComponent(`Greetings ${req.customerName || 'from Maison ELVANY'}. Regarding your garment re-issue inquiry for "${req.productTitle}" in ${req.variantColor} (Size ${req.sizeCode}): stock has arrived at our atelier.`);
+                const waMessage = encodeURIComponent(`Greetings ${req.customerName || 'from ELVANY'}. Regarding your garment re-issue inquiry for "${req.productTitle}" in ${req.variantColor} (Size ${req.sizeCode}): stock has arrived at our atelier.`);
 
                 return (
                   <tr 
@@ -726,7 +726,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                         {/* Email CTA */}
                         {req.customerEmail && (
                           <a
-                            href={`mailto:${req.customerEmail}?subject=Maison ELVANY — Garment Re-Issue Update: ${req.productTitle}&body=Dear ${req.customerName || 'Client'},%0D%0A%0D%0ARegarding your restock inquiry for ${req.productTitle} (${req.variantColor}, Size ${req.sizeCode}): stock has been prepared for priority acquisition.`}
+                            href={`mailto:${req.customerEmail}?subject=ELVANY — Garment Re-Issue Update: ${req.productTitle}&body=Dear ${req.customerName || 'Client'},%0D%0A%0D%0ARegarding your restock inquiry for ${req.productTitle} (${req.variantColor}, Size ${req.sizeCode}): stock has been prepared for priority acquisition.`}
                             style={{
                               backgroundColor: 'rgba(255, 255, 255, 0.06)',
                               color: '#ffffff',
@@ -1025,7 +1025,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
 
               {selectedNotifyRequest.customerEmail && (
                 <a
-                  href={`mailto:${selectedNotifyRequest.customerEmail}?subject=Maison ELVANY — Garment Re-Issue Update: ${selectedNotifyRequest.productTitle}&body=${encodeURIComponent(getNotificationText(selectedNotifyRequest, notifyTemplateType))}`}
+                  href={`mailto:${selectedNotifyRequest.customerEmail}?subject=ELVANY — Garment Re-Issue Update: ${selectedNotifyRequest.productTitle}&body=${encodeURIComponent(getNotificationText(selectedNotifyRequest, notifyTemplateType))}`}
                   onClick={() => {
                     onUpdateStatus(selectedNotifyRequest.id, notifyTemplateType === 'production' ? 'In Production / Sourcing' : 'Client Notified');
                     setSelectedNotifyRequest(null);

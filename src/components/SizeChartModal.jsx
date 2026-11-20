@@ -118,7 +118,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             textTransform: 'uppercase'
           }}>
             <Ruler size={12} />
-            <span>MAISON ELVANY • SIZE CHART</span>
+            <span>ELVANY • SIZE CHART</span>
           </div>
           <h2 style={{
             fontFamily: 'var(--font-serif)',
@@ -156,7 +156,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           }}>
             <img 
               src="/Size chart/sizechart.webp" 
-              alt="Maison ELVANY Official Garment Size Chart"
+              alt="ELVANY Official Garment Size Chart"
               style={{
                 width: 'auto',
                 maxWidth: '100%',

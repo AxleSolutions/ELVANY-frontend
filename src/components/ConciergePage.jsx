@@ -28,7 +28,7 @@ export const ConciergePage = () => {
       a: 'Yes. Contact our primary or secondary advisors directly via WhatsApp or phone to coordinate bespoke sizing or private capsule appointments.'
     },
     {
-      q: 'What is the return and exchange policy for Maison garments?',
+      q: 'What is the return and exchange policy for ELVANY garments?',
       a: 'We offer a 7-day complimentary exchange window for unworn garments in original architectural packaging with security tags intact.'
     }
   ];
@@ -80,7 +80,7 @@ export const ConciergePage = () => {
 
               <div>
                 <div style={{ color: 'var(--gold-bright)', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.25rem' }}>
-                  MAISON ELVANY ATELIER CONCIERGE
+                  ELVANY ATELIER CONCIERGE
                 </div>
                 <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3.2vw, 2.3rem)', fontWeight: 400, color: '#ffffff', margin: 0 }}>
                   Private Client Advisory

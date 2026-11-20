@@ -99,7 +99,7 @@ export function OfflineGate() {
             <div className="text-xs tracking-wider">
               <span className="font-semibold uppercase text-[#c5a059]">Connected</span>
               <span className="text-[#a3a6ad] mx-1.5">—</span>
-              <span>Maison live catalog synchronized</span>
+              <span>Live catalog synchronized</span>
             </div>
           </div>
         </div>
@@ -124,10 +124,10 @@ export function OfflineGate() {
           {/* Luxury Card Container */}
           <div className="relative w-full max-w-lg rounded-2xl bg-[#111216]/90 border border-[#c5a059]/30 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] text-center text-[#f5f5f5] transition-all">
             
-            {/* Maison ELVANY Monogram Header */}
+            {/* ELVANY Monogram Header */}
             <div className="mb-6">
               <div className="inline-block tracking-[0.35em] text-[11px] uppercase font-semibold text-[#c5a059] mb-1">
-                MAISON ELVANY
+                ELVANY
               </div>
               <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-[#c5a059]/60 to-transparent mx-auto" />
             </div>
@@ -155,7 +155,7 @@ export function OfflineGate() {
 
             {/* Description */}
             <p id="offline-desc" className="text-sm sm:text-base text-[#a3a6ad] leading-relaxed mb-6">
-              To guarantee real-time inventory precision, live pricing, exclusive offers, and secure concierge checkout, Maison ELVANY requires an active internet connection.
+              To guarantee real-time inventory precision, live pricing, exclusive offers, and secure concierge checkout, ELVANY requires an active internet connection.
             </p>
 
             {/* Reconnection Failure Alert */}

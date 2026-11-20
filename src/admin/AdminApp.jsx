@@ -138,7 +138,7 @@ export const AdminApp = ({
         }
 
         const adminData = {
-          name: profile.name || 'Maison Executive',
+          name: profile.name || 'Atelier Executive',
           email: 'elvanywear@gmail.com',
           phone: '',
           provider: 'Google',
@@ -180,7 +180,7 @@ export const AdminApp = ({
 
     // Authenticate via Supabase or Local Credential Store
     let authSuccess = false;
-    let resolvedName = 'Maison Executive';
+    let resolvedName = 'Atelier Executive';
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -191,7 +191,7 @@ export const AdminApp = ({
 
         if (!error && data?.user) {
           authSuccess = true;
-          resolvedName = data.user.user_metadata?.full_name || 'Maison Executive';
+          resolvedName = data.user.user_metadata?.full_name || 'Atelier Executive';
         }
       } catch (err) {
         console.warn('Supabase admin login notice:', err);
@@ -205,7 +205,7 @@ export const AdminApp = ({
         const match = credentialsStore['elvanywear@gmail.com'];
         if (match && match.password === adminPassword) {
           authSuccess = true;
-          resolvedName = match.name || 'Maison Executive';
+          resolvedName = match.name || 'Atelier Executive';
         }
       } catch {}
     }
@@ -685,7 +685,7 @@ export const AdminApp = ({
   // Settings Action
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
-    showToast('Maison brand & concierge configuration saved.');
+    showToast('brand & concierge configuration saved.');
   };
 
 
@@ -947,7 +947,7 @@ export const AdminApp = ({
                 marginBottom: '6px',
                 fontWeight: 600
               }}>
-                Synchronizing Maison Atelier Database
+                Synchronizing Atelier Database
               </div>
               <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
                 Connecting & streaming live database records...
