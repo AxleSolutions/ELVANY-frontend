@@ -346,6 +346,11 @@ export const CheckoutPage = ({
   const handleProceedToPayment = (e) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !phone || !address || !city) return;
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 7) {
+      alert('Please enter a valid phone number for courier delivery contact.');
+      return;
+    }
     setCurrentStep(2);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
@@ -1139,13 +1144,34 @@ export const CheckoutPage = ({
                       <input 
                         type="tel" 
                         required 
+                        inputMode="tel"
+                        pattern="[0-9+]*"
+                        maxLength={16}
                         value={phone} 
+                        onKeyDown={(e) => {
+                          if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                            return;
+                          }
+                          if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                            return;
+                          }
+                          if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !phone.includes('+'))) {
+                            return;
+                          }
+                          if (!/^\d$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
                         onChange={(e) => {
-                          setPhone(e.target.value);
+                          const raw = e.target.value;
+                          const hasPlus = raw.startsWith('+');
+                          const digits = raw.replace(/\D/g, '');
+                          const sanitized = (hasPlus ? '+' : '') + digits;
+                          setPhone(sanitized);
                           setUseDefaultAddress(false);
                         }} 
                         className="form-input" 
-                        placeholder="+94 77 123 4567"
+                        placeholder="0771234567 or +94771234567"
                       />
                     </div>
                   </div>

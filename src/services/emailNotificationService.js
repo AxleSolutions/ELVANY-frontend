@@ -196,6 +196,12 @@ export async function sendOrderConfirmationReceipt(order) {
                   <td style="padding: 4px 0;">Atelier Courier Delivery</td>
                   <td align="right" style="padding: 4px 0; color: #ffffff;">LKR ${deliveryFeeLKR}</td>
                 </tr>
+                ${(order.surchargeLKR > 0 || String(paymentMethod).toLowerCase().includes('koko')) ? `
+                <tr>
+                  <td style="padding: 4px 0; color: #c5a059;">Koko BNPL Processing Surcharge (12%)</td>
+                  <td align="right" style="padding: 4px 0; color: #c5a059; font-weight: 600;">+ LKR ${Number(order.surchargeLKR || Math.round((order.totalLKR || order.grandTotalLKR || 0) * 0.12 / 1.12)).toLocaleString()}</td>
+                </tr>
+                ` : ''}
                 <tr>
                   <td style="padding: 10px 0 0 0; font-size: 15px; font-weight: 600; color: #ffffff; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                     Total Paid / Payable

@@ -172,6 +172,15 @@ export const ProductDetailPage = ({
       (o.productName && (product?.title || product?.name) && o.productName.trim().toLowerCase() === (product?.title || product?.name).trim().toLowerCase())
     )
   );
+
+  // Check if this product has a privilege offer whose allocations are 100% claimed
+  const claimedOutOffer = !activeOffer ? (offers || []).find(o => 
+    o && o.isActive !== false && (
+      (o.productId && (String(o.productId) === String(product?.id) || String(o.productId) === String(product?.slug))) ||
+      (o.productName && (product?.title || product?.name) && o.productName.trim().toLowerCase() === (product?.title || product?.name).trim().toLowerCase())
+    ) && (Number(o.remainingUnits !== undefined ? o.remainingUnits : o.remaining_units) <= 0)
+  ) : null;
+
   const isOfferActive = Boolean(activeOffer);
   const effectivePrice = isOfferActive ? activeOffer.offerPriceLKR : (product?.priceLKR || 18500);
   const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.originalPriceLKR || product?.priceLKR || 18500) : null;
@@ -417,6 +426,28 @@ export const ProductDetailPage = ({
               }}>
                 <Zap size={14} fill="#000000" color="#000000" />
                 <span>SPECIAL ATELIER PRIVILEGE: SAVE LKR {savings.toLocaleString()}</span>
+              </div>
+            )}
+
+            {/* 100% Claimed Out Privilege Drop Banner */}
+            {claimedOutOffer && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                padding: '6px 14px',
+                borderRadius: '2px',
+                color: '#f87171',
+                fontSize: '0.74rem',
+                fontWeight: 800,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: '1.2rem'
+              }}>
+                <Flame size={14} color="#ef4444" />
+                <span>ATELIER PRIVILEGE DROP: 100% CLAIMED • ALLOCATIONS CLOSED</span>
               </div>
             )}
 

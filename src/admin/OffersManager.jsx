@@ -190,7 +190,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                   if (isDepleted) {
                     return (
                       <div style={{ marginTop: '0.6rem', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', padding: '3px 8px', borderRadius: '2px', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                        <span>🔴 DEPLETED: All units sold. Offer deactivated across storefront.</span>
+                        <span>🔒 100% CLAIMED: All allocations claimed. Kept on storefront slideshow for viewing (purchasing closed).</span>
                       </div>
                     );
                   }

@@ -284,9 +284,23 @@ export const RestockRequestModal = ({
                   <label className="form-label" style={{ fontSize: '0.72rem' }}>PHONE / WHATSAPP</label>
                   <input 
                     type="tel" 
+                    inputMode="tel"
+                    pattern="[0-9+]*"
+                    maxLength={16}
                     value={phone} 
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="077 123 4567"
+                    onKeyDown={(e) => {
+                      if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+                      if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) return;
+                      if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !phone.includes('+'))) return;
+                      if (!/^\d$/.test(e.key)) e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const hasPlus = raw.startsWith('+');
+                      const digits = raw.replace(/\D/g, '');
+                      setPhone((hasPlus ? '+' : '') + digits);
+                    }}
+                    placeholder="0771234567 or +94771234567"
                     className="form-input"
                     style={{ backgroundColor: '#07080a' }}
                   />

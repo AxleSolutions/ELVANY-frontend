@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Flame, Clock, ShieldCheck, Gift, Percent, Zap, Eye } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Flame, Clock, ShieldCheck, Gift, Percent, Zap, Eye, Lock } from 'lucide-react';
 import { isOfferActive } from '../services/dbService';
 
 export const PromotionsSection = ({ 
@@ -18,8 +18,19 @@ export const PromotionsSection = ({
     return () => clearInterval(tickInterval);
   }, []);
 
-  // Filter only active, non-expired offers with stock remaining
-  const activeOffers = offers.filter((o) => isOfferActive(o));
+  // Filter offers that are enabled (isActive !== false) and non-expired (time-wise).
+  // Offers where all units are claimed (remainingUnits <= 0) REMAIN visible on storefront
+  // for customers to view as proof of demand, but display 100% CLAIMED and cannot be purchased.
+  const activeOffers = offers.filter((o) => {
+    if (!o) return false;
+    if (o.isActive === false || o.is_active === false) return false;
+    const expiry = o.endsAt || o.expires_at || o.expiresAt;
+    if (expiry) {
+      const expTime = new Date(expiry).getTime();
+      if (!isNaN(expTime) && currentTime >= expTime) return false;
+    }
+    return true;
+  });
 
   const SLIDE_DURATION = 8000; // 8s per offer slide
 
@@ -167,13 +178,15 @@ export const PromotionsSection = ({
                 ? offer.totalAllocation
                 : (sold + remaining));
 
-              // Percentage claimed: can only be 100% if remaining is 0
+              const isClaimedOut = remaining <= 0;
+
+              // Percentage claimed: 100% when remaining is 0 or less
               let soldPercent = 0;
-              if (remaining === 0 && sold > 0) {
+              if (isClaimedOut) {
                 soldPercent = 100;
               } else if (effectiveTotal > 0) {
                 const rawRatio = Math.round((sold / effectiveTotal) * 100);
-                soldPercent = Math.min(remaining > 0 ? 98 : 100, Math.max(4, rawRatio));
+                soldPercent = Math.min(98, Math.max(4, rawRatio));
               }
 
               return (
@@ -188,11 +201,21 @@ export const PromotionsSection = ({
                   <div 
                     className="featured-offer-card"
                     onClick={() => handleInspectOffer(offer)}
+                    style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.35)' } : {}}
                   >
                     {/* Top-Right Red Discount Tag */}
-                    <div className="offer-discount-tag">
-                      <Percent size={13} fill="#ffffff" color="#ffffff" />
-                      <span>SAVE LKR {savingsAmount.toLocaleString()} ({percentOff}% OFF)</span>
+                    <div className="offer-discount-tag" style={isClaimedOut ? { background: '#dc2626' } : {}}>
+                      {isClaimedOut ? (
+                        <>
+                          <Lock size={13} fill="#ffffff" color="#ffffff" />
+                          <span>100% CLAIMED • ALLOCATIONS EXHAUSTED</span>
+                        </>
+                      ) : (
+                        <>
+                          <Percent size={13} fill="#ffffff" color="#ffffff" />
+                          <span>SAVE LKR {savingsAmount.toLocaleString()} ({percentOff}% OFF)</span>
+                        </>
+                      )}
                     </div>
 
                     {/* Left Column: High-Res Garment Showcase */}
@@ -212,20 +235,20 @@ export const PromotionsSection = ({
 
                       {/* Privilege Badge Overlay (only if custom badge and not ATELIER LAUNCH PRIVILEGE) */}
                       {offer.badge && !offer.badge.toUpperCase().includes('LAUNCH PRIVILEGE') && (
-                        <div className="offer-badge-overlay">
+                        <div className="offer-badge-overlay" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171' } : {}}>
                           <Sparkles size={13} />
-                          <span>{offer.badge}</span>
+                          <span>{isClaimedOut ? `${offer.badge} (CLAIMED OUT)` : offer.badge}</span>
                         </div>
                       )}
 
                       {/* Bottom Scarcity Banner */}
-                      <div className="offer-scarcity-pill">
-                        <span style={{ color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <div className="offer-scarcity-pill" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(15, 10, 10, 0.94)' } : {}}>
+                        <span style={{ color: isClaimedOut ? '#f87171' : '#ffffff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <Flame size={13} color="#ef4444" />
-                          <span>{remaining} remaining</span>
+                          <span>{isClaimedOut ? '0 remaining' : `${remaining} remaining`}</span>
                         </span>
                         <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
-                          {sold} sold
+                          {sold} sold {isClaimedOut ? '(100% Claimed)' : ''}
                         </span>
                       </div>
                     </div>
@@ -240,8 +263,8 @@ export const PromotionsSection = ({
                             {offer.productName}
                           </span>
                           <span className="offer-eyebrow-dot">•</span>
-                          <span className="offer-applied-tag">
-                            EXCLUSIVE OFFER
+                          <span className="offer-applied-tag" style={isClaimedOut ? { color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)' } : {}}>
+                            {isClaimedOut ? 'ALLOCATION CLOSED' : 'EXCLUSIVE OFFER'}
                           </span>
                         </div>
 
@@ -254,13 +277,13 @@ export const PromotionsSection = ({
                         </p>
 
                         {/* Clean Outline Price Comparison Box */}
-                        <div className="offer-price-comparison-box">
+                        <div className="offer-price-comparison-box" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.35)', opacity: 0.9 } : {}}>
                           <div className="offer-price-main-group">
-                            <div className="offer-price-sublabel">
-                              SPECIAL PRIVILEGE PRICE
+                            <div className="offer-price-sublabel" style={isClaimedOut ? { color: '#f87171' } : {}}>
+                              {isClaimedOut ? 'PRIVILEGE ALLOCATION PRICE (CLAIMED OUT)' : 'SPECIAL PRIVILEGE PRICE'}
                             </div>
                             <div className="offer-price-numbers">
-                              <span className="offer-price-current">
+                              <span className="offer-price-current" style={isClaimedOut ? { textDecoration: 'line-through', opacity: 0.7 } : {}}>
                                 LKR {offerPrice.toLocaleString()}
                               </span>
                               <span className="offer-price-orig">
@@ -270,12 +293,12 @@ export const PromotionsSection = ({
                           </div>
 
                           {/* Instant Savings Callout */}
-                          <div className="offer-savings-badge">
-                            <div className="offer-savings-sublabel">
-                              YOU SAVE
+                          <div className="offer-savings-badge" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.14)' } : {}}>
+                            <div className="offer-savings-sublabel" style={isClaimedOut ? { color: '#f87171' } : {}}>
+                              {isClaimedOut ? 'BATCH STATUS' : 'YOU SAVE'}
                             </div>
-                            <div className="offer-savings-amount">
-                              LKR {savingsAmount.toLocaleString()}
+                            <div className="offer-savings-amount" style={isClaimedOut ? { color: '#f87171', fontSize: '0.75rem', fontWeight: 800 } : {}}>
+                              {isClaimedOut ? '100% CLAIMED' : `LKR ${savingsAmount.toLocaleString()}`}
                             </div>
                           </div>
                         </div>
@@ -284,8 +307,8 @@ export const PromotionsSection = ({
                         <div className="offer-scarcity-tracker" style={{
                           margin: '0 0 1.5rem 0',
                           padding: '0.9rem 1.2rem',
-                          background: 'rgba(239, 68, 68, 0.05)',
-                          border: '1px solid rgba(239, 68, 68, 0.28)',
+                          background: isClaimedOut ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.05)',
+                          border: isClaimedOut ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(239, 68, 68, 0.28)',
                           borderRadius: '2px'
                         }}>
                           <div style={{
@@ -302,7 +325,12 @@ export const PromotionsSection = ({
                               <span style={{ color: '#ffffff', fontWeight: 700, letterSpacing: '0.02em', fontSize: '0.85rem' }}>
                                 <strong style={{ color: '#f87171' }}>{sold} sold</strong>
                                 <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>•</span>
-                                <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong>
+                                <strong style={{ color: isClaimedOut ? '#f87171' : '#ffffff' }}>{remaining} remaining</strong>
+                                {isClaimedOut && (
+                                  <span style={{ color: '#f87171', marginLeft: '6px', fontSize: '0.74rem', fontWeight: 800 }}>
+                                    (ALL CLAIMED)
+                                  </span>
+                                )}
                               </span>
                             </div>
                             <span style={{
@@ -311,12 +339,12 @@ export const PromotionsSection = ({
                               color: '#f87171',
                               letterSpacing: '0.08em',
                               textTransform: 'uppercase',
-                              background: 'rgba(239, 68, 68, 0.15)',
+                              background: 'rgba(239, 68, 68, 0.2)',
                               padding: '3px 8px',
                               borderRadius: '2px',
-                              border: '1px solid rgba(239, 68, 68, 0.35)'
+                              border: '1px solid rgba(239, 68, 68, 0.45)'
                             }}>
-                              {soldPercent}% Claimed
+                              {isClaimedOut ? '100% Claimed' : `${soldPercent}% Claimed`}
                             </span>
                           </div>
 
@@ -358,26 +386,77 @@ export const PromotionsSection = ({
 
                       {/* Bottom Action: Direct Product Page Redirect Button */}
                       <div className="offer-bottom-action">
-                        <button
-                          type="button"
-                          className="btn-primary-gold"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleInspectOffer(offer);
-                          }}
-                          style={{
-                            width: '100%',
-                            justifyContent: 'center',
-                            padding: '1rem 1.8rem',
-                            fontSize: '0.82rem',
-                            letterSpacing: '0.16em',
-                            fontWeight: 800
-                          }}
-                        >
-                          <Eye size={16} />
-                          <span>VIEW GARMENT & CLAIM LKR {savingsAmount.toLocaleString()} OFFER</span>
-                          <ArrowRight size={15} />
-                        </button>
+                        {isClaimedOut ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', width: '100%' }}>
+                            <button
+                              type="button"
+                              disabled
+                              style={{
+                                width: '100%',
+                                justifyContent: 'center',
+                                padding: '1rem 1.8rem',
+                                fontSize: '0.82rem',
+                                letterSpacing: '0.14em',
+                                fontWeight: 800,
+                                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                                color: '#f87171',
+                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                cursor: 'not-allowed',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                borderRadius: '2px'
+                              }}
+                            >
+                              <Lock size={15} />
+                              <span>100% CLAIMED • ALLOCATIONS EXHAUSTED (PURCHASE CLOSED)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleInspectOffer(offer);
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--text-light-muted)',
+                                fontSize: '0.74rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '5px',
+                                padding: '4px',
+                                textDecoration: 'underline'
+                              }}
+                            >
+                              <Eye size={13} />
+                              <span>View Garment Archive Details</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-primary-gold"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleInspectOffer(offer);
+                            }}
+                            style={{
+                              width: '100%',
+                              justifyContent: 'center',
+                              padding: '1rem 1.8rem',
+                              fontSize: '0.82rem',
+                              letterSpacing: '0.16em',
+                              fontWeight: 800
+                            }}
+                          >
+                            <Eye size={16} />
+                            <span>VIEW GARMENT & CLAIM LKR {savingsAmount.toLocaleString()} OFFER</span>
+                            <ArrowRight size={15} />
+                          </button>
+                        )}
                       </div>
 
                     </div>

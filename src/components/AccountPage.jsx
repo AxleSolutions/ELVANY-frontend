@@ -1271,10 +1271,24 @@ export const AccountPage = ({
                   <label className="form-label">Phone / Mobile Number (For Courier SMS)</label>
                   <input
                     type="tel"
-                    placeholder="e.g. 077 123 4567 or +94 77 123 4567"
+                    inputMode="tel"
+                    pattern="[0-9+]*"
+                    maxLength={16}
+                    placeholder="e.g. 0771234567 or +94771234567"
                     className="form-input"
                     value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+                      if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) return;
+                      if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !clientPhone.includes('+'))) return;
+                      if (!/^\d$/.test(e.key)) e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const hasPlus = raw.startsWith('+');
+                      const digits = raw.replace(/\D/g, '');
+                      setClientPhone((hasPlus ? '+' : '') + digits);
+                    }}
                     style={{ backgroundColor: '#090a0c', color: '#fff' }}
                   />
                 </div>

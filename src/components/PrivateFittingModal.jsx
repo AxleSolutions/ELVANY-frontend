@@ -109,10 +109,24 @@ export const PrivateFittingModal = ({ isOpen, onClose, onBookingSuccess }) => {
                   <input
                     type="tel"
                     required
-                    placeholder="+44 20 7946 0912"
+                    inputMode="tel"
+                    pattern="[0-9+]*"
+                    maxLength={16}
+                    placeholder="0771234567 or +94771234567"
                     className="form-input"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+                      if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) return;
+                      if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !formData.phone.includes('+'))) return;
+                      if (!/^\d$/.test(e.key)) e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const hasPlus = raw.startsWith('+');
+                      const digits = raw.replace(/\D/g, '');
+                      setFormData({ ...formData, phone: (hasPlus ? '+' : '') + digits });
+                    }}
                   />
                 </div>
               </div>
