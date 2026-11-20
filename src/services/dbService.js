@@ -1510,6 +1510,8 @@ export async function getOffers() {
         .from('promotions')
         .select('*')
         .not('code', 'ilike', '%RESTOCK_REGISTRY%')
+        .not('title', 'ilike', '%[ATELIER_VOUCHER]%')
+        .not('badge_label', 'ilike', 'VOUCH:%')
         .order('created_at', { ascending: false });
 
       if (!promoError && Array.isArray(promotions) && promotions.length > 0) {
@@ -2908,77 +2910,56 @@ export async function getVouchers() {
   try {
     const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
     if (raw) {
-      localVouchers = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        // Strip any test/sample mock codes so only genuine admin-created vouchers exist
+        localVouchers = parsed.filter(v => 
+          v?.code && 
+          !v.code.toLowerCase().includes('sample') && 
+          !v.code.toLowerCase().includes('test') &&
+          !v.code.toLowerCase().includes('mock')
+        );
+      }
     }
   } catch {}
 
-  // 1. Try dedicated Supabase 'vouchers' table
+  // 1. Fetch from Supabase promotions table (which supports standard discount_type enum)
   if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('vouchers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && Array.isArray(data)) {
-        const mapped = data.map(v => ({
-          id: v.id,
-          code: String(v.code || '').toUpperCase().trim(),
-          discountType: v.discount_type || 'fixed',
-          discountValue: parseFloat(v.discount_value || 0),
-          minOrderAmount: parseFloat(v.min_order_amount_lkr || v.min_order_amount || 0),
-          maxUses: parseInt(v.max_uses || 1, 10),
-          usedCount: parseInt(v.used_count || 0, 10),
-          isUsed: Boolean(v.is_used || (v.used_count >= (v.max_uses || 1))),
-          isActive: v.is_active !== false,
-          expiresAt: v.expires_at || null,
-          recipientName: v.recipient_name || '',
-          recipientEmail: v.recipient_email || '',
-          notes: v.notes || '',
-          usedByOrderId: v.used_by_order_id || null,
-          usedByEmail: v.used_by_email || null,
-          usedAt: v.used_at || null,
-          createdAt: v.created_at
-        }));
-
-        localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(mapped));
-        return mapped;
-      }
-    } catch (err) {
-      // Table may not exist yet in Supabase schema — fallback seamlessly
-    }
-
-    // 2. Fallback: try 'promotions' table with discount_type = 'voucher'
     try {
       const { data: promoVouchers, error: promoErr } = await supabase
         .from('promotions')
         .select('*')
-        .eq('discount_type', 'voucher')
+        .or('title.ilike.%[ATELIER_VOUCHER]%,badge_label.ilike.VOUCH:%')
         .order('created_at', { ascending: false });
 
-      if (!promoErr && Array.isArray(promoVouchers) && promoVouchers.length > 0) {
+      if (!promoErr && Array.isArray(promoVouchers)) {
         const mapped = promoVouchers.map(p => {
           let extra = {};
           try {
-            if (p.badge_label && p.badge_label.startsWith('{')) {
-              extra = JSON.parse(p.badge_label);
-            }
+            const rawBadge = p.badge_label || '';
+            const jsonStr = rawBadge.startsWith('VOUCH:') 
+              ? rawBadge.slice(6) 
+              : (rawBadge.startsWith('{') ? rawBadge : '{}');
+            extra = JSON.parse(jsonStr);
           } catch {}
+
+          const isPercentage = extra.discountType === 'percentage' || p.discount_type === 'percentage';
+          const isUsed = Boolean(extra.isUsed || (extra.usedCount >= (extra.maxUses || 1)));
 
           return {
             id: p.id,
             code: String(p.code || '').toUpperCase().trim(),
-            discountType: extra.discountType || (p.discount_type === 'percentage' ? 'percentage' : 'fixed'),
+            discountType: isPercentage ? 'percentage' : 'fixed',
             discountValue: parseFloat(p.discount_value || 0),
             minOrderAmount: parseFloat(p.min_order_amount_lkr || 0),
             maxUses: parseInt(extra.maxUses || 1, 10),
-            usedCount: parseInt(extra.usedCount || (extra.isUsed ? 1 : 0), 10),
-            isUsed: Boolean(extra.isUsed),
+            usedCount: parseInt(extra.usedCount || (isUsed ? 1 : 0), 10),
+            isUsed,
             isActive: p.is_active !== false,
             expiresAt: p.expires_at || null,
             recipientName: extra.recipientName || '',
             recipientEmail: extra.recipientEmail || '',
-            notes: p.title || extra.notes || '',
+            notes: extra.notes || p.title?.replace('[ATELIER_VOUCHER]', '').trim() || '',
             usedByOrderId: extra.usedByOrderId || null,
             usedByEmail: extra.usedByEmail || null,
             usedAt: extra.usedAt || null,
@@ -2986,18 +2967,34 @@ export async function getVouchers() {
           };
         });
 
-        localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(mapped));
-        return mapped;
+        // Merge Supabase vouchers with local cache seamlessly
+        const mergedMap = new Map();
+        mapped.forEach(v => mergedMap.set(v.code, v));
+        if (Array.isArray(localVouchers)) {
+          localVouchers.forEach(v => {
+            if (v?.code && !mergedMap.has(v.code)) {
+              mergedMap.set(v.code, v);
+            }
+          });
+        }
+
+        const result = Array.from(mergedMap.values());
+        try {
+          localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(result));
+        } catch {}
+        return result;
       }
-    } catch {}
+    } catch (err) {
+      console.warn('Supabase getVouchers notice:', err);
+    }
   }
 
-  // 3. Fallback: return local storage registry
   return Array.isArray(localVouchers) ? localVouchers : [];
 }
 
 /**
  * Create or update a voucher
+ * Persists directly to Supabase with valid Postgres enum compatibility.
  */
 export async function saveVoucher(voucherData) {
   const code = String(voucherData.code || `ELV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().trim();
@@ -3015,8 +3012,13 @@ export async function saveVoucher(voucherData) {
   const notes = voucherData.notes || '';
   const usedByOrderId = voucherData.usedByOrderId || null;
   const usedByEmail = voucherData.usedByEmail || null;
-  const usedAt = voucherData.usedAt || null;
+  const usedAt = voucherAtIso(voucherData.usedAt);
   const createdAt = voucherData.createdAt || new Date().toISOString();
+
+  function voucherAtIso(val) {
+    if (!val) return null;
+    return val;
+  }
 
   const finalVoucher = {
     id,
@@ -3038,7 +3040,7 @@ export async function saveVoucher(voucherData) {
     createdAt
   };
 
-  // 1. Sync to local registry
+  // 1. Immediate sync to local storage cache
   try {
     const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
     let list = raw ? JSON.parse(raw) : [];
@@ -3054,36 +3056,8 @@ export async function saveVoucher(voucherData) {
     console.warn('Local voucher save notice:', err);
   }
 
-  // 2. Try Supabase 'vouchers' table
+  // 2. Persist to Supabase Database with enum compatibility ('percentage' or 'fixed_amount')
   if (isSupabaseConfigured && supabase) {
-    try {
-      const payload = {
-        code,
-        discount_type: discountType,
-        discount_value: discountValue,
-        min_order_amount_lkr: minOrderAmount,
-        max_uses: maxUses,
-        used_count: usedCount,
-        is_used: isUsed,
-        is_active: isActive,
-        expires_at: expiresAt,
-        recipient_name: recipientName,
-        recipient_email: recipientEmail,
-        notes,
-        used_by_order_id: usedByOrderId,
-        used_by_email: usedByEmail,
-        used_at: usedAt
-      };
-
-      if (isUuid(id)) {
-        await supabase.from('vouchers').upsert({ id, ...payload });
-      } else {
-        await supabase.from('vouchers').upsert(payload, { onConflict: 'code' });
-      }
-      return finalVoucher;
-    } catch {}
-
-    // Fallback: save to 'promotions' table with discount_type = 'voucher'
     try {
       const extraPayload = {
         discountType,
@@ -3100,17 +3074,36 @@ export async function saveVoucher(voucherData) {
 
       const promoPayload = {
         code,
-        title: notes || `Atelier Gift Voucher ${code}`,
-        badge_label: JSON.stringify(extraPayload),
-        discount_type: 'voucher',
+        title: `[ATELIER_VOUCHER] ${notes || 'Private Credit'}`,
+        badge_label: `VOUCH:${JSON.stringify(extraPayload)}`,
+        discount_type: discountType === 'percentage' ? 'percentage' : 'fixed_amount',
         discount_value: discountValue,
         min_order_amount_lkr: minOrderAmount,
+        applied_product_ids: [],
         is_active: isActive,
         expires_at: expiresAt
       };
 
-      await supabase.from('promotions').upsert(promoPayload, { onConflict: 'code' });
-    } catch {}
+      // Check if code already exists in promotions
+      const { data: existingPromo } = await supabase
+        .from('promotions')
+        .select('id')
+        .eq('code', code)
+        .maybeSingle();
+
+      if (existingPromo?.id) {
+        await supabase
+          .from('promotions')
+          .update(promoPayload)
+          .eq('id', existingPromo.id);
+      } else {
+        await supabase
+          .from('promotions')
+          .insert(promoPayload);
+      }
+    } catch (err) {
+      console.warn('Supabase voucher save notice:', err);
+    }
   }
 
   return finalVoucher;
@@ -3133,17 +3126,15 @@ export async function deleteVoucher(voucherId, voucherCode) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      if (voucherId && isUuid(voucherId)) {
-        await supabase.from('vouchers').delete().eq('id', voucherId);
-      } else if (voucherCode) {
-        await supabase.from('vouchers').delete().eq('code', voucherCode);
-      }
-    } catch {}
-    try {
       if (voucherCode) {
         await supabase.from('promotions').delete().eq('code', voucherCode);
       }
-    } catch {}
+      if (voucherId && isUuid(voucherId)) {
+        await supabase.from('promotions').delete().eq('id', voucherId);
+      }
+    } catch (err) {
+      console.warn('Supabase deleteVoucher notice:', err);
+    }
   }
 
   return true;

@@ -151,16 +151,6 @@ export const CheckoutPage = ({
     setRateLimitLock(status);
   }, []);
 
-  // Strict Client Email Guard: Detach voucher if email changed away from assigned recipient
-  useEffect(() => {
-    if (appliedVoucher?.recipientEmail && email) {
-      if (email.trim().toLowerCase() !== appliedVoucher.recipientEmail.trim().toLowerCase()) {
-        setAppliedVoucher(null);
-        setVoucherError(`Voucher "${appliedVoucher.code}" was unlinked because checkout email was modified.`);
-      }
-    }
-  }, [email, appliedVoucher]);
-
   // Auto-scroll to top when switching checkout steps or confirming order
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -182,6 +172,16 @@ export const CheckoutPage = ({
   const [postalCode, setPostalCode] = useState(isLoggedIn ? (savedDefault?.postalCode || '') : '');
   const [country, setCountry] = useState('Sri Lanka');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+
+  // Strict Client Email Guard: Detach voucher if email changed away from assigned recipient
+  useEffect(() => {
+    if (appliedVoucher?.recipientEmail && email) {
+      if (email.trim().toLowerCase() !== appliedVoucher.recipientEmail.trim().toLowerCase()) {
+        setAppliedVoucher(null);
+        setVoucherError(`Voucher "${appliedVoucher.code}" was unlinked because checkout email was modified.`);
+      }
+    }
+  }, [email, appliedVoucher]);
 
   // Handle toggling default address
   const handleToggleDefaultAddress = (checked) => {
