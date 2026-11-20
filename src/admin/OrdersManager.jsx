@@ -201,6 +201,11 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--gold-bright)', fontSize: '0.95rem' }}>
                           LKR {total.toLocaleString()}
                         </div>
+                        {order.voucherCode && (
+                          <div style={{ fontSize: '0.68rem', color: '#4ade80', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span>🏷️ {order.voucherCode}</span>
+                          </div>
+                        )}
                       </td>
 
                       <td>

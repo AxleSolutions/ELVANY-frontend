@@ -1000,6 +1000,14 @@ export const AccountPage = ({
                                 <span style={{ color: '#4ade80' }}>Savings: -LKR {savings.toLocaleString()}</span>
                               </>
                             )}
+                            {(order.voucherCode || order.voucherDiscountLKR > 0) && (
+                              <>
+                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                                <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>
+                                  🏷️ Voucher ({order.voucherCode || 'GIFT'}): -LKR {Number(order.voucherDiscountLKR || 0).toLocaleString()}
+                                </span>
+                              </>
+                            )}
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

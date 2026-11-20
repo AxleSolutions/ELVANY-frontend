@@ -2891,6 +2891,349 @@ export async function updateBespokeDesign(idOrCode, updateFields = {}) {
   return { id: idOrCode, ...updateFields };
 }
 
+/**
+ * =========================================================================
+ * ATELIER VOUCHERS & GIFT CARDS SYSTEM
+ * =========================================================================
+ * Provides single-use, secure, database-persisted promotional voucher codes
+ * that can be generated in Admin and redeemed on Checkout.
+ */
+export const LOCAL_VOUCHERS_KEY = 'elvany_vouchers_registry';
+
+/**
+ * Fetch all registered vouchers (Supabase live stream with local registry cache)
+ */
+export async function getVouchers() {
+  let localVouchers = [];
+  try {
+    const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
+    if (raw) {
+      localVouchers = JSON.parse(raw);
+    }
+  } catch {}
+
+  // 1. Try dedicated Supabase 'vouchers' table
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('vouchers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        const mapped = data.map(v => ({
+          id: v.id,
+          code: String(v.code || '').toUpperCase().trim(),
+          discountType: v.discount_type || 'fixed',
+          discountValue: parseFloat(v.discount_value || 0),
+          minOrderAmount: parseFloat(v.min_order_amount_lkr || v.min_order_amount || 0),
+          maxUses: parseInt(v.max_uses || 1, 10),
+          usedCount: parseInt(v.used_count || 0, 10),
+          isUsed: Boolean(v.is_used || (v.used_count >= (v.max_uses || 1))),
+          isActive: v.is_active !== false,
+          expiresAt: v.expires_at || null,
+          recipientName: v.recipient_name || '',
+          recipientEmail: v.recipient_email || '',
+          notes: v.notes || '',
+          usedByOrderId: v.used_by_order_id || null,
+          usedByEmail: v.used_by_email || null,
+          usedAt: v.used_at || null,
+          createdAt: v.created_at
+        }));
+
+        localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(mapped));
+        return mapped;
+      }
+    } catch (err) {
+      // Table may not exist yet in Supabase schema — fallback seamlessly
+    }
+
+    // 2. Fallback: try 'promotions' table with discount_type = 'voucher'
+    try {
+      const { data: promoVouchers, error: promoErr } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('discount_type', 'voucher')
+        .order('created_at', { ascending: false });
+
+      if (!promoErr && Array.isArray(promoVouchers) && promoVouchers.length > 0) {
+        const mapped = promoVouchers.map(p => {
+          let extra = {};
+          try {
+            if (p.badge_label && p.badge_label.startsWith('{')) {
+              extra = JSON.parse(p.badge_label);
+            }
+          } catch {}
+
+          return {
+            id: p.id,
+            code: String(p.code || '').toUpperCase().trim(),
+            discountType: extra.discountType || (p.discount_type === 'percentage' ? 'percentage' : 'fixed'),
+            discountValue: parseFloat(p.discount_value || 0),
+            minOrderAmount: parseFloat(p.min_order_amount_lkr || 0),
+            maxUses: parseInt(extra.maxUses || 1, 10),
+            usedCount: parseInt(extra.usedCount || (extra.isUsed ? 1 : 0), 10),
+            isUsed: Boolean(extra.isUsed),
+            isActive: p.is_active !== false,
+            expiresAt: p.expires_at || null,
+            recipientName: extra.recipientName || '',
+            recipientEmail: extra.recipientEmail || '',
+            notes: p.title || extra.notes || '',
+            usedByOrderId: extra.usedByOrderId || null,
+            usedByEmail: extra.usedByEmail || null,
+            usedAt: extra.usedAt || null,
+            createdAt: p.created_at
+          };
+        });
+
+        localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(mapped));
+        return mapped;
+      }
+    } catch {}
+  }
+
+  // 3. Fallback: return local storage registry
+  return Array.isArray(localVouchers) ? localVouchers : [];
+}
+
+/**
+ * Create or update a voucher
+ */
+export async function saveVoucher(voucherData) {
+  const code = String(voucherData.code || `ELV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().trim();
+  const id = voucherData.id || `vouch-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const discountType = voucherData.discountType === 'percentage' ? 'percentage' : 'fixed';
+  const discountValue = Math.max(0, parseFloat(voucherData.discountValue || 0));
+  const minOrderAmount = Math.max(0, parseFloat(voucherData.minOrderAmount || 0));
+  const maxUses = Math.max(1, parseInt(voucherData.maxUses || 1, 10));
+  const isUsed = Boolean(voucherData.isUsed);
+  const usedCount = parseInt(voucherData.usedCount || (isUsed ? 1 : 0), 10);
+  const isActive = voucherData.isActive !== false;
+  const expiresAt = voucherData.expiresAt || null;
+  const recipientName = voucherData.recipientName || '';
+  const recipientEmail = voucherData.recipientEmail || '';
+  const notes = voucherData.notes || '';
+  const usedByOrderId = voucherData.usedByOrderId || null;
+  const usedByEmail = voucherData.usedByEmail || null;
+  const usedAt = voucherData.usedAt || null;
+  const createdAt = voucherData.createdAt || new Date().toISOString();
+
+  const finalVoucher = {
+    id,
+    code,
+    discountType,
+    discountValue,
+    minOrderAmount,
+    maxUses,
+    usedCount,
+    isUsed,
+    isActive,
+    expiresAt,
+    recipientName,
+    recipientEmail,
+    notes,
+    usedByOrderId,
+    usedByEmail,
+    usedAt,
+    createdAt
+  };
+
+  // 1. Sync to local registry
+  try {
+    const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
+    let list = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(list)) list = [];
+    const existingIdx = list.findIndex(v => v.id === id || v.code === code);
+    if (existingIdx >= 0) {
+      list[existingIdx] = finalVoucher;
+    } else {
+      list.unshift(finalVoucher);
+    }
+    localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(list));
+  } catch (err) {
+    console.warn('Local voucher save notice:', err);
+  }
+
+  // 2. Try Supabase 'vouchers' table
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const payload = {
+        code,
+        discount_type: discountType,
+        discount_value: discountValue,
+        min_order_amount_lkr: minOrderAmount,
+        max_uses: maxUses,
+        used_count: usedCount,
+        is_used: isUsed,
+        is_active: isActive,
+        expires_at: expiresAt,
+        recipient_name: recipientName,
+        recipient_email: recipientEmail,
+        notes,
+        used_by_order_id: usedByOrderId,
+        used_by_email: usedByEmail,
+        used_at: usedAt
+      };
+
+      if (isUuid(id)) {
+        await supabase.from('vouchers').upsert({ id, ...payload });
+      } else {
+        await supabase.from('vouchers').upsert(payload, { onConflict: 'code' });
+      }
+      return finalVoucher;
+    } catch {}
+
+    // Fallback: save to 'promotions' table with discount_type = 'voucher'
+    try {
+      const extraPayload = {
+        discountType,
+        maxUses,
+        usedCount,
+        isUsed,
+        recipientName,
+        recipientEmail,
+        notes,
+        usedByOrderId,
+        usedByEmail,
+        usedAt
+      };
+
+      const promoPayload = {
+        code,
+        title: notes || `Atelier Gift Voucher ${code}`,
+        badge_label: JSON.stringify(extraPayload),
+        discount_type: 'voucher',
+        discount_value: discountValue,
+        min_order_amount_lkr: minOrderAmount,
+        is_active: isActive,
+        expires_at: expiresAt
+      };
+
+      await supabase.from('promotions').upsert(promoPayload, { onConflict: 'code' });
+    } catch {}
+  }
+
+  return finalVoucher;
+}
+
+/**
+ * Delete a voucher permanently
+ */
+export async function deleteVoucher(voucherId, voucherCode) {
+  try {
+    const raw = localStorage.getItem(LOCAL_VOUCHERS_KEY);
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const filtered = list.filter(v => v.id !== voucherId && v.code !== voucherCode);
+        localStorage.setItem(LOCAL_VOUCHERS_KEY, JSON.stringify(filtered));
+      }
+    }
+  } catch {}
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      if (voucherId && isUuid(voucherId)) {
+        await supabase.from('vouchers').delete().eq('id', voucherId);
+      } else if (voucherCode) {
+        await supabase.from('vouchers').delete().eq('code', voucherCode);
+      }
+    } catch {}
+    try {
+      if (voucherCode) {
+        await supabase.from('promotions').delete().eq('code', voucherCode);
+      }
+    } catch {}
+  }
+
+  return true;
+}
+
+/**
+ * Validate voucher code on checkout
+ * Enforces single-use status, minimum order requirement, and active expiration.
+ */
+export async function validateVoucher(inputCode, orderSubtotal = 0, customerEmail = '') {
+  if (!inputCode || typeof inputCode !== 'string') {
+    return { valid: false, error: 'Please enter a valid voucher code.' };
+  }
+
+  const cleanCode = inputCode.trim().toUpperCase();
+  const allVouchers = await getVouchers();
+  const voucher = allVouchers.find(v => v.code === cleanCode);
+
+  if (!voucher) {
+    return { valid: false, error: `Voucher code "${cleanCode}" was not found or is invalid.` };
+  }
+
+  if (voucher.isActive === false) {
+    return { valid: false, error: `Voucher code "${cleanCode}" has been deactivated.` };
+  }
+
+  // Check if voucher has expired
+  if (voucher.expiresAt) {
+    const expTime = new Date(voucher.expiresAt).getTime();
+    if (!isNaN(expTime) && Date.now() > expTime) {
+      return { valid: false, error: `Voucher "${cleanCode}" expired on ${new Date(voucher.expiresAt).toLocaleDateString()}.` };
+    }
+  }
+
+  // Enforce single-use limitation (or max uses)
+  const maxAllowed = voucher.maxUses || 1;
+  const currentUsed = voucher.usedCount || (voucher.isUsed ? 1 : 0);
+  if (voucher.isUsed || currentUsed >= maxAllowed) {
+    const usedDetail = voucher.usedByOrderId ? ` on order #${voucher.usedByOrderId}` : '';
+    return { valid: false, error: `Voucher "${cleanCode}" has already been redeemed${usedDetail} (Single-use only).` };
+  }
+
+  // Check minimum order amount threshold
+  if (voucher.minOrderAmount > 0 && orderSubtotal < voucher.minOrderAmount) {
+    return { 
+      valid: false, 
+      error: `Voucher requires a minimum order subtotal of LKR ${voucher.minOrderAmount.toLocaleString()} (current subtotal is LKR ${Math.round(orderSubtotal).toLocaleString()}).` 
+    };
+  }
+
+  // Calculate discount amount
+  let discountAmount = 0;
+  if (voucher.discountType === 'percentage') {
+    discountAmount = Math.round(orderSubtotal * (voucher.discountValue / 100));
+  } else {
+    discountAmount = Math.min(voucher.discountValue, orderSubtotal);
+  }
+
+  return {
+    valid: true,
+    voucher,
+    discountAmount,
+    code: cleanCode
+  };
+}
+
+/**
+ * Redeem voucher upon successful order placement
+ * Locks the voucher immediately so it can NEVER be reused.
+ */
+export async function redeemVoucher(code, orderId, customerEmail = '') {
+  if (!code) return false;
+  const cleanCode = code.trim().toUpperCase();
+  const all = await getVouchers();
+  const found = all.find(v => v.code === cleanCode);
+
+  const updatedVoucher = {
+    ...(found || { code: cleanCode }),
+    isUsed: true,
+    usedCount: ((found?.usedCount || 0) + 1),
+    usedByOrderId: orderId || null,
+    usedByEmail: customerEmail || null,
+    usedAt: new Date().toISOString()
+  };
+
+  await saveVoucher(updatedVoucher);
+  return true;
+}
+
+
 
 
 

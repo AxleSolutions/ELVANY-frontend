@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud, Sparkles, Download, Printer, Shirt, Layers, Eye, MessageSquare, Send } from 'lucide-react';
+import { X, Check, Copy, ExternalLink, PackageCheck, Truck, Clock, ShieldCheck, Mail, Phone, MapPin, Building2, UploadCloud, Sparkles, Download, Printer, Shirt, Layers, Eye, MessageSquare, Send, Tag } from 'lucide-react';
 import { getBespokeDesigns, getBespokeDesignById } from '../../services/dbService';
 import { downloadImageFile } from '../../lib/bespokeMockupGenerator';
 import { formatWhatsAppPhone, generateShippingWhatsAppMessage, generateWhatsAppUrl } from '../../lib/orderWhatsAppNotifier';
@@ -612,6 +612,29 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 );
               })}
             </div>
+
+            {(order.voucherCode || order.voucherDiscountLKR > 0) && (
+              <div style={{
+                marginTop: '0.8rem',
+                padding: '0.65rem 0.9rem',
+                backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                border: '1px solid rgba(197, 160, 89, 0.3)',
+                borderRadius: '3px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Tag size={13} color="var(--gold-bright)" />
+                  <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600 }}>
+                    ATELIER VOUCHER APPLIED: <strong style={{ color: 'var(--gold-bright)', letterSpacing: '0.04em' }}>{order.voucherCode || 'GIFT'}</strong>
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.85rem', color: '#4ade80', fontWeight: 700 }}>
+                  - LKR {Number(order.voucherDiscountLKR || 0).toLocaleString()}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Bespoke Custom T-Shirts Production & Artwork Inspection */}

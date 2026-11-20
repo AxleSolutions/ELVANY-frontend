@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Shirt, ShoppingBag, Star, Users, Settings, ExternalLink, ShieldCheck, ChevronRight, Gift, Megaphone, Bell, Sparkles, Mail } from 'lucide-react';
+import { LayoutDashboard, Shirt, ShoppingBag, Star, Users, Settings, ExternalLink, ShieldCheck, ChevronRight, Gift, Megaphone, Bell, Sparkles, Mail, Ticket } from 'lucide-react';
 
 export const AdminSidebar = ({ 
   activeTab, 
@@ -11,6 +11,7 @@ export const AdminSidebar = ({
   ordersCount = 5,
   pendingReviewsCount = 1,
   offersCount = 2,
+  vouchersCount = 0,
   isPopupAdActive = true,
   restockRequestsCount = 0,
   bespokeCount = 0
@@ -19,6 +20,7 @@ export const AdminSidebar = ({
     { id: 'dashboard', label: 'Executive Overview', icon: LayoutDashboard, badge: null },
     { id: 'bespoke', label: 'Bespoke Custom Lab', icon: Sparkles, badge: bespokeCount > 0 ? `${bespokeCount} Lab` : 'New' },
     { id: 'offers', label: 'Privileges & Offers', icon: Gift, badge: `${offersCount} Live` },
+    { id: 'vouchers', label: 'Vouchers & Gift Cards', icon: Ticket, badge: vouchersCount > 0 ? `${vouchersCount} Active` : null },
     { id: 'emailStudio', label: 'Email Broadcasts', icon: Mail, badge: 'Google' },
     { id: 'popupAd', label: 'Entrance Popup Ad', icon: Megaphone, badge: isPopupAdActive ? 'Active' : 'Off' },
     { id: 'products', label: 'Garments & Stock', icon: Shirt, badge: `${productsCount} Styles` },

@@ -31,10 +31,13 @@ import {
   RefreshCw,
   Loader2,
   Maximize2,
-  CreditCard
+  CreditCard,
+  Tag,
+  Ticket
 } from 'lucide-react';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
+import { validateVoucher, redeemVoucher } from '../services/dbService';
 import { 
   getPayHereParameters, 
   launchPayHerePayment, 
@@ -133,6 +136,12 @@ export const CheckoutPage = ({
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [activeAngles, setActiveAngles] = useState({});
   const [inspectedBespokeItem, setInspectedBespokeItem] = useState(null);
+
+  // Atelier Single-Use Voucher & Gift Card State
+  const [voucherInput, setVoucherInput] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [voucherError, setVoucherError] = useState('');
+  const [isCheckingVoucher, setIsCheckingVoucher] = useState(false);
 
   // Auto-scroll to top when switching checkout steps or confirming order
   useEffect(() => {
@@ -255,6 +264,14 @@ export const CheckoutPage = ({
             onClearCart();
           }
 
+          if (finalizedOrder.voucherCode) {
+            try {
+              await redeemVoucher(finalizedOrder.voucherCode, finalizedOrder.orderId, finalizedOrder.customerEmail || email);
+            } catch (vErr) {
+              console.warn('Voucher redeem notice (Koko):', vErr);
+            }
+          }
+
           try {
             window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: finalizedOrder }));
             sendOrderConfirmationReceipt(finalizedOrder).catch(err => console.warn('Koko receipt notice:', err));
@@ -287,9 +304,51 @@ export const CheckoutPage = ({
   const totalSavings = totalOriginal - subtotal;
   const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
 
+  // Atelier Single-Use Voucher Discount Calculation
+  let voucherDiscount = 0;
+  if (appliedVoucher) {
+    if (appliedVoucher.discountType === 'percentage') {
+      voucherDiscount = Math.round((subtotal * (Number(appliedVoucher.discountValue) || 0)) / 100);
+    } else {
+      voucherDiscount = Math.min(subtotal, Math.round(Number(appliedVoucher.discountValue) || 0));
+    }
+  }
+  const discountedSubtotal = Math.max(0, subtotal - voucherDiscount);
+
   // Dynamic Delivery Fee Calculation
   const deliveryFee = calculateDeliveryFee(subtotal, city);
-  const baseOrderTotal = subtotal + deliveryFee;
+  const baseOrderTotal = discountedSubtotal + deliveryFee;
+
+  // Handle Voucher Application & Verification
+  const handleApplyVoucher = async (e) => {
+    if (e) e.preventDefault();
+    const cleanCode = voucherInput.trim().toUpperCase();
+    if (!cleanCode) {
+      setVoucherError('Please enter a voucher code');
+      return;
+    }
+    setVoucherError('');
+    setIsCheckingVoucher(true);
+    try {
+      const res = await validateVoucher(cleanCode, subtotal, email);
+      if (res.valid) {
+        setAppliedVoucher(res.voucher);
+        setVoucherError('');
+      } else {
+        setVoucherError(res.message || 'Invalid or expired voucher code.');
+      }
+    } catch (err) {
+      setVoucherError('Unable to validate voucher. Please try again.');
+    } finally {
+      setIsCheckingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherInput('');
+    setVoucherError('');
+  };
 
   // Koko BNPL 12% Surcharge Calculations
   const isKoko = paymentMethod === 'koko';
@@ -422,6 +481,8 @@ export const CheckoutPage = ({
         totalLKR: grandTotal,
         grandTotalLKR: grandTotal,
         savingsLKR: totalSavings,
+        voucherCode: appliedVoucher ? appliedVoucher.code : null,
+        voucherDiscountLKR: appliedVoucher ? voucherDiscount : 0,
         isGift,
         giftMessage: isGift ? giftMessage : '',
         deliveryNotes,
@@ -508,6 +569,14 @@ export const CheckoutPage = ({
                   onClearCart();
                 }
 
+                if (appliedVoucher?.code) {
+                  try {
+                    await redeemVoucher(appliedVoucher.code, verifiedOrder.orderId, email);
+                  } catch (vErr) {
+                    console.warn('Voucher redeem notice (Card):', vErr);
+                  }
+                }
+
                 try {
                   window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: verifiedOrder }));
                   sendOrderConfirmationReceipt(verifiedOrder).catch(err => console.warn('Card receipt notice:', err));
@@ -577,6 +646,14 @@ export const CheckoutPage = ({
       }
       if (onClearCart) {
         onClearCart();
+      }
+
+      if (appliedVoucher?.code) {
+        try {
+          await redeemVoucher(appliedVoucher.code, newOrder.orderId, email);
+        } catch (vErr) {
+          console.warn('Voucher redeem notice (Direct):', vErr);
+        }
       }
 
       // Notify entire app of newly placed order
@@ -707,6 +784,13 @@ export const CheckoutPage = ({
                 <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--gold-bright)' }}>Privilege Atelier Savings Applied:</span>
                   <span style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 700 }}>-LKR {confirmedOrder.savingsLKR.toLocaleString()}</span>
+                </div>
+              )}
+
+              {(confirmedOrder.voucherCode || confirmedOrder.voucherDiscountLKR > 0) && (
+                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>Atelier Voucher Applied ({confirmedOrder.voucherCode || 'GIFT'}):</span>
+                  <span style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: 700 }}>-LKR {Number(confirmedOrder.voucherDiscountLKR || 0).toLocaleString()}</span>
                 </div>
               )}
 
@@ -962,6 +1046,12 @@ export const CheckoutPage = ({
                 <span>-LKR {totalSavings.toLocaleString()}</span>
               </div>
             )}
+            {appliedVoucher && voucherDiscount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                <span>Voucher Applied ({appliedVoucher.code}):</span>
+                <span style={{ fontWeight: 700 }}>-{formatLKR(voucherDiscount)}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
               <span>Delivery Fee:</span>
               <span style={{ color: deliveryFee === 0 ? 'var(--gold-bright)' : '#ffffff' }}>
@@ -1019,19 +1109,20 @@ export const CheckoutPage = ({
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '6px',
-                          padding: '0.5rem 0.85rem',
+                          padding: '0.55rem 0.95rem',
                           borderRadius: '3px',
-                          border: '1px solid rgba(197, 160, 89, 0.4)',
-                          backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                          color: 'var(--gold-bright)',
+                          border: '1px solid var(--gold-primary, #c5a059)',
+                          backgroundColor: 'var(--gold-primary, #c5a059)',
+                          color: '#ffffff',
                           fontSize: '0.74rem',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
-                          letterSpacing: '0.04em'
+                          letterSpacing: '0.04em',
+                          opacity: 1
                         }}
                       >
-                        <UserCheck size={13} />
-                        <span>Sign In to Auto-Fill</span>
+                        <UserCheck size={13} color="#ffffff" />
+                        <span style={{ color: '#ffffff' }}>Sign In to Auto-Fill</span>
                       </button>
                     )}
                   </div>
@@ -2075,8 +2166,9 @@ export const CheckoutPage = ({
                           {item.selectedSize || item.size} • {item.color}
                         </div>
                         {item.isOfferApplied && (
-                          <span style={{ fontSize: '0.62rem', backgroundColor: 'var(--gold-bright)', color: '#000000', fontWeight: 800, padding: '1px 4px', borderRadius: '1px', display: 'inline-block', marginTop: '2px' }}>
-                            ⚡ PRIVILEGE APPLIED
+                          <span style={{ fontSize: '0.64rem', color: 'var(--gold-bright)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px', background: 'transparent', border: 'none', padding: 0 }}>
+                            <Tag size={10} color="var(--gold-bright)" />
+                            <span>PRIVILEGE APPLIED ({item.offerCode || 'PROMO'})</span>
                           </span>
                         )}
 
@@ -2143,6 +2235,138 @@ export const CheckoutPage = ({
                 })}
               </div>
 
+              {/* Single-Use Voucher / Gift Card Redeem Box */}
+              <div style={{
+                margin: '1.2rem 0',
+                padding: '0.9rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(197, 160, 89, 0.25)',
+                borderRadius: '3px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Ticket size={13} color="var(--gold-bright)" />
+                    <span style={{ fontSize: '0.72rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      Voucher / Gift Card
+                    </span>
+                  </div>
+                  {appliedVoucher && (
+                    <span style={{ fontSize: '0.65rem', color: '#4ade80', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      ✓ APPLIED
+                    </span>
+                  )}
+                </div>
+
+                {appliedVoucher ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.55rem 0.75rem',
+                    backgroundColor: 'rgba(197, 160, 89, 0.1)',
+                    border: '1px solid var(--gold-bright)',
+                    borderRadius: '2px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Tag size={13} color="var(--gold-bright)" />
+                      <div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.06em' }}>
+                          {appliedVoucher.code}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>
+                          {appliedVoucher.discountType === 'percentage' 
+                            ? `${appliedVoucher.discountValue}% Privileged Deduction` 
+                            : `LKR ${Number(appliedVoucher.discountValue || 0).toLocaleString()} Off Acquisition`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRemoveVoucher}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-light-muted)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      title="Remove Voucher"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder="ENTER VOUCHER CODE"
+                        value={voucherInput}
+                        onChange={(e) => {
+                          setVoucherInput(e.target.value.toUpperCase());
+                          if (voucherError) setVoucherError('');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyVoucher();
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#07080a',
+                          border: voucherError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.15)',
+                          borderRadius: '2px',
+                          padding: '0.55rem 0.75rem',
+                          color: '#ffffff',
+                          fontSize: '0.76rem',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          fontFamily: 'inherit',
+                          outline: 'none'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyVoucher}
+                        disabled={isCheckingVoucher || !voucherInput.trim()}
+                        style={{
+                          backgroundColor: voucherInput.trim() ? '#c5a059' : 'rgba(255,255,255,0.08)',
+                          color: voucherInput.trim() ? '#000000' : 'rgba(255,255,255,0.4)',
+                          border: 'none',
+                          borderRadius: '2px',
+                          padding: '0.55rem 1rem',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.06em',
+                          cursor: voucherInput.trim() && !isCheckingVoucher ? 'pointer' : 'not-allowed',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {isCheckingVoucher ? (
+                          <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                        ) : (
+                          'APPLY'
+                        )}
+                      </button>
+                    </div>
+
+                    {voucherError && (
+                      <div style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={12} />
+                        <span>{voucherError}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Ledger Totals */}
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
@@ -2154,6 +2378,13 @@ export const CheckoutPage = ({
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
                     <span>Special Privilege Savings:</span>
                     <span style={{ fontWeight: 700 }}>-LKR {totalSavings.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {appliedVoucher && voucherDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                    <span>Atelier Voucher ({appliedVoucher.code}):</span>
+                    <span style={{ fontWeight: 700 }}>-LKR {voucherDiscount.toLocaleString()}</span>
                   </div>
                 )}
 

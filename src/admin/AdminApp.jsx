@@ -13,6 +13,7 @@ import { ReviewsModeration } from './ReviewsModeration';
 import { CustomersCRM } from './CustomersCRM';
 import { ConciergeSettings } from './ConciergeSettings';
 import { OffersManager } from './OffersManager';
+import { VouchersManager } from './VouchersManager';
 import { PopupAdManager } from './PopupAdManager';
 import { RestockRequestsManager } from './RestockRequestsManager';
 import { BespokeStudioManager } from './BespokeStudioManager';
@@ -44,7 +45,8 @@ import {
   getRestockRequests,
   updateRestockRequestStatus,
   deleteRestockRequest,
-  getBespokeDesigns
+  getBespokeDesigns,
+  getVouchers
 } from '../services/dbService';
 
 
@@ -261,6 +263,7 @@ export const AdminApp = ({
   const [subscribers, setSubscribers] = useState([]);
   const [restockRequests, setRestockRequests] = useState([]);
   const [bespokeDesigns, setBespokeDesigns] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
   const [settings, setSettings] = useState(INITIAL_STORE_SETTINGS);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
 
@@ -283,14 +286,15 @@ export const AdminApp = ({
     async function syncAdminDatabase() {
       setIsLoadingAdmin(true);
       try {
-        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers, dbRestock, dbBespoke] = await Promise.allSettled([
+        const [dbProducts, dbOrders, dbOffers, dbReviews, dbSubscribers, dbRestock, dbBespoke, dbVouchers] = await Promise.allSettled([
           getProducts(),
           getOrders(),
           getOffers(),
           getReviews(),
           getNewsletterSubscribers(),
           getRestockRequests(),
-          getBespokeDesigns()
+          getBespokeDesigns(),
+          getVouchers()
         ]);
 
         if (dbProducts.status === 'fulfilled' && Array.isArray(dbProducts.value) && dbProducts.value.length > 0) {
@@ -362,6 +366,17 @@ export const AdminApp = ({
           setBespokeDesigns(dbBespoke.value);
         } else {
           setBespokeDesigns([]);
+        }
+
+        if (dbVouchers.status === 'fulfilled' && Array.isArray(dbVouchers.value)) {
+          setVouchers(dbVouchers.value);
+        } else {
+          try {
+            const localV = JSON.parse(localStorage.getItem('elvany_vouchers_registry') || '[]');
+            setVouchers(Array.isArray(localV) ? localV : []);
+          } catch {
+            setVouchers([]);
+          }
         }
 
 
@@ -901,6 +916,7 @@ export const AdminApp = ({
         ordersCount={orders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled').length}
         pendingReviewsCount={reviews.filter(r => r.status === 'Pending').length}
         offersCount={localOffers.filter(o => o.isActive).length}
+        vouchersCount={vouchers.filter(v => v.isActive && !v.isUsed).length}
         isPopupAdActive={localPopupAd?.enabled}
         restockRequestsCount={restockRequests.length}
         bespokeCount={bespokeDesigns.length}
@@ -980,6 +996,14 @@ export const AdminApp = ({
                   onOpenModal={handleOpenOfferModal}
                   onToggleOfferStatus={handleToggleOfferStatus}
                   onDeleteOffer={handleDeleteOffer}
+                />
+              )}
+
+              {activeTab === 'vouchers' && (
+                <VouchersManager
+                  vouchers={vouchers}
+                  onUpdateVouchers={setVouchers}
+                  onToast={showToast}
                 />
               )}
 

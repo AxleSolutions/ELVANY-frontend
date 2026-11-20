@@ -812,7 +812,23 @@ const safeSaveCartToLocalStorage = (cart) => {
   };
 
   const navigateToProduct = (product) => {
-    triggerPageTransition(`/product/${product.id}`);
+    if (!product) return;
+    let target = product.id || product.productId || product.slug;
+    if (!target || target === 'null' || target === 'undefined') {
+      const prodName = product.title || product.name || product.productName;
+      if (prodName) {
+        const found = productsList.find(p => 
+          (p.title && p.title.trim().toLowerCase() === prodName.trim().toLowerCase()) ||
+          (p.name && p.name.trim().toLowerCase() === prodName.trim().toLowerCase())
+        );
+        target = found?.id || found?.slug || prodName;
+      }
+    }
+    if (target && target !== 'null' && target !== 'undefined') {
+      triggerPageTransition(`/product/${encodeURIComponent(target)}`);
+    } else {
+      triggerPageTransition('/collection');
+    }
   };
 
   const navigateToCollection = (categoryKey = 'all') => {

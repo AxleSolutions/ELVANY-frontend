@@ -217,6 +217,12 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
                   <td style="padding: 4px 0;">Atelier Courier Delivery</td>
                   <td align="right" style="padding: 4px 0; color: #ffffff;">LKR ${deliveryFeeLKR}</td>
                 </tr>
+                ${(order.voucherCode || order.voucherDiscountLKR > 0) ? `
+                <tr>
+                  <td style="padding: 4px 0; color: #4ade80;">Atelier Voucher Applied (${order.voucherCode || 'GIFT'})</td>
+                  <td align="right" style="padding: 4px 0; color: #4ade80; font-weight: 600;">- LKR ${Number(order.voucherDiscountLKR || 0).toLocaleString()}</td>
+                </tr>
+                ` : ''}
                 ${(order.surchargeLKR > 0 || String(paymentMethod).toLowerCase().includes('koko')) ? `
                 <tr>
                   <td style="padding: 4px 0; color: #c5a059;">Koko BNPL Processing Surcharge (12%)</td>

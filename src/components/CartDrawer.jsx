@@ -254,8 +254,8 @@ export const CartDrawer = ({
                                 </div>
                               )}
                               {item.isOfferApplied && (
-                                <span className="cart-item-offer-pill">
-                                  <Tag size={10} />
+                                <span className="cart-item-offer-pill" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                                  <Tag size={10} color="var(--gold-bright)" />
                                   <span>PRIVILEGE APPLIED ({item.offerCode || 'PROMO'})</span>
                                 </span>
                               )}

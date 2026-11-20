@@ -82,6 +82,7 @@ export const AdminHeader = ({
     switch (activeTab) {
       case 'dashboard': return 'Executive Overview';
       case 'offers': return 'Privileges & Promotional Offers';
+      case 'vouchers': return 'Single-Use Vouchers & Gift Cards Registry';
       case 'emailStudio': return 'Promotional Email & Client Broadcast Studio';
       case 'products': return 'Garments & Stock Inventory';
       case 'orders': return 'Client Orders & VIP Dispatch Hub';

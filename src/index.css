@@ -4687,15 +4687,16 @@ img {
 .cart-item-offer-pill {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 0.62rem;
+  gap: 4px;
+  font-size: 0.65rem;
   color: var(--gold-bright);
-  background-color: rgba(197, 160, 89, 0.12);
-  border: 1px solid var(--gold-border);
-  padding: 1px 5px;
-  border-radius: 1px;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
   margin-top: 3px;
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .cart-item-remove {

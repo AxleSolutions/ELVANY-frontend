@@ -227,6 +227,14 @@ export function generateInvoiceHtml(order, isScreenView = false) {
             </div>
           ` : ''}
 
+          <!-- Atelier Single-Use Voucher Applied -->
+          ${(order.voucherCode || order.voucherDiscountLKR > 0) ? `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; color: #15803d;">
+              <span>Atelier Voucher (${order.voucherCode || 'GIFT'}):</span>
+              <strong>- LKR ${Number(order.voucherDiscountLKR || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+            </div>
+          ` : ''}
+
           <!-- Koko BNPL Processing Surcharge (Prominently Disclosed) -->
           ${(isKoko && kokoSurcharge > 0) ? `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 12px; color: #8c6d2d; border-top: 1px dashed #e2d2b5; margin-top: 4px;">

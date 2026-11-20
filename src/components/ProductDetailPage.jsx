@@ -44,11 +44,18 @@ function getCuratedRecommendations(currentProduct, allProducts = []) {
 
   if (candidates.length === 0) return [];
 
+  const getDetailsText = (item) => {
+    if (!item) return '';
+    if (Array.isArray(item.details)) return item.details.join(' ');
+    if (typeof item.details === 'string') return item.details;
+    return '';
+  };
+
   const curCategory = (currentProduct.category || '').toLowerCase();
-  const curName = (currentProduct.name || '').toLowerCase();
+  const curName = (currentProduct.name || currentProduct.title || '').toLowerCase();
   const curColor = (currentProduct.color || '').toLowerCase();
-  const curFabric = (currentProduct.fabricProvenance || currentProduct.tagline || currentProduct.details?.join(' ') || '').toLowerCase();
-  const curPrice = Number(currentProduct.priceLKR) || 18500;
+  const curFabric = (currentProduct.fabricProvenance || currentProduct.tagline || getDetailsText(currentProduct) || '').toLowerCase();
+  const curPrice = Number(currentProduct.priceLKR || currentProduct.price || currentProduct.base_price_lkr) || 18500;
   const curColorsAvailable = Array.isArray(currentProduct.colorsAvailable) 
     ? currentProduct.colorsAvailable.map(c => String(c).toLowerCase()) 
     : [];
@@ -58,10 +65,10 @@ function getCuratedRecommendations(currentProduct, allProducts = []) {
     let reasons = [];
 
     const pCategory = (p.category || '').toLowerCase();
-    const pName = (p.name || '').toLowerCase();
+    const pName = (p.name || p.title || '').toLowerCase();
     const pColor = (p.color || '').toLowerCase();
-    const pFabric = (p.fabricProvenance || p.tagline || p.details?.join(' ') || '').toLowerCase();
-    const pPrice = Number(p.priceLKR) || 18500;
+    const pFabric = (p.fabricProvenance || p.tagline || getDetailsText(p) || '').toLowerCase();
+    const pPrice = Number(p.priceLKR || p.price || p.base_price_lkr) || 18500;
     const pColorsAvailable = Array.isArray(p.colorsAvailable) 
       ? p.colorsAvailable.map(c => String(c).toLowerCase()) 
       : [];
@@ -137,6 +144,7 @@ function getCuratedRecommendations(currentProduct, allProducts = []) {
 
     return {
       ...p,
+      priceLKR: Number(p.priceLKR || p.price || p.base_price_lkr) || 18500,
       recommendationScore: score,
       recommendationReason: primaryReason
     };
@@ -148,7 +156,53 @@ function getCuratedRecommendations(currentProduct, allProducts = []) {
   return scored.slice(0, 4);
 }
 
-export const ProductDetailPage = ({
+class ProductDetailErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.warn('ProductDetailPage error caught by boundary:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '75vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '4rem 1.5rem',
+          backgroundColor: '#090a0c',
+          color: '#ffffff'
+        }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', color: '#ffffff', marginBottom: '0.8rem' }}>
+            Atelier Garment Archive
+          </h2>
+          <p style={{ color: 'var(--text-light-muted)', fontSize: '0.9rem', maxWidth: '480px', marginBottom: '2rem', lineHeight: 1.6 }}>
+            The requested piece telemetry is refreshing. You may continue exploring our full haute collection or return to the storefront.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <a href="/collection" className="btn-primary-gold" style={{ textDecoration: 'none', padding: '0.8rem 1.6rem', fontSize: '0.82rem' }}>
+              BROWSE COLLECTION
+            </a>
+            <a href="/" style={{ textDecoration: 'none', padding: '0.8rem 1.6rem', fontSize: '0.82rem', color: 'var(--gold-bright)', border: '1px solid var(--gold-border)', borderRadius: '2px' }}>
+              RETURN TO HOME
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const ProductDetailPageInner = ({
   products = PRODUCTS,
   product: propProduct,
   offers = [],
@@ -163,7 +217,16 @@ export const ProductDetailPage = ({
   addedItemId
 }) => {
   const { id } = useParams();
-  const product = propProduct || products.find((p) => p.id === id || p.slug === id) || products[0] || PRODUCTS[0] || {};
+  const decodedId = id ? decodeURIComponent(id).trim().toLowerCase() : '';
+  const product = propProduct || products.find((p) => {
+    if (!p) return false;
+    return (
+      (p.id && String(p.id).toLowerCase() === decodedId) ||
+      (p.slug && String(p.slug).toLowerCase() === decodedId) ||
+      (p.title && String(p.title).trim().toLowerCase() === decodedId) ||
+      (p.name && String(p.name).trim().toLowerCase() === decodedId)
+    );
+  }) || products[0] || PRODUCTS[0] || {};
 
   // Check if this product has an active, unexpired promotional offer with units remaining
   const activeOffer = (offers || []).find(o => 
@@ -182,9 +245,9 @@ export const ProductDetailPage = ({
   ) : null;
 
   const isOfferActive = Boolean(activeOffer);
-  const effectivePrice = isOfferActive ? activeOffer.offerPriceLKR : (product?.priceLKR || 18500);
-  const originalPrice = isOfferActive ? (activeOffer.originalPriceLKR || product?.originalPriceLKR || product?.priceLKR || 18500) : null;
-  const savings = isOfferActive ? (originalPrice - effectivePrice) : 0;
+  const effectivePrice = isOfferActive ? (Number(activeOffer.offerPriceLKR) || 15500) : (Number(product?.priceLKR || product?.price || product?.base_price_lkr) || 18500);
+  const originalPrice = isOfferActive ? (Number(activeOffer.originalPriceLKR || product?.originalPriceLKR || product?.priceLKR || product?.base_price_lkr) || 18500) : null;
+  const savings = isOfferActive ? Math.max(0, (originalPrice || 0) - (effectivePrice || 0)) : 0;
 
   const isGarmentOutOfStock = product.status === 'Sold Out' ||
     product.status === 'Archived' ||
@@ -273,7 +336,9 @@ export const ProductDetailPage = ({
   const isJustAdded = addedItemId === product.id;
 
   const formatLKR = (val) => {
-    return `LKR ${val.toLocaleString()}`;
+    const num = Number(val);
+    if (isNaN(num)) return 'LKR 0';
+    return `LKR ${num.toLocaleString()}`;
   };
 
   const images = product.images && product.images.length > 0 
@@ -447,7 +512,7 @@ export const ProductDetailPage = ({
                 marginBottom: '1.2rem'
               }}>
                 <Flame size={14} color="#ef4444" />
-                <span>ATELIER PRIVILEGE DROP: 100% CLAIMED • ALLOCATIONS CLOSED</span>
+                <span>PRIVILEGE ALLOCATION 100% CLAIMED • REGULAR ATELIER STOCK AVAILABLE</span>
               </div>
             )}
 
@@ -1199,6 +1264,12 @@ export const ProductDetailPage = ({
     </div>
   );
 };
+
+export const ProductDetailPage = (props) => (
+  <ProductDetailErrorBoundary>
+    <ProductDetailPageInner {...props} />
+  </ProductDetailErrorBoundary>
+);
 
 
 
