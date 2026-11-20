@@ -14,6 +14,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
     originalPriceLKR: 18500,
     offerPriceLKR: 15500,
     discountTag: 'SAVE LKR 3,000',
+    soldUnits: 13,
     remainingUnits: 12,
     totalAllocation: 25,
     availableSizes: ['XS', 'S', 'M', 'L', 'XL', '2XL'],
@@ -33,11 +34,35 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
         : (offer.availableSizes ? [offer.availableSizes] : ['XS', 'S', 'M', 'L', 'XL', '2XL']);
       
       const existingEndsAt = offer.endsAt || offer.expires_at || offer.expiresAt || null;
+      
+      const remain = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0
+        ? parseInt(offer.remainingUnits, 10)
+        : (offer.remaining_units !== undefined ? Math.max(0, parseInt(offer.remaining_units, 10) || 0) : 12);
+
+      let sold = typeof offer.soldUnits === 'number' && offer.soldUnits >= 0
+        ? parseInt(offer.soldUnits, 10)
+        : (offer.sold_units !== undefined ? Math.max(0, parseInt(offer.sold_units, 10) || 0) : null);
+
+      let total = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0
+        ? parseInt(offer.totalAllocation, 10)
+        : (offer.total_allocation ? Math.max(1, parseInt(offer.total_allocation, 10) || 1) : null);
+
+      if (sold === null && total !== null) {
+        sold = Math.max(0, total - remain);
+      } else if (sold === null) {
+        sold = 13;
+      }
+
+      if (total === null || total < (sold + remain)) {
+        total = sold + remain;
+      }
+
       setFormData({
         ...offer,
         productId: offer.productId || null,
-        totalAllocation: typeof offer.totalAllocation === 'number' ? offer.totalAllocation : (offer.total_allocation || 25),
-        remainingUnits: typeof offer.remainingUnits === 'number' ? offer.remainingUnits : (offer.remaining_units !== undefined ? offer.remaining_units : 12),
+        soldUnits: sold,
+        remainingUnits: remain,
+        totalAllocation: total,
         sizesText: sizesArray.join(', '),
         endsAt: existingEndsAt
       });
@@ -77,6 +102,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
         originalPriceLKR: defOrigPrice,
         offerPriceLKR: defOfferPrice,
         discountTag: `SAVE LKR ${(defOrigPrice - defOfferPrice).toLocaleString()}`,
+        soldUnits: 13,
         remainingUnits: 12,
         totalAllocation: 25,
         availableSizes: defSizes,
@@ -144,9 +170,9 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
       computedEndsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
     }
 
-    const totalAlloc = parseInt(formData.totalAllocation, 10) || 25;
-    const remain = parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10);
-    const sold = Math.max(0, totalAlloc - remain);
+    const sold = Math.max(0, parseInt(formData.soldUnits !== undefined ? formData.soldUnits : 0, 10));
+    const remain = Math.max(0, parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10));
+    const totalAlloc = Math.max(sold + remain, parseInt(formData.totalAllocation, 10) || (sold + remain) || 25);
 
     const finalOffer = {
       ...formData,
@@ -325,38 +351,102 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
             </div>
 
             {/* Scarcity / Units Allocation */}
-            <div className="form-row-2col">
-              <div className="form-group">
-                <label className="form-label">Remaining Units Left in Batch</label>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+              gap: '1rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--border-dark)',
+              padding: '1rem',
+              borderRadius: '2px'
+            }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Units Already Sold</span>
+                  <span style={{ fontSize: '0.68rem', color: '#f87171' }}>🔥 Sold count</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="500"
+                  value={formData.soldUnits !== undefined ? formData.soldUnits : 13}
+                  onChange={(e) => {
+                    const newSold = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    const currentRemain = Math.max(0, parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10));
+                    setFormData(prev => ({
+                      ...prev,
+                      soldUnits: newSold,
+                      totalAllocation: newSold + currentRemain
+                    }));
+                  }}
+                  className="form-input admin-input"
+                  style={{ color: '#f87171', fontWeight: 600 }}
+                />
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Units Remaining in Batch</span>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)' }}>Live stock</span>
+                </label>
                 <input
                   type="number"
                   min="0"
                   max="500"
                   value={formData.remainingUnits !== undefined ? formData.remainingUnits : 12}
-                  onChange={(e) => setFormData({ ...formData, remainingUnits: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                  onChange={(e) => {
+                    const newRemain = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    const currentSold = Math.max(0, parseInt(formData.soldUnits !== undefined ? formData.soldUnits : 13, 10));
+                    setFormData(prev => ({
+                      ...prev,
+                      remainingUnits: newRemain,
+                      totalAllocation: currentSold + newRemain
+                    }));
+                  }}
                   className="form-input admin-input"
+                  style={{ color: '#ffffff', fontWeight: 600 }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Total Batch Allocation</label>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Total Batch Allocation</span>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>Sold + Remaining</span>
+                </label>
                 <input
                   type="number"
                   min="1"
                   max="500"
-                  value={formData.totalAllocation || 25}
-                  onChange={(e) => setFormData({ ...formData, totalAllocation: Math.max(1, parseInt(e.target.value, 10) || 25) })}
+                  value={formData.totalAllocation || ((formData.soldUnits || 0) + (formData.remainingUnits || 0)) || 25}
+                  onChange={(e) => {
+                    const newTotal = Math.max(1, parseInt(e.target.value, 10) || 1);
+                    const currentSold = Math.max(0, parseInt(formData.soldUnits !== undefined ? formData.soldUnits : 0, 10));
+                    const newRemain = Math.max(0, newTotal - currentSold);
+                    setFormData(prev => ({
+                      ...prev,
+                      totalAllocation: newTotal,
+                      remainingUnits: newRemain
+                    }));
+                  }}
                   className="form-input admin-input"
+                  style={{ color: 'var(--text-light-primary)', fontWeight: 600 }}
                 />
               </div>
             </div>
 
             {/* Live Storefront Red Line Scarcity Preview */}
             {(() => {
-              const previewTotal = Math.max(1, parseInt(formData.totalAllocation, 10) || 25);
-              const previewRemain = Math.max(0, parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 12, 10));
-              const previewSold = Math.max(0, previewTotal - previewRemain);
-              const previewPercent = Math.min(100, Math.max(4, Math.round((previewSold / previewTotal) * 100)));
+              const previewSold = Math.max(0, parseInt(formData.soldUnits !== undefined ? formData.soldUnits : 0, 10));
+              const previewRemain = Math.max(0, parseInt(formData.remainingUnits !== undefined ? formData.remainingUnits : 0, 10));
+              const previewTotal = Math.max(1, Math.max(parseInt(formData.totalAllocation, 10) || 1, previewSold + previewRemain));
+              
+              let previewPercent = 0;
+              if (previewRemain === 0 && previewSold > 0) {
+                previewPercent = 100;
+              } else if (previewTotal > 0) {
+                const rawRatio = Math.round((previewSold / previewTotal) * 100);
+                previewPercent = Math.min(previewRemain > 0 ? 98 : 100, Math.max(previewSold > 0 ? 4 : 0, rawRatio));
+              }
 
               return (
                 <div style={{
@@ -372,6 +462,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                       <Flame size={14} color="#ef4444" style={{ filter: 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.6))' }} />
                       <span style={{ color: '#ffffff', fontWeight: 600 }}>
                         Storefront Live Red Line: <strong style={{ color: '#f87171' }}>{previewSold} sold</strong> • <strong style={{ color: '#ffffff' }}>{previewRemain} remaining</strong>
+                        <span style={{ color: 'rgba(255,255,255,0.4)', marginLeft: '6px', fontSize: '0.72rem' }}>({previewTotal} total batch)</span>
                       </span>
                     </div>
                     <span style={{
@@ -401,7 +492,8 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                       height: '100%',
                       background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 70%, #f87171 100%)',
                       borderRadius: '999px',
-                      boxShadow: '0 0 10px rgba(239, 68, 68, 0.7)'
+                      boxShadow: '0 0 10px rgba(239, 68, 68, 0.7)',
+                      transition: 'width 0.3s ease'
                     }} />
                   </div>
                 </div>

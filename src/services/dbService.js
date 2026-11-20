@@ -1408,19 +1408,29 @@ function mapPromotionToOffer(p, productsMap = {}) {
   const storedAllocations = getStoredOfferAllocations();
   const storedForThis = storedAllocations[String(p.id)] || (p.code ? storedAllocations[String(p.code)] : null) || {};
 
-  const totalAllocation = typeof p.total_allocation === 'number'
-    ? p.total_allocation
-    : (typeof storedForThis.totalAllocation === 'number'
-        ? storedForThis.totalAllocation
-        : (typeof p.totalAllocation === 'number' ? p.totalAllocation : 25));
-
   const remainingUnits = typeof p.remaining_units === 'number'
     ? p.remaining_units
     : (typeof storedForThis.remainingUnits === 'number'
         ? storedForThis.remainingUnits
         : (typeof p.remainingUnits === 'number' ? p.remainingUnits : 12));
 
-  const soldUnits = Math.max(0, totalAllocation - remainingUnits);
+  let soldUnits = typeof p.sold_units === 'number'
+    ? p.sold_units
+    : (typeof storedForThis.soldUnits === 'number'
+        ? storedForThis.soldUnits
+        : (typeof p.soldUnits === 'number' ? p.soldUnits : null));
+
+  let totalAllocation = typeof p.total_allocation === 'number'
+    ? p.total_allocation
+    : (typeof storedForThis.totalAllocation === 'number'
+        ? storedForThis.totalAllocation
+        : (typeof p.totalAllocation === 'number' ? p.totalAllocation : 25));
+
+  if (soldUnits === null) {
+    soldUnits = Math.max(0, totalAllocation - remainingUnits);
+  }
+
+  totalAllocation = Math.max(totalAllocation, soldUnits + remainingUnits);
 
   return {
     id: p.id,
@@ -1502,13 +1512,18 @@ export async function getOffers() {
         const storedAlloc = getStoredOfferAllocations();
         return json.data.map(o => {
           const alloc = storedAlloc[String(o.id)] || (o.code ? storedAlloc[String(o.code)] : null) || {};
-          const totalAllocation = typeof alloc.totalAllocation === 'number' ? alloc.totalAllocation : (o.totalAllocation || 25);
           const remainingUnits = typeof alloc.remainingUnits === 'number' ? alloc.remainingUnits : (o.remainingUnits !== undefined ? o.remainingUnits : 12);
+          let soldUnits = typeof alloc.soldUnits === 'number' ? alloc.soldUnits : (o.soldUnits !== undefined ? o.soldUnits : null);
+          let totalAllocation = typeof alloc.totalAllocation === 'number' ? alloc.totalAllocation : (o.totalAllocation || 25);
+          if (soldUnits === null) {
+            soldUnits = Math.max(0, totalAllocation - remainingUnits);
+          }
+          totalAllocation = Math.max(totalAllocation, soldUnits + remainingUnits);
           return {
             ...o,
             totalAllocation,
             remainingUnits,
-            soldUnits: Math.max(0, totalAllocation - remainingUnits)
+            soldUnits
           };
         });
       }
@@ -1530,9 +1545,17 @@ export async function saveOffer(offerData) {
 
   const appliedProducts = offerData.productId ? [offerData.productId] : [];
 
-  const totalAllocation = parseInt(offerData.totalAllocation !== undefined ? offerData.totalAllocation : 25, 10);
-  const remainingUnits = parseInt(offerData.remainingUnits !== undefined ? offerData.remainingUnits : 12, 10);
-  const soldUnits = Math.max(0, totalAllocation - remainingUnits);
+  const remainingUnits = Math.max(0, parseInt(offerData.remainingUnits !== undefined ? offerData.remainingUnits : 12, 10));
+  let soldUnits = offerData.soldUnits !== undefined ? Math.max(0, parseInt(offerData.soldUnits, 10)) : null;
+  let totalAllocation = parseInt(offerData.totalAllocation !== undefined ? offerData.totalAllocation : 0, 10);
+
+  if (soldUnits === null && totalAllocation > 0) {
+    soldUnits = Math.max(0, totalAllocation - remainingUnits);
+  } else if (soldUnits === null) {
+    soldUnits = 13;
+  }
+
+  totalAllocation = Math.max(totalAllocation, soldUnits + remainingUnits);
 
   const offerToValidate = {
     ...offerData,
@@ -1652,6 +1675,22 @@ export async function saveOffer(offerData) {
   if (offerData.productId) {
     syncProductOfferFlagInCache(offerData.productId, isCurrentlyActive);
   }
+
+  try {
+    const rawOffers = localStorage.getItem('elvany_offers_cache');
+    if (rawOffers) {
+      const parsed = JSON.parse(rawOffers);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex(o => String(o.id) === String(finalSaved.id));
+        if (idx >= 0) {
+          parsed[idx] = { ...parsed[idx], ...finalSaved };
+        } else {
+          parsed.unshift(finalSaved);
+        }
+        localStorage.setItem('elvany_offers_cache', JSON.stringify(parsed));
+      }
+    }
+  } catch {}
 
   return finalSaved;
 }

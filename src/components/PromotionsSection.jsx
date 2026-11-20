@@ -149,16 +149,32 @@ export const PromotionsSection = ({
               const savingsAmount = origPrice - offerPrice;
               const percentOff = origPrice > 0 ? Math.round((savingsAmount / origPrice) * 100) : 0;
 
-              const totalAlloc = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0
-                ? offer.totalAllocation
-                : 25;
               const remaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0
-                ? offer.remainingUnits
+                ? Math.max(0, parseInt(offer.remainingUnits, 10))
                 : 12;
-              const sold = typeof offer.soldUnits === 'number'
-                ? offer.soldUnits
-                : Math.max(0, totalAlloc - remaining);
-              const soldPercent = Math.min(100, Math.max(4, Math.round((sold / totalAlloc) * 100)));
+
+              let sold = 0;
+              if (typeof offer.soldUnits === 'number' && offer.soldUnits >= 0) {
+                sold = parseInt(offer.soldUnits, 10);
+              } else if (typeof offer.totalAllocation === 'number' && offer.totalAllocation > remaining) {
+                sold = offer.totalAllocation - remaining;
+              } else {
+                sold = 13;
+              }
+
+              // True total batch allocation is always at least (sold + remaining)
+              const effectiveTotal = Math.max(1, (typeof offer.totalAllocation === 'number' && offer.totalAllocation >= (sold + remaining))
+                ? offer.totalAllocation
+                : (sold + remaining));
+
+              // Percentage claimed: can only be 100% if remaining is 0
+              let soldPercent = 0;
+              if (remaining === 0 && sold > 0) {
+                soldPercent = 100;
+              } else if (effectiveTotal > 0) {
+                const rawRatio = Math.round((sold / effectiveTotal) * 100);
+                soldPercent = Math.min(remaining > 0 ? 98 : 100, Math.max(4, rawRatio));
+              }
 
               return (
                 <div 

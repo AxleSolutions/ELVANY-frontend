@@ -132,10 +132,30 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
 
                 {/* Scarcity Allocation Tracker & Red Line */}
                 {(() => {
-                  const totalAlloc = typeof offer.totalAllocation === 'number' && offer.totalAllocation > 0 ? offer.totalAllocation : 25;
-                  const remaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0 ? offer.remainingUnits : 12;
-                  const sold = typeof offer.soldUnits === 'number' ? offer.soldUnits : Math.max(0, totalAlloc - remaining);
-                  const soldPercent = Math.min(100, Math.max(4, Math.round((sold / totalAlloc) * 100)));
+                  const remaining = typeof offer.remainingUnits === 'number' && offer.remainingUnits >= 0
+                    ? Math.max(0, parseInt(offer.remainingUnits, 10))
+                    : 12;
+
+                  let sold = 0;
+                  if (typeof offer.soldUnits === 'number' && offer.soldUnits >= 0) {
+                    sold = parseInt(offer.soldUnits, 10);
+                  } else if (typeof offer.totalAllocation === 'number' && offer.totalAllocation > remaining) {
+                    sold = offer.totalAllocation - remaining;
+                  } else {
+                    sold = 13;
+                  }
+
+                  const effectiveTotal = Math.max(1, (typeof offer.totalAllocation === 'number' && offer.totalAllocation >= (sold + remaining))
+                    ? offer.totalAllocation
+                    : (sold + remaining));
+
+                  let soldPercent = 0;
+                  if (remaining === 0 && sold > 0) {
+                    soldPercent = 100;
+                  } else if (effectiveTotal > 0) {
+                    const rawRatio = Math.round((sold / effectiveTotal) * 100);
+                    soldPercent = Math.min(remaining > 0 ? 98 : 100, Math.max(4, rawRatio));
+                  }
 
                   return (
                     <div style={{ marginTop: '0.8rem', padding: '0.7rem 0.9rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '2px' }}>
@@ -143,7 +163,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Flame size={13} color="#ef4444" />
                           <span style={{ color: '#fff', fontWeight: 600 }}>
-                            <strong style={{ color: '#f87171' }}>{sold} sold</strong> • <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong> ({totalAlloc} total batch)
+                            <strong style={{ color: '#f87171' }}>{sold} sold</strong> • <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong> ({effectiveTotal} total batch)
                           </span>
                         </div>
                         <span style={{ fontSize: '0.68rem', color: '#f87171', fontWeight: 700, background: 'rgba(239, 68, 68, 0.15)', padding: '2px 6px', borderRadius: '2px' }}>
