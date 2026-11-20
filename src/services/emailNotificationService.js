@@ -400,3 +400,110 @@ export async function sendWelcomeRegistrationEmail({ email, name }) {
     senderName: 'ELVANY'
   });
 }
+
+/**
+ * Dispatches a luxury security email for password recovery with a 6-digit passcode and one-click reset link
+ */
+export async function sendPasswordResetEmail({ email, name, resetCode, resetLink }) {
+  if (!email || !email.includes('@')) {
+    return { success: false, error: 'Invalid email' };
+  }
+
+  const patronName = name || email.split('@')[0];
+  const origin = typeof window !== 'undefined' ? (window.location.origin || 'https://elvany.vercel.app') : 'https://elvany.vercel.app';
+  const directLink = resetLink || `${origin}/?action=reset_password&email=${encodeURIComponent(email)}&code=${resetCode}`;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELVANY — Password Reset Protocol</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #121212; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          
+          <!-- Header / Brand -->
+          <tr>
+            <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+              <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Haute Couture &bull; Atelier</p>
+            </td>
+          </tr>
+
+          <!-- Security Checkpoint Hero Banner -->
+          <tr>
+            <td style="padding: 36px 32px 24px 32px; text-align: center;">
+              <span style="display: inline-block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); background-color: rgba(255, 255, 255, 0.06); padding: 5px 16px; margin-bottom: 18px; border-radius: 2px; font-weight: 600;">
+                Security Checkpoint &bull; Account Recovery
+              </span>
+              <h2 style="margin: 0 0 14px 0; font-size: 26px; line-height: 1.3; font-weight: 300; color: #ffffff; letter-spacing: -0.01em;">
+                Password Reset Protocol
+              </h2>
+              <p style="margin: 0 auto 20px auto; max-width: 480px; font-size: 14px; line-height: 1.7; color: #a1a1aa;">
+                Dear <strong style="color: #ffffff;">${patronName}</strong>, we received a formal request to reset the authentication credentials for your ELVANY private client ledger.
+              </p>
+
+              <!-- 6-Digit Passcode Box -->
+              <div style="background-color: #1a1a1e; border: 1px dashed rgba(197, 160, 89, 0.45); border-radius: 4px; padding: 22px 20px; margin: 24px auto 18px auto; max-width: 380px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #c5a059; margin-bottom: 8px; font-weight: 600;">
+                  Atelier Security Passcode
+                </div>
+                <div style="font-size: 34px; font-weight: 700; letter-spacing: 0.25em; color: #ffffff; font-family: monospace; margin: 8px 0;">
+                  ${resetCode}
+                </div>
+                <div style="font-size: 11px; color: #8a8a93; margin-top: 6px;">
+                  Valid for 60 minutes &bull; Single-use authorization
+                </div>
+              </div>
+
+              <p style="margin: 0 auto 20px auto; max-width: 460px; font-size: 13px; line-height: 1.6; color: #71717a;">
+                You can enter this 6-digit passcode directly on your login screen, or click the direct button below to immediately set your new password:
+              </p>
+
+              <!-- One-Click Action Button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 18px auto 24px auto;">
+                <tr>
+                  <td style="background-color: #ffffff; border-radius: 2px;">
+                    <a href="${directLink}" target="_blank" style="display: inline-block; padding: 14px 34px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #000000; text-decoration: none;">
+                      Reset Password Now &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Security Notice -->
+              <div style="background-color: #16171b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 4px; padding: 14px 18px; font-size: 11px; line-height: 1.6; color: #71717a; text-align: left; max-width: 480px; margin: 0 auto;">
+                <strong style="color: #c5a059;">Security Protocol:</strong> If you did not initiate this credential recovery, no alterations have been made to your ledger. Please disregard this dispatch or contact our concierge immediately at <a href="mailto:elvanywear@gmail.com" style="color: #c5a059; text-decoration: none;">elvanywear@gmail.com</a>.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
+              <p style="margin: 0 0 6px 0;">Official Atelier Security Dispatch &bull; <a href="mailto:elvanywear@gmail.com" style="color: #c5a059; text-decoration: none;">elvanywear@gmail.com</a></p>
+              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `Password Reset Protocol | ELVANY`,
+    htmlBody,
+    senderName: 'ELVANY Security'
+  });
+}

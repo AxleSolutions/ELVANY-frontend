@@ -99,7 +99,7 @@ export const PromotionsSection = ({
   return (
     <section className="promotions-section" style={{
       backgroundColor: '#090a0c',
-      padding: '4rem 0 3.5rem 0',
+      padding: '2.5rem 0 2rem 0',
       borderTop: '1px solid var(--gold-border)',
       borderBottom: '1px solid var(--border-dark)',
       position: 'relative',
@@ -237,18 +237,18 @@ export const PromotionsSection = ({
                       {offer.badge && !offer.badge.toUpperCase().includes('LAUNCH PRIVILEGE') && (
                         <div className="offer-badge-overlay" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171' } : {}}>
                           <Sparkles size={13} />
-                          <span>{isClaimedOut ? `${offer.badge} (CLAIMED OUT)` : offer.badge}</span>
+                          <span>{offer.badge}</span>
                         </div>
                       )}
 
                       {/* Bottom Scarcity Banner */}
-                      <div className="offer-scarcity-pill" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.45)', background: 'rgba(15, 10, 10, 0.94)' } : {}}>
+                      <div className="offer-scarcity-pill" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.35)', background: 'rgba(15, 10, 10, 0.94)' } : {}}>
                         <span style={{ color: isClaimedOut ? '#f87171' : '#ffffff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <Flame size={13} color="#ef4444" />
                           <span>{isClaimedOut ? '0 remaining' : `${remaining} remaining`}</span>
                         </span>
                         <span style={{ color: 'var(--text-light-muted)', fontSize: '0.68rem' }}>
-                          {sold} sold {isClaimedOut ? '(100% Claimed)' : ''}
+                          {sold} sold
                         </span>
                       </div>
                     </div>
@@ -276,11 +276,11 @@ export const PromotionsSection = ({
                           {offer.subtitle}
                         </p>
 
-                        {/* Clean Outline Price Comparison Box */}
-                        <div className="offer-price-comparison-box" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.35)', opacity: 0.9 } : {}}>
+                        {/* Clean Borderless Price Comparison */}
+                        <div className="offer-price-comparison-box" style={{ border: 'none', background: 'transparent', padding: 0, marginBottom: '1.1rem' }}>
                           <div className="offer-price-main-group">
                             <div className="offer-price-sublabel" style={isClaimedOut ? { color: '#f87171' } : {}}>
-                              {isClaimedOut ? 'PRIVILEGE ALLOCATION PRICE (CLAIMED OUT)' : 'SPECIAL PRIVILEGE PRICE'}
+                              {isClaimedOut ? 'PRIVILEGE ALLOCATION PRICE' : 'SPECIAL PRIVILEGE PRICE'}
                             </div>
                             <div className="offer-price-numbers">
                               <span className="offer-price-current" style={isClaimedOut ? { textDecoration: 'line-through', opacity: 0.7 } : {}}>
@@ -293,11 +293,11 @@ export const PromotionsSection = ({
                           </div>
 
                           {/* Instant Savings Callout */}
-                          <div className="offer-savings-badge" style={isClaimedOut ? { borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.14)' } : {}}>
+                          <div className="offer-savings-badge" style={{ border: 'none', background: 'transparent', padding: 0 }}>
                             <div className="offer-savings-sublabel" style={isClaimedOut ? { color: '#f87171' } : {}}>
                               {isClaimedOut ? 'BATCH STATUS' : 'YOU SAVE'}
                             </div>
-                            <div className="offer-savings-amount" style={isClaimedOut ? { color: '#f87171', fontSize: '0.75rem', fontWeight: 800 } : {}}>
+                            <div className="offer-savings-amount" style={isClaimedOut ? { color: '#f87171', fontSize: '0.85rem', fontWeight: 800 } : {}}>
                               {isClaimedOut ? '100% CLAIMED' : `LKR ${savingsAmount.toLocaleString()}`}
                             </div>
                           </div>
@@ -305,17 +305,16 @@ export const PromotionsSection = ({
 
                         {/* Red Line Allocation & Scarcity Tracker */}
                         <div className="offer-scarcity-tracker" style={{
-                          margin: '0 0 1.5rem 0',
-                          padding: '0.9rem 1.2rem',
-                          background: isClaimedOut ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.05)',
-                          border: isClaimedOut ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(239, 68, 68, 0.28)',
-                          borderRadius: '2px'
+                          margin: '0 0 1.25rem 0',
+                          padding: 0,
+                          background: 'transparent',
+                          border: 'none'
                         }}>
                           <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            marginBottom: '0.6rem',
+                            marginBottom: '0.55rem',
                             fontSize: '0.82rem',
                             flexWrap: 'wrap',
                             gap: '0.5rem'
@@ -326,23 +325,17 @@ export const PromotionsSection = ({
                                 <strong style={{ color: '#f87171' }}>{sold} sold</strong>
                                 <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>•</span>
                                 <strong style={{ color: isClaimedOut ? '#f87171' : '#ffffff' }}>{remaining} remaining</strong>
-                                {isClaimedOut && (
-                                  <span style={{ color: '#f87171', marginLeft: '6px', fontSize: '0.74rem', fontWeight: 800 }}>
-                                    (ALL CLAIMED)
-                                  </span>
-                                )}
                               </span>
                             </div>
                             <span style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
+                              fontSize: '0.76rem',
+                              fontWeight: 800,
                               color: '#f87171',
                               letterSpacing: '0.08em',
                               textTransform: 'uppercase',
-                              background: 'rgba(239, 68, 68, 0.2)',
-                              padding: '3px 8px',
-                              borderRadius: '2px',
-                              border: '1px solid rgba(239, 68, 68, 0.45)'
+                              background: 'transparent',
+                              padding: 0,
+                              border: 'none'
                             }}>
                               {isClaimedOut ? '100% Claimed' : `${soldPercent}% Claimed`}
                             </span>
@@ -351,12 +344,11 @@ export const PromotionsSection = ({
                           {/* Visual Red Progress Line */}
                           <div style={{
                             width: '100%',
-                            height: '6px',
+                            height: '5px',
                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                             borderRadius: '999px',
                             overflow: 'hidden',
-                            position: 'relative',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)'
+                            position: 'relative'
                           }}>
                             <div 
                               style={{
@@ -364,7 +356,7 @@ export const PromotionsSection = ({
                                 height: '100%',
                                 background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 70%, #f87171 100%)',
                                 borderRadius: '999px',
-                                boxShadow: '0 0 14px rgba(239, 68, 68, 0.75)',
+                                boxShadow: '0 0 10px rgba(239, 68, 68, 0.65)',
                                 transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                               }}
                             />
@@ -387,52 +379,31 @@ export const PromotionsSection = ({
                       {/* Bottom Action: Direct Product Page Redirect Button */}
                       <div className="offer-bottom-action">
                         {isClaimedOut ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', width: '100%' }}>
+                          <div style={{ width: '100%' }}>
                             <button
                               type="button"
                               disabled
                               style={{
                                 width: '100%',
                                 justifyContent: 'center',
-                                padding: '1rem 1.8rem',
+                                padding: '0.95rem 1.6rem',
                                 fontSize: '0.82rem',
                                 letterSpacing: '0.14em',
                                 fontWeight: 800,
-                                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                                color: '#f87171',
-                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                backgroundColor: '#dc2626',
+                                color: '#ffffff',
+                                border: '1px solid #b91c1c',
                                 cursor: 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                borderRadius: '2px'
+                                borderRadius: '2px',
+                                opacity: 1,
+                                boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)'
                               }}
                             >
-                              <Lock size={15} />
+                              <Lock size={15} color="#ffffff" />
                               <span>100% CLAIMED • ALLOCATIONS EXHAUSTED (PURCHASE CLOSED)</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleInspectOffer(offer);
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'var(--text-light-muted)',
-                                fontSize: '0.74rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '5px',
-                                padding: '4px',
-                                textDecoration: 'underline'
-                              }}
-                            >
-                              <Eye size={13} />
-                              <span>View Garment Archive Details</span>
                             </button>
                           </div>
                         ) : (

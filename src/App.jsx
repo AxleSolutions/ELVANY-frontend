@@ -481,6 +481,19 @@ const safeSaveCartToLocalStorage = (cart) => {
   }, [location.pathname]);
 
 
+  // Handle incoming password reset recovery URL links
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const action = searchParams.get('action');
+      const hash = window.location.hash || '';
+      
+      if (action === 'reset_password' || action === 'reset-password' || hash.includes('type=recovery')) {
+        setIsAuthOpen(true);
+      }
+    }
+  }, [location.pathname, location.search]);
+
   // Stop background smooth scroll whenever any modal/drawer is open
   const isAnyModalOpen = isAuthOpen || isCartOpen || isSearchOpen || isEditorialOpen;
   useEffect(() => {

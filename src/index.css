@@ -928,9 +928,9 @@ img {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.2rem;
-  margin-bottom: 2rem;
-  padding: 0.85rem 1.6rem;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.65rem 1.25rem;
   background-color: transparent;
   border: 1px solid var(--border-dark);
   border-radius: 2px;
@@ -946,14 +946,14 @@ img {
 .promotions-callout-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   border: 1px solid #ef4444;
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  padding: 4px 10px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
   border-radius: 2px;
   text-transform: uppercase;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
@@ -961,18 +961,18 @@ img {
 
 .promotions-callout-text {
   color: #ffffff;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 400;
 }
 
 .promotions-countdown-ticker {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .promotions-countdown-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #ef4444;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -982,10 +982,10 @@ img {
 .promotions-countdown-digits {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   color: #ef4444;
 }
 
@@ -994,10 +994,10 @@ img {
   border: 1px solid var(--gold-border);
   border-radius: 2px;
   display: grid;
-  grid-template-columns: minmax(320px, 440px) 1fr;
+  grid-template-columns: minmax(280px, 380px) 1fr;
   overflow: hidden;
   position: relative;
-  min-height: 460px;
+  min-height: 380px;
   cursor: pointer;
   transition: border-color 0.25s ease;
 }
@@ -1013,9 +1013,9 @@ img {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   letter-spacing: 0.12em;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-bottom-left-radius: 2px;
   z-index: 10;
   display: flex;
@@ -1026,17 +1026,17 @@ img {
 
 .offer-card-media-col {
   position: relative;
-  min-height: 420px;
+  min-height: 350px;
   background-color: #07080a;
   overflow: hidden;
 }
 
 .offer-card-content-col {
-  padding: 2.8rem 3rem;
+  padding: 1.8rem 2.2rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 1.4rem;
+  gap: 1rem;
 }
 
 .offer-badge-overlay {
@@ -1101,32 +1101,31 @@ img {
 
 .offer-card-title {
   font-family: var(--font-serif);
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: clamp(1.35rem, 1.9vw, 1.7rem);
   color: #ffffff;
   font-weight: 400;
-  line-height: 1.2;
-  margin: 0 0 0.8rem 0;
+  line-height: 1.25;
+  margin: 0 0 0.5rem 0;
 }
 
 .offer-card-desc {
   color: var(--text-light-secondary);
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.5;
   font-weight: 300;
-  margin: 0 0 1.6rem 0;
+  margin: 0 0 1.1rem 0;
 }
 
 .offer-price-comparison-box {
   background-color: transparent;
-  border: 1px solid var(--border-dark);
-  border-radius: 2px;
-  padding: 1.2rem 1.6rem;
-  margin-bottom: 1.6rem;
+  border: none;
+  padding: 0;
+  margin-bottom: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.2rem;
+  gap: 1rem;
 }
 
 .offer-price-sublabel {
@@ -1145,13 +1144,13 @@ img {
 
 .offer-price-current {
   font-family: var(--font-display);
-  font-size: 1.85rem;
+  font-size: 1.55rem;
   font-weight: 800;
   color: var(--gold-bright);
 }
 
 .offer-price-orig {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--text-light-muted);
   text-decoration: line-through;
   opacity: 0.6;
@@ -1160,13 +1159,12 @@ img {
 .offer-savings-badge {
   text-align: right;
   background-color: transparent;
-  border: 1px solid var(--gold-bright);
-  padding: 6px 12px;
-  border-radius: 1px;
+  border: none;
+  padding: 0;
 }
 
 .offer-savings-sublabel {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   color: var(--gold-bright);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1174,7 +1172,7 @@ img {
 }
 
 .offer-savings-amount {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: var(--gold-bright);
   font-family: var(--font-display);
