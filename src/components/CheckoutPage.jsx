@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
-import { validateVoucher, redeemVoucher, getVoucherRateLimitStatus } from '../services/dbService';
+import { validateVoucher, redeemVoucher, getVoucherRateLimitStatus, recordOfferPurchases } from '../services/dbService';
 import { 
   getPayHereParameters, 
   launchPayHerePayment, 
@@ -288,6 +288,13 @@ export const CheckoutPage = ({
             } catch (vErr) {
               console.warn('Voucher redeem notice (Koko):', vErr);
             }
+          }
+
+          // Deduct stock and increment claimed units for any privilege offer items purchased
+          try {
+            await recordOfferPurchases(finalizedOrder.items || cart);
+          } catch (oErr) {
+            console.warn('Offer stock deduction notice (Koko):', oErr);
           }
 
           try {
@@ -606,6 +613,13 @@ export const CheckoutPage = ({
                   }
                 }
 
+                // Deduct stock and increment claimed units for any privilege offer items purchased
+                try {
+                  await recordOfferPurchases(cart);
+                } catch (oErr) {
+                  console.warn('Offer stock deduction notice (Card):', oErr);
+                }
+
                 try {
                   window.dispatchEvent(new CustomEvent('elvany_order_placed', { detail: verifiedOrder }));
                   sendOrderConfirmationReceipt(verifiedOrder).catch(err => console.warn('Card receipt notice:', err));
@@ -683,6 +697,13 @@ export const CheckoutPage = ({
         } catch (vErr) {
           console.warn('Voucher redeem notice (Direct):', vErr);
         }
+      }
+
+      // Deduct stock and increment claimed units for any privilege offer items purchased
+      try {
+        await recordOfferPurchases(cart);
+      } catch (oErr) {
+        console.warn('Offer stock deduction notice (Direct):', oErr);
       }
 
       // Notify entire app of newly placed order

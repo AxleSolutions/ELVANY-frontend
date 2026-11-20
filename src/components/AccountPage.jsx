@@ -973,7 +973,9 @@ export const AccountPage = ({
                       const itemsSubtotal = (order.items || []).reduce((sum, item) => sum + ((parseFloat(item.priceLKR || item.price || 0)) * (parseInt(item.quantity || item.qty || 1, 10))), 0);
                       const deliveryFee = Number(order.deliveryFeeLKR ?? order.shippingFeeLKR ?? order.deliveryAddress?.deliveryFeeLKR ?? order.delivery_address?.deliveryFeeLKR ?? 0);
                       const savings = Number(order.savingsLKR || order.discount_lkr || 0);
-                      const grandTotal = Number(order.grandTotalLKR || order.totalLKR || (itemsSubtotal + deliveryFee - savings));
+                      const voucherDiscount = Number(order.voucherDiscountLKR ?? order.voucher_discount_lkr ?? order.deliveryAddress?.voucherDiscountLKR ?? order.delivery_address?.voucherDiscountLKR ?? 0);
+                      const voucherCode = order.voucherCode || order.voucher_code || order.deliveryAddress?.voucherCode || order.delivery_address?.voucherCode || order.appliedVoucher?.code || '';
+                      const grandTotal = Number(order.grandTotalLKR || order.totalLKR || Math.max(0, itemsSubtotal + deliveryFee - savings - voucherDiscount));
 
                       return (
                         <div style={{
@@ -1000,11 +1002,11 @@ export const AccountPage = ({
                                 <span style={{ color: '#4ade80' }}>Savings: -LKR {savings.toLocaleString()}</span>
                               </>
                             )}
-                            {(order.voucherCode || order.voucherDiscountLKR > 0) && (
+                            {(voucherCode || voucherDiscount > 0) && (
                               <>
                                 <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                                <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>
-                                  🏷️ Voucher ({order.voucherCode || 'GIFT'}): -LKR {Number(order.voucherDiscountLKR || 0).toLocaleString()}
+                                <span style={{ color: '#4ade80', fontWeight: 600 }}>
+                                  🏷️ Voucher ({voucherCode || 'GIFT'}): -LKR {voucherDiscount.toLocaleString()}
                                 </span>
                               </>
                             )}
@@ -2152,45 +2154,82 @@ export const AccountPage = ({
                 const modalItemsSubtotal = (inspectingOrderDetails.items || []).reduce((sum, item) => sum + ((parseFloat(item.priceLKR || item.price || 0)) * (parseInt(item.quantity || item.qty || 1, 10))), 0);
                 const modalDeliveryFee = Number(inspectingOrderDetails.deliveryFeeLKR ?? inspectingOrderDetails.shippingFeeLKR ?? inspectingOrderDetails.deliveryAddress?.deliveryFeeLKR ?? inspectingOrderDetails.delivery_address?.deliveryFeeLKR ?? 0);
                 const modalSavings = Number(inspectingOrderDetails.savingsLKR || inspectingOrderDetails.discount_lkr || 0);
-                const modalGrandTotal = Number(inspectingOrderDetails.grandTotalLKR || inspectingOrderDetails.totalLKR || (modalItemsSubtotal + modalDeliveryFee - modalSavings));
+                const modalVoucherDiscount = Number(inspectingOrderDetails.voucherDiscountLKR ?? inspectingOrderDetails.voucher_discount_lkr ?? inspectingOrderDetails.deliveryAddress?.voucherDiscountLKR ?? inspectingOrderDetails.delivery_address?.voucherDiscountLKR ?? 0);
+                const modalVoucherCode = inspectingOrderDetails.voucherCode || inspectingOrderDetails.voucher_code || inspectingOrderDetails.deliveryAddress?.voucherCode || inspectingOrderDetails.delivery_address?.voucherCode || inspectingOrderDetails.appliedVoucher?.code || '';
+                const modalGrandTotal = Number(inspectingOrderDetails.grandTotalLKR || inspectingOrderDetails.totalLKR || Math.max(0, modalItemsSubtotal + modalDeliveryFee - modalSavings - modalVoucherDiscount));
 
                 return (
-                  <div style={{
-                    backgroundColor: '#121317',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: '3px',
-                    padding: '1rem 1.2rem'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
-                      <span>Garments Subtotal:</span>
-                      <span style={{ color: '#ffffff', fontWeight: 600 }}>LKR {modalItemsSubtotal.toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
-                      <span>Island-Wide Courier Delivery:</span>
-                      <span style={{ color: modalDeliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80', fontWeight: 600 }}>
-                        {modalDeliveryFee > 0 ? `+ LKR ${modalDeliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
-                      </span>
-                    </div>
-                    {modalSavings > 0 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
-                        <span>Privilege / Promo Savings:</span>
-                        <span>- LKR {modalSavings.toLocaleString()}</span>
+                  <div>
+                    {(modalVoucherCode || modalVoucherDiscount > 0) && (
+                      <div style={{
+                        backgroundColor: 'rgba(74, 222, 128, 0.08)',
+                        border: '1px solid rgba(74, 222, 128, 0.25)',
+                        borderRadius: '3px',
+                        padding: '0.75rem 1rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Tag size={14} color="#4ade80" />
+                          <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600 }}>
+                            Voucher Applied: <strong style={{ color: '#4ade80', fontFamily: 'monospace', letterSpacing: '0.04em' }}>{modalVoucherCode || 'GIFT'}</strong>
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: 700 }}>
+                          - LKR {modalVoucherDiscount.toLocaleString()} Deducted
+                        </span>
                       </div>
                     )}
+
                     <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '0.96rem',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                      paddingTop: '8px',
-                      marginTop: '6px'
+                      backgroundColor: '#121317',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: '3px',
+                      padding: '1rem 1.2rem'
                     }}>
-                      <span>Grand Total:</span>
-                      <span style={{ color: 'var(--gold-bright)', fontFamily: 'var(--font-display)' }}>
-                        LKR {modalGrandTotal.toLocaleString()}
-                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                        <span>Garments Subtotal:</span>
+                        <span style={{ color: '#ffffff', fontWeight: 600 }}>LKR {modalItemsSubtotal.toLocaleString()}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                        <span>Island-Wide Courier Delivery:</span>
+                        <span style={{ color: modalDeliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80', fontWeight: 600 }}>
+                          {modalDeliveryFee > 0 ? `+ LKR ${modalDeliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
+                        </span>
+                      </div>
+                      {modalSavings > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
+                          <span>Privilege / Promo Savings:</span>
+                          <span>- LKR {modalSavings.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {modalVoucherDiscount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <span>🏷️ Atelier Voucher ({modalVoucherCode || 'GIFT'}):</span>
+                          </span>
+                          <span style={{ fontWeight: 700 }}>- LKR {modalVoucherDiscount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.96rem',
+                        fontWeight: 700,
+                        color: '#ffffff',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                        paddingTop: '8px',
+                        marginTop: '6px'
+                      }}>
+                        <span>Total Settled:</span>
+                        <span style={{ color: 'var(--gold-bright)', fontFamily: 'var(--font-display)' }}>
+                          LKR {modalGrandTotal.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

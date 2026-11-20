@@ -549,6 +549,9 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
         deliveryFeeLKR: completeOrder.deliveryFeeLKR || 0,
         paymentType: detectedPaymentType,
         specificPaymentMethod: detectedSpecificMethod,
+        voucherCode: completeOrder.voucherCode || completeOrder.appliedVoucher?.code || null,
+        voucherDiscountLKR: parseFloat(completeOrder.voucherDiscountLKR || 0),
+        appliedVoucher: completeOrder.appliedVoucher || null,
         orderedItems: completeOrder.items || []
       };
 
@@ -782,7 +785,10 @@ export async function getOrders() {
             paymentSlipName: o.payment_slip_name,
             subtotalLKR: parseFloat(o.subtotal_lkr || 0),
             deliveryFeeLKR: parseFloat(o.delivery_address?.deliveryFeeLKR || 0),
-            savingsLKR: parseFloat(o.discount_lkr || 0),
+            savingsLKR: parseFloat(o.savings_lkr ?? o.delivery_address?.savingsLKR ?? o.discount_lkr ?? 0),
+            voucherCode: o.voucher_code || o.delivery_address?.voucherCode || o.delivery_address?.voucher_code || o.delivery_address?.appliedVoucher?.code || null,
+            voucherDiscountLKR: parseFloat(o.voucher_discount_lkr ?? o.delivery_address?.voucherDiscountLKR ?? o.delivery_address?.voucher_discount_lkr ?? 0),
+            appliedVoucher: o.delivery_address?.appliedVoucher || null,
             grandTotalLKR: parseFloat(o.grand_total_lkr || 0),
             totalLKR: parseFloat(o.grand_total_lkr || 0),
             items: (o.order_items || []).map((i) => {
@@ -1503,6 +1509,24 @@ function mapPromotionToOffer(p, productsMap = {}) {
 
 
 export async function getOffers() {
+  // Pull Google Cloud offer allocations if available (24/7 cross-device stock sync)
+  try {
+    const googleUrl = getGoogleAppsScriptUrl();
+    if (googleUrl) {
+      const gRes = await fetch(`${googleUrl}?action=get_offer_allocations`, { signal: AbortSignal.timeout(3000) });
+      if (gRes.ok) {
+        const gJson = await gRes.json();
+        if (gJson.allocations && typeof gJson.allocations === 'object') {
+          const stored = getStoredOfferAllocations();
+          Object.entries(gJson.allocations).forEach(([k, val]) => {
+            stored[k] = { ...(stored[k] || {}), ...val };
+          });
+          localStorage.setItem(OFFER_ALLOCATION_STORAGE_KEY, JSON.stringify(stored));
+        }
+      }
+    }
+  } catch (gErr) {}
+
   // 1. Try Supabase Client
   if (isSupabaseConfigured && supabase) {
     try {
@@ -1805,6 +1829,176 @@ export async function saveOffer(offerData) {
   } catch {}
 
   return finalSaved;
+}
+
+/**
+ * Automatically deducts stock and increments claimed units for privilege offers
+ * whenever a customer acquires pieces from the "SPECIAL ATELIER PRIVILEGE OFFER"
+ */
+export async function recordOfferPurchases(purchasedItems = []) {
+  if (!Array.isArray(purchasedItems) || purchasedItems.length === 0) return [];
+
+  let allOffers = [];
+  try {
+    allOffers = await getOffers();
+  } catch (err) {
+    console.warn('Could not fetch offers for purchase deduction:', err);
+    return [];
+  }
+
+  if (!Array.isArray(allOffers) || allOffers.length === 0) return [];
+
+  const updatedOffers = [];
+
+  for (const item of purchasedItems) {
+    const qty = parseInt(item.quantity || item.qty || 1, 10);
+    if (qty <= 0) continue;
+
+    const itemId = String(item.productId || item.id || '');
+    const itemTitle = (item.title || item.name || '').toLowerCase().trim();
+    const itemOfferCode = (item.offerCode || '').toUpperCase().trim();
+    const isOfferApplied = Boolean(item.isOfferApplied);
+
+    // Find the offer that matches this item
+    const matchingOffer = allOffers.find(o => {
+      if (itemOfferCode && o.code && o.code.toUpperCase().trim() === itemOfferCode) return true;
+      if (o.productId && String(o.productId) === itemId) return true;
+      if (o.id && String(o.id) === itemId) return true;
+      if (o.productName && itemTitle && o.productName.toLowerCase().trim() === itemTitle) return true;
+      if (isOfferApplied && o.productId && String(o.productId) === itemId) return true;
+      return false;
+    });
+
+    if (matchingOffer) {
+      const currentRemain = typeof matchingOffer.remainingUnits === 'number' && matchingOffer.remainingUnits >= 0
+        ? parseInt(matchingOffer.remainingUnits, 10)
+        : 12;
+
+      let currentSold = 0;
+      if (typeof matchingOffer.soldUnits === 'number' && matchingOffer.soldUnits >= 0) {
+        currentSold = parseInt(matchingOffer.soldUnits, 10);
+      } else if (typeof matchingOffer.totalAllocation === 'number' && matchingOffer.totalAllocation > currentRemain) {
+        currentSold = matchingOffer.totalAllocation - currentRemain;
+      } else {
+        currentSold = 13;
+      }
+
+      const totalAllocation = Math.max(1, (typeof matchingOffer.totalAllocation === 'number' && matchingOffer.totalAllocation >= (currentSold + currentRemain))
+        ? matchingOffer.totalAllocation
+        : (currentSold + currentRemain));
+
+      // Calculate new allocations after purchase
+      const actualDeducted = Math.min(qty, currentRemain);
+      const newRemain = Math.max(0, currentRemain - qty);
+      const newSold = currentSold + (actualDeducted > 0 ? actualDeducted : qty);
+      const newTotal = Math.max(totalAllocation, newSold + newRemain);
+
+      const cleanBadge = (matchingOffer.badge || 'SPECIAL PRIVILEGE').trim();
+      const updatedBadge = formatBadgeWithAllocation(cleanBadge, newSold, newRemain, newTotal);
+
+      const updatedOffer = {
+        ...matchingOffer,
+        remainingUnits: newRemain,
+        soldUnits: newSold,
+        totalAllocation: newTotal,
+        badge: cleanBadge,
+        badge_label: updatedBadge
+      };
+
+      // 1. Persist to local storage persistent registry
+      if (matchingOffer.id) {
+        saveStoredOfferAllocation(matchingOffer.id, { totalAllocation: newTotal, remainingUnits: newRemain, soldUnits: newSold });
+      }
+      if (matchingOffer.code) {
+        saveStoredOfferAllocation(matchingOffer.code, { totalAllocation: newTotal, remainingUnits: newRemain, soldUnits: newSold });
+      }
+
+      // 2. Persist to Supabase promotions table
+      if (isSupabaseConfigured && supabase && matchingOffer.id) {
+        try {
+          await supabase
+            .from('promotions')
+            .update({ badge_label: updatedBadge })
+            .eq('id', matchingOffer.id);
+        } catch (dbErr) {
+          console.warn('Supabase offer allocation update notice:', dbErr);
+        }
+      }
+
+      // 3. Persist to Backend API
+      try {
+        const apiUrl = getApiUrl();
+        await fetch(`${apiUrl}/offers/${matchingOffer.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            remainingUnits: newRemain,
+            soldUnits: newSold,
+            totalAllocation: newTotal,
+            badge: matchingOffer.badge || 'SPECIAL PRIVILEGE'
+          }),
+          signal: AbortSignal.timeout(3500)
+        });
+      } catch (apiErr) {}
+
+      // 4. Persist to Google Cloud Serverless Engine (24/7 cross-device real-time sync)
+      try {
+        const googleUrl = getGoogleAppsScriptUrl();
+        if (googleUrl) {
+          const payloadStr = JSON.stringify({
+            action: 'update_offer_allocation',
+            offerId: matchingOffer.id,
+            offerCode: matchingOffer.code,
+            remainingUnits: newRemain,
+            soldUnits: newSold,
+            totalAllocation: newTotal
+          });
+          try {
+            await fetch(googleUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: payloadStr,
+              signal: AbortSignal.timeout(4000)
+            });
+          } catch {
+            await fetch(googleUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: payloadStr
+            });
+          }
+        }
+      } catch (gErr) {
+        console.warn('Google Cloud offer allocation update notice:', gErr);
+      }
+
+      updatedOffers.push(updatedOffer);
+    }
+  }
+
+  // 5. Update the cached offers in localStorage
+  if (updatedOffers.length > 0) {
+    try {
+      const raw = localStorage.getItem('elvany_offers_cache');
+      let cached = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(cached)) {
+        updatedOffers.forEach(uo => {
+          cached = cached.map(o => (o.id === uo.id || o.code === uo.code) ? { ...o, ...uo } : o);
+        });
+        localStorage.setItem('elvany_offers_cache', JSON.stringify(cached));
+      }
+    } catch {}
+
+    // 6. Broadcast real-time update event so UI re-renders claimed % and sold numbers immediately
+    try {
+      window.dispatchEvent(new CustomEvent('elvany_offers_updated', {
+        detail: updatedOffers
+      }));
+    } catch {}
+  }
+
+  return updatedOffers;
 }
 
 export async function toggleOfferStatus(offerId, nextActiveState) {

@@ -111,10 +111,10 @@ export const PromotionsSection = ({
       <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         
         {/* Promotional Top Callout Bar (Clean Transparent Outline) */}
-          <div className="promotions-callout-bar">
-          <div className="promotions-callout-left">
-            <div className="promotions-callout-badge">
-              <Zap size={13} fill="#ffffff" color="#ffffff" />
+        <div className="promotions-callout-bar" style={{ flexWrap: 'nowrap' }}>
+          <div className="promotions-callout-left" style={{ flexShrink: 0 }}>
+            <div className="promotions-callout-badge" style={{ flexShrink: 0 }}>
+              <Zap size={12} fill="#ffffff" color="#ffffff" style={{ flexShrink: 0 }} />
               <span>SPECIAL ATELIER PRIVILEGE OFFER</span>
             </div>
             
@@ -124,12 +124,12 @@ export const PromotionsSection = ({
           </div>
 
           {/* Live Urgency Countdown Ticker */}
-          <div className="promotions-countdown-ticker">
-            <Clock size={15} color="#ef4444" />
+          <div className="promotions-countdown-ticker" style={{ flexShrink: 0, marginLeft: 'auto' }}>
+            <Clock size={13} color="#ef4444" style={{ flexShrink: 0 }} />
             <span className="promotions-countdown-label">
               OFFER EXPIRES IN:
             </span>
-            <div className="promotions-countdown-digits">
+            <div className="promotions-countdown-digits" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
               {timeLeft.days > 0 && (
                 <>
                   <span>{String(timeLeft.days).padStart(2, '0')}d</span>

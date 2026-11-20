@@ -927,13 +927,15 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
   margin-bottom: 1.25rem;
   padding: 0.65rem 1.25rem;
   background-color: transparent;
   border: 1px solid var(--border-dark);
   border-radius: 2px;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .promotions-callout-left {
@@ -1209,10 +1211,14 @@ img {
     padding: 1.5rem 1.2rem;
   }
   .promotions-callout-bar {
-    padding: 0.85rem 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    min-height: 44px;
+    box-sizing: border-box;
   }
 }
 
@@ -6265,16 +6271,24 @@ img {
 
   /* 4. Privilege & Promotions Section (Ultra-Clean & Decluttered on Mobile) */
   .promotions-callout-bar {
-    padding: 0.7rem 0.9rem !important;
-    margin-bottom: 1.2rem !important;
-    gap: 0.5rem !important;
+    padding: 0.55rem 0.8rem !important;
+    margin-bottom: 1.15rem !important;
+    gap: 0.4rem !important;
     flex-direction: row !important;
+    flex-wrap: nowrap !important;
     justify-content: space-between !important;
     align-items: center !important;
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .promotions-callout-left {
     width: auto !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
   }
 
   .promotions-callout-text {
@@ -6282,21 +6296,41 @@ img {
   }
 
   .promotions-callout-badge {
-    font-size: 0.64rem !important;
-    padding: 3px 8px !important;
-    letter-spacing: 0.1em !important;
+    font-size: clamp(0.50rem, 2.2vw, 0.62rem) !important;
+    padding: 2.5px 6px !important;
+    letter-spacing: 0.05em !important;
     background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%) !important;
     color: #ffffff !important;
     border: 1px solid #ef4444 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
   }
 
   .promotions-countdown-ticker {
     width: auto !important;
     border-top: none !important;
     padding-top: 0 !important;
-    font-size: 0.72rem !important;
+    font-size: clamp(0.64rem, 2.4vw, 0.72rem) !important;
     color: #ef4444 !important;
     gap: 4px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  .promotions-countdown-digits {
+    font-size: clamp(0.66rem, 2.5vw, 0.74rem) !important;
+    gap: 2px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.02em !important;
+    display: flex !important;
+    align-items: center !important;
   }
 
   .promotions-countdown-label {

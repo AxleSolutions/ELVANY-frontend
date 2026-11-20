@@ -215,6 +215,23 @@ export function App() {
     };
     window.addEventListener('elvany_catalog_updated', handleCatalogSync);
 
+    // Listen for live offer updates (stock deduction, sold count increment)
+    const handleOffersSync = (e) => {
+      if (Array.isArray(e.detail)) {
+        setOffers(prev => {
+          return prev.map(o => {
+            const matched = e.detail.find(u => u.id === o.id || u.code === o.code);
+            return matched ? { ...o, ...matched } : o;
+          });
+        });
+      } else if (e.detail?.offerId) {
+        setOffers(prev => {
+          return prev.map(o => (o.id === e.detail.offerId || o.code === e.detail.offerCode) ? { ...o, ...e.detail } : o);
+        });
+      }
+    };
+    window.addEventListener('elvany_offers_updated', handleOffersSync);
+
     // Cross-tab real-time sync via storage event
     const handleStorageChange = (e) => {
       if (e.key === 'elvany_catalog_cache' && e.newValue) {
@@ -225,15 +242,29 @@ export function App() {
           }
         } catch {}
       }
+      if (e.key === 'elvany_offers_cache' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setOffers(parsed);
+          }
+        } catch {}
+      }
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // Listen for order placements and status updates to instantly refresh client orders
+    // Listen for order placements and status updates to instantly refresh client orders & offer allocations
     const handleOrderSync = async () => {
       try {
-        const freshOrders = await getOrders();
-        if (Array.isArray(freshOrders)) {
-          setOrdersList(freshOrders);
+        const [freshOrders, freshOffers] = await Promise.allSettled([
+          getOrders(),
+          getOffers()
+        ]);
+        if (freshOrders.status === 'fulfilled' && Array.isArray(freshOrders.value)) {
+          setOrdersList(freshOrders.value);
+        }
+        if (freshOffers.status === 'fulfilled' && Array.isArray(freshOffers.value) && freshOffers.value.length > 0) {
+          setOffers(freshOffers.value);
         }
       } catch {}
     };
@@ -243,6 +274,7 @@ export function App() {
     return () => {
       window.removeEventListener('elvany_popup_ad_updated', handlePopupAdSync);
       window.removeEventListener('elvany_catalog_updated', handleCatalogSync);
+      window.removeEventListener('elvany_offers_updated', handleOffersSync);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('elvany_order_placed', handleOrderSync);
       window.removeEventListener('elvany_order_updated', handleOrderSync);

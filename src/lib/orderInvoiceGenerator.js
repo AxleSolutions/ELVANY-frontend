@@ -10,8 +10,10 @@ import { MAIN_LOGO_BASE64 } from './mainLogoBase64.js';
 export function generateInvoiceHtml(order, isScreenView = false) {
   const items = Array.isArray(order?.items) ? order.items : [];
   const subtotal = Number(order?.subtotalLKR || order?.totalLKR || 0);
-  const deliveryFee = Number(order?.deliveryFeeLKR ?? order?.shippingFeeLKR ?? 0);
-  const savings = Number(order?.savingsLKR || 0);
+  const deliveryFee = Number(order?.deliveryFeeLKR ?? order?.shippingFeeLKR ?? order?.deliveryAddress?.deliveryFeeLKR ?? order?.delivery_address?.deliveryFeeLKR ?? 0);
+  const savings = Number(order?.savingsLKR || order?.discount_lkr || 0);
+  const voucherDiscount = Number(order?.voucherDiscountLKR ?? order?.voucher_discount_lkr ?? order?.deliveryAddress?.voucherDiscountLKR ?? order?.delivery_address?.voucherDiscountLKR ?? 0);
+  const voucherCode = order?.voucherCode || order?.voucher_code || order?.deliveryAddress?.voucherCode || order?.delivery_address?.voucherCode || order?.appliedVoucher?.code || '';
 
   // Koko BNPL Surcharge Detection & Calculations
   const paymentMethodStr = String(order?.paymentMethod || '').toLowerCase();
@@ -21,7 +23,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
   const isKoko = hasKokoMethod || hasSurcharge;
 
   let kokoSurcharge = storedSurcharge;
-  const netPreSurcharge = Math.max(0, subtotal + deliveryFee - savings);
+  const netPreSurcharge = Math.max(0, subtotal + deliveryFee - savings - voucherDiscount);
 
   if (isKoko && kokoSurcharge <= 0) {
     const rawGrand = Number(order?.grandTotalLKR || order?.totalLKR || 0);
@@ -228,10 +230,10 @@ export function generateInvoiceHtml(order, isScreenView = false) {
           ` : ''}
 
           <!-- Atelier Single-Use Voucher Applied -->
-          ${(order.voucherCode || order.voucherDiscountLKR > 0) ? `
+          ${(voucherCode || voucherDiscount > 0) ? `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; color: #15803d;">
-              <span>Atelier Voucher (${order.voucherCode || 'GIFT'}):</span>
-              <strong>- LKR ${Number(order.voucherDiscountLKR || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+              <span>Atelier Voucher Applied (${voucherCode || 'GIFT'}):</span>
+              <strong>- LKR ${Number(voucherDiscount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
           ` : ''}
 
