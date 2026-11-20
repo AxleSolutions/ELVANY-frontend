@@ -694,7 +694,7 @@ export function EmailStudio() {
                     setFromEmail(e.target.value);
                     localStorage.setItem('elvany_email_from_address', e.target.value);
                   }}
-                  placeholder="concierge@elvany.com (optional)"
+                  placeholder="elvanywear@gmail.com (optional)"
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',

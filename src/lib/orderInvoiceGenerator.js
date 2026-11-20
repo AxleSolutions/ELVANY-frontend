@@ -105,37 +105,37 @@ export function generateInvoiceHtml(order, isScreenView = false) {
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   ">
-    <!-- Prestige Atelier Noir Header with Official White Main-2.png Logo -->
+    <!-- Prestige Atelier Noir Header with Official White Main-5.png Logo -->
     <div style="
       background-color: #0c0d10;
       color: #ffffff;
-      padding: 28px 40px;
+      padding: 26px 38px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid #c5a059;
     ">
       <!-- Left: Haute Logo Mark (Main-5.png) -->
-      <div style="display: flex; flex-direction: column; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center;">
         <img 
           src="${MAIN_LOGO_BASE64}" 
           alt="ELVANY" 
-          style="max-height: 48px; max-width: 200px; object-fit: contain; display: block;" 
+          style="height: 68px; width: auto; max-width: 320px; object-fit: contain; display: block;" 
         />
-        <div style="font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #c5a059; margin-top: 6px; font-weight: 600;">
+        <div style="font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #c5a059; margin-top: 7px; font-weight: 600;">
           HAUTE HEAVYWEIGHT ATELIER &bull; FLORENCE &bull; SRI LANKA
         </div>
       </div>
 
       <!-- Right: Document Passport Credentials -->
       <div style="text-align: right;">
-        <div style="font-size: 10px; font-weight: 800; color: #c5a059; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 5px;">
+        <div style="font-size: 10.5px; font-weight: 700; color: #c5a059; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px;">
           OFFICIAL ATELIER PASSPORT & INVOICE
         </div>
-        <div style="font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: 0.05em; font-family: monospace;">
+        <div style="font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: 0.06em; font-family: monospace;">
           ORDER #${order.orderId || 'PENDING'}
         </div>
-        <div style="font-size: 11px; color: #a1a1aa; margin-top: 4px;">
+        <div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">
           <span>${orderDate}</span> &bull; <span>${orderTime}</span>
         </div>
       </div>

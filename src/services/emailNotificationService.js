@@ -148,7 +148,7 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELVANY — Order Confirmation</title>
+  <title>ELVANY — Order Received</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
@@ -165,17 +165,17 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
             </td>
           </tr>
 
-          <!-- Confirmation Hero Banner -->
+          <!-- Order Received Hero Banner -->
           <tr>
             <td style="padding: 36px 32px 24px 32px; text-align: center;">
-              <span style="display: inline-block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); background-color: rgba(16, 185, 129, 0.1); padding: 4px 14px; margin-bottom: 18px; border-radius: 2px;">
-                Order Confirmed
+              <span style="display: inline-block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); background-color: rgba(255, 255, 255, 0.06); padding: 5px 16px; margin-bottom: 18px; border-radius: 2px; font-weight: 600;">
+                Order Received
               </span>
               <h2 style="margin: 0 0 12px 0; font-size: 26px; line-height: 1.3; font-weight: 300; color: #ffffff; letter-spacing: -0.01em;">
                 Thank You for Your Patronage
               </h2>
               <p style="margin: 0 auto 20px auto; max-width: 480px; font-size: 14px; line-height: 1.7; color: #a1a1aa;">
-                Dear <strong style="color: #ffffff;">${customerName}</strong>, your order has been received by our atelier and is being carefully prepared for master inspection.
+                Dear <strong style="color: #ffffff;">${customerName}</strong>, your order has been received by our atelier and is being carefully reviewed by our production team.
               </p>
               
               <!-- Order Reference Box -->
@@ -235,17 +235,24 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
             </td>
           </tr>
 
-          <!-- Official PDF Invoice Attachment Callout Banner -->
+          <!-- Official Tax Invoice & Acquisition Document Notice -->
           <tr>
             <td style="padding: 0 32px 18px 32px;">
-              <div style="background-color: #16171c; border: 1px solid rgba(197, 160, 89, 0.4); border-left: 4px solid #c5a059; border-radius: 4px; padding: 14px 18px; font-size: 12px; color: #e2be75;">
-                <div style="font-weight: 700; color: #ffffff; font-size: 12px; letter-spacing: 0.06em; margin-bottom: 3px;">
-                  📎 OFFICIAL ORDER PASSPORT &amp; INVOICE ATTACHED (PDF)
-                </div>
-                <div style="font-size: 11px; color: #a1a1aa; line-height: 1.5;">
-                  Your official printable acquisition passport (<code>ELVANY_Order_Passport_${orderId}.pdf</code>) is attached to this email for your permanent records.
-                </div>
-              </div>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0d0e12; border: 1px solid rgba(197, 160, 89, 0.28); border-radius: 4px; padding: 14px 18px;">
+                <tr>
+                  <td>
+                    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #c5a059; margin-bottom: 4px;">
+                      Atelier Documentation Attached
+                    </div>
+                    <div style="font-size: 13px; color: #ffffff; font-weight: 500; line-height: 1.4;">
+                      Official Acquisition Passport &amp; Invoice
+                    </div>
+                    <div style="font-size: 11px; color: #8a8a93; margin-top: 4px; line-height: 1.5;">
+                      A digital copy of your transaction ledger has been generated and attached to this dispatch for your archives (File: <span style="color: #c5a059; font-family: monospace;">ELVANY_Order_Passport_${orderId}.pdf</span>).
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -258,7 +265,7 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
                 </div>
                 <div style="color: #ffffff;">${address}</div>
                 <div style="margin-top: 10px; font-size: 11px; color: #71717a;">
-                  Standard Atelier courier dispatch arrives within 2 to 4 business days. You will receive an SMS and notification upon carrier handoff.
+                  Standard Atelier courier dispatch arrives within 2 to 4 business days. Track your parcel dispatch anytime from your account or reply to this email for assistance.
                 </div>
               </div>
             </td>
@@ -282,7 +289,7 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
           <!-- Footer -->
           <tr>
             <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
-              <p style="margin: 0 0 6px 0;">For inquiries or bespoke adjustments, contact your concierge at <a href="mailto:concierge@elvany.com" style="color: #c5a059; text-decoration: none;">concierge@elvany.com</a>.</p>
+              <p style="margin: 0 0 6px 0;">For inquiries, assistance, or bespoke adjustments, contact our concierge desk at <a href="mailto:elvanywear@gmail.com" style="color: #c5a059; text-decoration: none;">elvanywear@gmail.com</a>.</p>
               <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
             </td>
           </tr>
@@ -297,7 +304,7 @@ export async function sendOrderConfirmationReceipt(order, options = {}) {
 
   return sendEmail({
     to: order.customerEmail,
-    subject: `Order Confirmation #${orderId} | ELVANY`,
+    subject: `Order Received #${orderId} | ELVANY`,
     htmlBody,
     senderName: 'ELVANY',
     attachments: pdfAttachment ? [pdfAttachment] : undefined
