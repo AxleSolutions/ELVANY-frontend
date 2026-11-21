@@ -4587,6 +4587,15 @@ img {
 /* =========================================================================
    LUXURY SHOPPING BAG DRAWER STYLING
    ========================================================================= */
+.cart-drawer-backdrop {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.cart-drawer-backdrop.closing {
+  animation: fadeOutBackdrop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  pointer-events: none;
+}
+
 .cart-drawer-container {
   position: fixed;
   top: 0;
@@ -4600,13 +4609,29 @@ img {
   display: flex;
   flex-direction: column;
   z-index: 10001;
-  animation: slideDrawerLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideDrawerLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   color: #121316;
+  will-change: transform;
+}
+
+.cart-drawer-container.closing {
+  animation: slideDrawerRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  pointer-events: none;
 }
 
 @keyframes slideDrawerLeft {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+@keyframes slideDrawerRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes fadeOutBackdrop {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .cart-header {
@@ -8392,17 +8417,100 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 18px rgba(37, 211, 102, 0.4), 0 2px 6px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 18px rgba(37, 211, 102, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   cursor: pointer;
   text-decoration: none;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
 }
 
+/* Ambient Pulse Wave */
+.whatsapp-btn-pulse {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(37, 211, 102, 0.7);
+  animation: waPulseRing 2.6s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Diagonal Light Sheen / Shining Beam */
+.whatsapp-btn-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.whatsapp-btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -60%;
+  width: 220%;
+  height: 220%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.25) 42%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.25) 58%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: rotate(25deg) translateY(-140%);
+  animation: waShineSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes waShineSweep {
+  0%, 35% {
+    transform: rotate(25deg) translateY(-140%);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  65% {
+    transform: rotate(25deg) translateY(140%);
+    opacity: 1;
+  }
+  70%, 100% {
+    transform: rotate(25deg) translateY(140%);
+    opacity: 0;
+  }
+}
+
+@keyframes waPulseRing {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.95;
+  }
+  55% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
 .whatsapp-floating-btn:hover {
-  transform: translateY(-3px) scale(1.06);
-  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.55), 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 8px 28px rgba(37, 211, 102, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2);
   color: #ffffff;
+}
+
+.whatsapp-floating-btn:hover .whatsapp-btn-shine::after {
+  animation-duration: 1.6s;
 }
 
 .whatsapp-floating-btn:active {
@@ -8428,6 +8536,7 @@ img {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
 }
 
 .whatsapp-floating-btn:hover .whatsapp-floating-tooltip {

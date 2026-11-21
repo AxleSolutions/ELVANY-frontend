@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Trash2, ArrowRight, ShieldCheck, Sparkles, Check, ShoppingBag, Plus, Minus, Tag, Gift, Eye, Download, Maximize2, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
@@ -17,15 +17,63 @@ export const CartDrawer = ({
   const [activeAngles, setActiveAngles] = useState({}); // { [itemUniqueKey]: 'front' | 'back' | 'left' | 'right' }
   const [inspectedBespokeItem, setInspectedBespokeItem] = useState(null);
 
-  if (!isOpen) return null;
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
+  const isClosingRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsClosing(false);
+      isClosingRef.current = false;
+    } else if (shouldRender && !isClosingRef.current) {
+      setIsClosing(true);
+      isClosingRef.current = true;
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+        isClosingRef.current = false;
+      }, 280);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, shouldRender]);
+
+  const handleAnimatedClose = (callback) => {
+    if (isClosingRef.current) return;
+    setIsClosing(true);
+    isClosingRef.current = true;
+    setTimeout(() => {
+      onClose();
+      setShouldRender(false);
+      setIsClosing(false);
+      isClosingRef.current = false;
+      if (typeof callback === 'function') {
+        callback();
+      }
+    }, 280);
+  };
+
+  useEffect(() => {
+    if (!shouldRender || isClosing) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleAnimatedClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [shouldRender, isClosing]);
+
+  if (!shouldRender) return null;
 
   const handleExploreCapsule = () => {
-    onClose();
-    if (onNavigateToCollection) {
-      onNavigateToCollection('all');
-    } else {
-      navigate('/collection');
-    }
+    handleAnimatedClose(() => {
+      if (onNavigateToCollection) {
+        onNavigateToCollection('all');
+      } else {
+        navigate('/collection');
+      }
+    });
   };
 
   const getPrice = (item) => {
@@ -53,20 +101,27 @@ export const CartDrawer = ({
   const freeShippingThreshold = 8500;
 
   const handleCheckoutClick = () => {
-    onClose();
-    navigate('/checkout');
+    handleAnimatedClose(() => {
+      navigate('/checkout');
+    });
   };
 
   const handleOpenOrderReview = (orderId) => {
-    onClose();
-    setOrderConfirmedData(null);
-    navigate(`/order-review/${orderId}`);
+    handleAnimatedClose(() => {
+      setOrderConfirmedData(null);
+      navigate(`/order-review/${orderId}`);
+    });
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose} data-lenis-prevent="true" style={{ zIndex: 10000 }}>
+    <div 
+      className={`modal-backdrop cart-drawer-backdrop ${isClosing ? 'closing' : ''}`} 
+      onClick={() => handleAnimatedClose()} 
+      data-lenis-prevent="true" 
+      style={{ zIndex: 10000 }}
+    >
       <aside 
-        className="cart-drawer-container" 
+        className={`cart-drawer-container ${isClosing ? 'closing' : ''}`} 
         data-lenis-prevent="true"
         onClick={(e) => e.stopPropagation()}
       >
@@ -81,7 +136,7 @@ export const CartDrawer = ({
           <button 
             type="button" 
             className="drawer-close-btn" 
-            onClick={() => { setOrderConfirmedData(null); onClose(); }}
+            onClick={() => { setOrderConfirmedData(null); handleAnimatedClose(); }}
             title="Close Bag"
           >
             <X size={20} />
@@ -121,8 +176,9 @@ export const CartDrawer = ({
                 style={{ width: '100%', justifyContent: 'center', padding: '0.95rem' }}
                 onClick={() => {
                   setOrderConfirmedData(null);
-                  onClose();
-                  navigate('/account?tab=orders');
+                  handleAnimatedClose(() => {
+                    navigate('/account?tab=orders');
+                  });
                 }}
               >
                 <span>VIEW IN MY ORDERS</span>
@@ -134,7 +190,7 @@ export const CartDrawer = ({
             <button
               type="button"
               className="cart-continue-btn"
-              onClick={() => { setOrderConfirmedData(null); onClose(); }}
+              onClick={() => { setOrderConfirmedData(null); handleAnimatedClose(); }}
             >
               Continue Exploring Collection
             </button>
