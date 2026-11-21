@@ -58,35 +58,40 @@ export async function loginWithFacebookDirect() {
     // If no App ID or blocked by ad-blocker, return simulated atelier client for preview
     return {
       name: 'Arthur Vance',
-      email: 'arthur.vance@clientele.elvany.com'
+      email: 'arthur.vance@clientele.elvany.com',
+      needsEmail: false
     };
   }
 
   return new Promise((resolve, reject) => {
     try {
-      // Request standard public profile (bypasses unconfigured scope errors)
+      // Request standard public profile and email permissions
       window.FB.login((response) => {
         if (response && response.authResponse) {
-          // Fetch Name, Email (if available) and Picture from Facebook Graph API
+          // Fetch Name, Email (if available) from Facebook Graph API
           window.FB.api('/me', { fields: 'name,email' }, (profile) => {
             if (profile && !profile.error) {
               const clientName = profile.name || 'Facebook Client';
-              const clientEmail = profile.email || `${clientName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@facebook.com`;
+              const hasRealEmail = Boolean(profile.email && typeof profile.email === 'string' && profile.email.includes('@'));
               resolve({
                 name: clientName,
-                email: clientEmail
+                email: hasRealEmail ? profile.email.trim() : null,
+                needsEmail: !hasRealEmail,
+                fbUserId: response.authResponse?.userID || ''
               });
             } else {
               resolve({
                 name: 'Facebook Client',
-                email: `user.${response.authResponse.userID}@facebook.com`
+                email: null,
+                needsEmail: true,
+                fbUserId: response.authResponse?.userID || ''
               });
             }
           });
         } else {
           reject(new Error('Facebook authentication was cancelled or closed.'));
         }
-      }, { scope: 'public_profile', return_scopes: true });
+      }, { scope: 'public_profile,email', return_scopes: true });
     } catch (err) {
       console.warn('Facebook login execution error:', err);
       reject(err);

@@ -513,3 +513,86 @@ export async function sendPasswordResetEmail({ email, name, resetCode, resetLink
     senderName: 'ELVANY Security'
   });
 }
+
+/**
+ * Dispatches an official email verification passcode for account enrollment
+ */
+export async function sendEmailVerificationOtp({ email, name, otpCode }) {
+  if (!email || !email.includes('@')) {
+    return { success: false, error: 'Invalid email' };
+  }
+
+  const patronName = name || email.split('@')[0];
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELVANY — Email Verification Protocol</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0b0b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #ffffff;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0b0b; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #121212; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          
+          <!-- Header / Brand -->
+          <tr>
+            <td align="center" style="padding: 36px 20px 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+              <img src="https://elvany.vercel.app/logo/Main-6.png" alt="ELVANY" width="135" style="display: block; border: 0; max-width: 135px; height: auto; margin: 0 auto 10px auto;" />
+              <p style="margin: 0; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: #c5a059;">Haute Couture &bull; Atelier</p>
+            </td>
+          </tr>
+
+          <!-- Security Verification Banner -->
+          <tr>
+            <td style="padding: 36px 32px 24px 32px; text-align: center;">
+              <span style="display: inline-block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); background-color: rgba(255, 255, 255, 0.06); padding: 5px 16px; margin-bottom: 18px; border-radius: 2px; font-weight: 600;">
+                Email Verification Protocol
+              </span>
+              <h2 style="margin: 0 0 14px 0; font-size: 26px; line-height: 1.3; font-weight: 300; color: #ffffff;">
+                Verify Your Email Address
+              </h2>
+              <p style="margin: 0 auto 24px auto; max-width: 480px; font-size: 14px; line-height: 1.7; color: #a1a1aa;">
+                Dear <strong style="color: #ffffff;">${patronName}</strong>, to complete your ELVANY registration and ensure you receive order invoices and live tracking alerts, please enter the one-time verification passcode below:
+              </p>
+
+              <!-- Passcode Display Box -->
+              <div style="background-color: #1a1a1e; border: 1px dashed rgba(197, 160, 89, 0.45); border-radius: 4px; padding: 22px; margin: 24px auto; max-width: 380px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #c5a059; margin-bottom: 8px; font-weight: 600;">One-Time Security Passcode</div>
+                <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.35em; color: #ffffff; font-family: 'Courier New', Courier, monospace; margin: 8px 0;">${otpCode}</div>
+                <div style="font-size: 11px; color: #71717a; margin-top: 8px;">This passcode expires in 15 minutes.</div>
+              </div>
+
+              <p style="margin: 20px auto 0 auto; max-width: 440px; font-size: 12px; line-height: 1.6; color: #71717a;">
+                If you did not initiate this registration request with ELVANY, you may disregard this notification safely.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px 32px 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 11px; line-height: 1.8; color: #71717a;">
+              <p style="margin: 0 0 6px 0;">Official Atelier Security Dispatch &bull; <a href="mailto:elvanywear@gmail.com" style="color: #c5a059; text-decoration: none;">elvanywear@gmail.com</a></p>
+              <p style="margin: 0;">&copy; 2026 ELVANY Atelier &bull; Sri Lanka</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `Your ELVANY Verification Code: ${otpCode}`,
+    htmlBody,
+    senderName: 'ELVANY Security'
+  });
+}

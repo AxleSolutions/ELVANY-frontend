@@ -3,7 +3,7 @@ import { X, Mail, ArrowRight, Check, AlertCircle, Loader2, MailCheck, RefreshCw,
 import { useGoogleLogin } from '@react-oauth/google';
 import { initFacebookSdk, loginWithFacebookDirect } from '../lib/facebookAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { sendWelcomeRegistrationEmail, sendPasswordResetEmail } from '../services/emailNotificationService';
+import { sendWelcomeRegistrationEmail, sendPasswordResetEmail, sendEmailVerificationOtp } from '../services/emailNotificationService';
 
 const getAuthRedirectUrl = () => {
   if (typeof window !== 'undefined' && window.location?.origin) {
@@ -36,6 +36,16 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [authError, setAuthError] = useState(null);
   const [socialProvider, setSocialProvider] = useState(null);
 
+  // Facebook / Social missing email completion & verification state
+  const [isFacebookEmailRequired, setIsFacebookEmailRequired] = useState(false);
+  const [isAwaitingFacebookOtp, setIsAwaitingFacebookOtp] = useState(false);
+  const [facebookEmailInput, setFacebookEmailInput] = useState('');
+  const [facebookOtpInput, setFacebookOtpInput] = useState('');
+  const [facebookGeneratedOtp, setFacebookGeneratedOtp] = useState('');
+  const [facebookOtpExpiresAt, setFacebookOtpExpiresAt] = useState(0);
+  const [facebookOtpCooldown, setFacebookOtpCooldown] = useState(0);
+  const [pendingSocialUser, setPendingSocialUser] = useState(null);
+
   // Email verification state
   const [awaitingVerification, setAwaitingVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
@@ -44,12 +54,13 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
   // Countdown timer for passcode resend
   useEffect(() => {
-    if (resendCooldown <= 0) return;
+    if (resendCooldown <= 0 && facebookOtpCooldown <= 0) return;
     const timer = setInterval(() => {
       setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      setFacebookOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, [resendCooldown]);
+  }, [resendCooldown, facebookOtpCooldown]);
 
   useEffect(() => {
     initFacebookSdk();
@@ -157,8 +168,45 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         setIsLoading(false);
         return;
       }
-      const resolvedName = profile.name || 'Client';
-      const resolvedEmail = profile.email || 'client@facebook.com';
+      const resolvedName = profile.name || 'Facebook Client';
+
+      // Check if Facebook user has no email linked or declined email permission
+      if (!profile.email || profile.needsEmail) {
+        // Check if this permanent Facebook User ID was already linked to an email previously
+        const linkedEmail = profile.fbUserId ? localStorage.getItem(`elvany_fb_link_${profile.fbUserId}`) : null;
+        if (linkedEmail && linkedEmail.includes('@')) {
+          // Returning Facebook user recognized! Auto-login immediately
+          setClientDisplayName(resolvedName);
+          setIsLoading(false);
+          setSubmitted(true);
+          setTimeout(() => {
+            if (onLoginSuccess) {
+              onLoginSuccess({
+                name: resolvedName,
+                email: linkedEmail,
+                phone: '',
+                provider: 'Facebook'
+              });
+            }
+            setSubmitted(false);
+            onClose();
+          }, 1200);
+          return;
+        }
+
+        // First-time Facebook login without email: prompt to link email
+        setIsLoading(false);
+        setPendingSocialUser({
+          name: resolvedName,
+          provider: 'Facebook',
+          fbUserId: profile.fbUserId || ''
+        });
+        setIsFacebookEmailRequired(true);
+        return;
+      }
+
+      // Valid verified email received directly from Facebook
+      const resolvedEmail = profile.email;
       setClientDisplayName(resolvedName);
       setIsLoading(false);
       setSubmitted(true);
@@ -183,6 +231,126 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     }
   };
 
+  const handleSendFacebookVerificationCode = async (e) => {
+    if (e) e.preventDefault();
+    const cleanEmail = (facebookEmailInput || '').trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setAuthError('Please enter a valid email address to receive order updates and PDF invoices.');
+      return;
+    }
+
+    setAuthError(null);
+    setIsLoading(true);
+
+    try {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes validity
+
+      setFacebookGeneratedOtp(otpCode);
+      setFacebookOtpExpiresAt(expiresAt);
+
+      await sendEmailVerificationOtp({
+        email: cleanEmail,
+        name: pendingSocialUser?.name || 'Valued Patron',
+        otpCode: otpCode
+      });
+
+      setIsLoading(false);
+      setIsAwaitingFacebookOtp(true);
+      setFacebookOtpCooldown(60);
+      setFacebookOtpInput('');
+    } catch (err) {
+      console.warn('Failed to send email verification OTP:', err);
+      setIsLoading(false);
+      setAuthError(err.message || 'Could not send verification passcode. Please try again.');
+    }
+  };
+
+  const handleResendFacebookVerificationCode = async () => {
+    if (facebookOtpCooldown > 0 || isLoading) return;
+    const cleanEmail = (facebookEmailInput || '').trim().toLowerCase();
+    if (!cleanEmail) return;
+
+    setIsLoading(true);
+    setAuthError(null);
+    try {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 15 * 60 * 1000;
+
+      setFacebookGeneratedOtp(otpCode);
+      setFacebookOtpExpiresAt(expiresAt);
+
+      await sendEmailVerificationOtp({
+        email: cleanEmail,
+        name: pendingSocialUser?.name || 'Valued Patron',
+        otpCode: otpCode
+      });
+
+      setIsLoading(false);
+      setFacebookOtpCooldown(60);
+    } catch (err) {
+      setIsLoading(false);
+      setAuthError('Failed to resend passcode. Please try again.');
+    }
+  };
+
+  const handleVerifyFacebookOtp = (e) => {
+    if (e) e.preventDefault();
+    const enteredCode = (facebookOtpInput || '').trim();
+    if (!enteredCode || enteredCode.length !== 6) {
+      setAuthError('Please enter the 6-digit verification code sent to your email.');
+      return;
+    }
+
+    if (Date.now() > facebookOtpExpiresAt) {
+      setAuthError('This verification code has expired. Please click "Resend code" below.');
+      return;
+    }
+
+    if (enteredCode !== facebookGeneratedOtp) {
+      setAuthError('Invalid verification code. Please check your inbox and enter the 6-digit passcode.');
+      return;
+    }
+
+    setAuthError(null);
+    setIsLoading(true);
+
+    const cleanEmail = (facebookEmailInput || '').trim().toLowerCase();
+    const clientName = pendingSocialUser?.name || 'Facebook Client';
+
+    // 1. Permanently bind this Facebook User ID to the verified email
+    if (pendingSocialUser?.fbUserId) {
+      try {
+        localStorage.setItem(`elvany_fb_link_${pendingSocialUser.fbUserId}`, cleanEmail);
+      } catch (err) {
+        console.warn('Could not persist Facebook ID link:', err);
+      }
+    }
+
+    // 2. Dispatch official welcome email
+    sendWelcomeRegistrationEmail({ email: cleanEmail, name: clientName }).catch(() => {});
+
+    setClientDisplayName(clientName);
+    setIsLoading(false);
+    setIsFacebookEmailRequired(false);
+    setIsAwaitingFacebookOtp(false);
+    setSubmitted(true);
+
+    setTimeout(() => {
+      if (onLoginSuccess) {
+        onLoginSuccess({
+          name: clientName,
+          email: cleanEmail,
+          phone: '',
+          provider: 'Facebook'
+        });
+      }
+      setSubmitted(false);
+      onClose();
+    }, 1200);
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -192,6 +360,14 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
       setAwaitingVerification(false);
       setResendMessage(null);
       setResetSuccess(false);
+      setIsFacebookEmailRequired(false);
+      setIsAwaitingFacebookOtp(false);
+      setFacebookEmailInput('');
+      setFacebookOtpInput('');
+      setFacebookGeneratedOtp('');
+      setFacebookOtpExpiresAt(0);
+      setFacebookOtpCooldown(0);
+      setPendingSocialUser(null);
     } else {
       document.body.style.overflow = '';
     }
@@ -775,6 +951,324 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
               Accessing your private atelier passport & bespoke preferences...
             </p>
+          </div>
+        ) : isFacebookEmailRequired ? (
+          /* Complete Facebook Registration with Real Verified Email */
+          <div style={{ padding: '0.5rem 0' }}>
+            {!isAwaitingFacebookOtp ? (
+              /* Step 2A: Enter Email Address */
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '1.6rem' }}>
+                  <div style={{
+                    width: '54px',
+                    height: '54px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(24, 119, 242, 0.12)',
+                    border: '1px solid rgba(24, 119, 242, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.1rem auto'
+                  }}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="#1877F2">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </div>
+
+                  <div style={{
+                    color: 'var(--gold-bright)',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.4rem'
+                  }}>
+                    STEP 2: LINK & VERIFY YOUR EMAIL
+                  </div>
+
+                  <h2 style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: '1.65rem',
+                    fontWeight: 400,
+                    color: 'var(--text-light-primary)',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Welcome{pendingSocialUser?.name ? `, ${pendingSocialUser.name}` : ''}
+                  </h2>
+
+                  <p style={{
+                    color: 'var(--text-light-secondary)',
+                    fontSize: '0.84rem',
+                    lineHeight: 1.5,
+                    maxWidth: '380px',
+                    margin: '0 auto'
+                  }}>
+                    Facebook did not share an email address for your profile. Please enter your email below. We will send a secure 6-digit verification code to confirm it.
+                  </p>
+                </div>
+
+                {authError && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '4px',
+                    color: '#f87171',
+                    fontSize: '0.82rem',
+                    marginBottom: '1.2rem'
+                  }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSendFacebookVerificationCode}>
+                  <div className="form-group" style={{ marginBottom: '1.4rem' }}>
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                      <span>EMAIL ADDRESS</span>
+                      <span style={{ color: 'var(--gold-bright)', fontSize: '0.7rem' }}>VERIFICATION REQUIRED</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="e.g. client@example.com"
+                        value={facebookEmailInput}
+                        onChange={(e) => {
+                          setFacebookEmailInput(e.target.value);
+                          if (authError) setAuthError(null);
+                        }}
+                        autoFocus
+                        required
+                        style={{ paddingLeft: '2.6rem' }}
+                      />
+                      <Mail
+                        size={16}
+                        style={{
+                          position: 'absolute',
+                          left: '0.9rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          color: 'var(--text-light-muted)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn-primary-gold"
+                    disabled={isLoading || !facebookEmailInput.trim()}
+                    style={{ width: '100%', marginBottom: '1rem', height: '48px' }}
+                  >
+                    {isLoading ? (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <Loader2 size={16} className="spin-animate" />
+                        <span>DISPATCHING CODE...</span>
+                      </span>
+                    ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <span>SEND VERIFICATION CODE</span>
+                        <ArrowRight size={16} />
+                      </span>
+                    )}
+                  </button>
+
+                  <div style={{ textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFacebookEmailRequired(false);
+                        setIsAwaitingFacebookOtp(false);
+                        setFacebookEmailInput('');
+                        setFacebookOtpInput('');
+                        setPendingSocialUser(null);
+                        setAuthError(null);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-light-muted)',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0.4rem 0.8rem'
+                      }}
+                    >
+                      <ArrowLeft size={14} />
+                      <span>Cancel and return to sign in</span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              /* Step 2B: Enter 6-Digit Passcode */
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '1.6rem' }}>
+                  <div style={{
+                    width: '54px',
+                    height: '54px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                    border: '1px solid var(--gold-bright)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.1rem auto',
+                    color: 'var(--gold-bright)'
+                  }}>
+                    <MailCheck size={26} />
+                  </div>
+
+                  <div style={{
+                    color: 'var(--gold-bright)',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.4rem'
+                  }}>
+                    STEP 3: ENTER VERIFICATION CODE
+                  </div>
+
+                  <h2 style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: '1.65rem',
+                    fontWeight: 400,
+                    color: 'var(--text-light-primary)',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Check Your Inbox
+                  </h2>
+
+                  <p style={{
+                    color: 'var(--text-light-secondary)',
+                    fontSize: '0.84rem',
+                    lineHeight: 1.5,
+                    maxWidth: '380px',
+                    margin: '0 auto'
+                  }}>
+                    We sent a 6-digit verification passcode to{' '}
+                    <strong style={{ color: 'var(--gold-bright)', wordBreak: 'break-all' }}>{facebookEmailInput}</strong>.
+                    Please enter it below to confirm your address.
+                  </p>
+                </div>
+
+                {authError && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '4px',
+                    color: '#f87171',
+                    fontSize: '0.82rem',
+                    marginBottom: '1.2rem'
+                  }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleVerifyFacebookOtp}>
+                  <div className="form-group" style={{ marginBottom: '1.4rem' }}>
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                      <span>6-DIGIT PASSCODE</span>
+                      <span style={{ color: 'var(--text-light-muted)', fontSize: '0.7rem' }}>EXPIRES IN 15 MIN</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="• • • • • •"
+                      value={facebookOtpInput}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setFacebookOtpInput(val);
+                        if (authError) setAuthError(null);
+                      }}
+                      autoFocus
+                      required
+                      maxLength={6}
+                      style={{
+                        letterSpacing: '0.35em',
+                        fontSize: '1.25rem',
+                        textAlign: 'center',
+                        fontFamily: 'monospace',
+                        fontWeight: 700
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn-primary-gold"
+                    disabled={isLoading || facebookOtpInput.length !== 6}
+                    style={{ width: '100%', marginBottom: '1rem', height: '48px' }}
+                  >
+                    {isLoading ? (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <Loader2 size={16} className="spin-animate" />
+                        <span>VERIFYING PASSCODE...</span>
+                      </span>
+                    ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <span>CONFIRM & COMPLETE SIGN IN</span>
+                        <ArrowRight size={16} />
+                      </span>
+                    )}
+                  </button>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem' }}>
+                    <button
+                      type="button"
+                      disabled={facebookOtpCooldown > 0 || isLoading}
+                      onClick={handleResendFacebookVerificationCode}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: facebookOtpCooldown > 0 ? 'var(--text-light-muted)' : 'var(--gold-bright)',
+                        fontSize: '0.8rem',
+                        cursor: facebookOtpCooldown > 0 ? 'not-allowed' : 'pointer',
+                        textDecoration: facebookOtpCooldown > 0 ? 'none' : 'underline',
+                        fontWeight: 500
+                      }}
+                    >
+                      {facebookOtpCooldown > 0 ? `Resend passcode in ${facebookOtpCooldown}s` : 'Resend verification passcode'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAwaitingFacebookOtp(false);
+                        setFacebookOtpInput('');
+                        setAuthError(null);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-light-muted)',
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem'
+                      }}
+                    >
+                      <ArrowLeft size={13} />
+                      <span>Change email address</span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         ) : isPasswordResetMode ? (
           /* Set New Password Screen (Triggered by Recovery link or direct URL) */
