@@ -48,7 +48,9 @@ import {
   getDatabaseCart, 
   saveDatabaseCart,
   getPopupAdSettings,
-  savePopupAdSettings 
+  savePopupAdSettings,
+  isRemoteDataHealthy,
+  testLiveConnectivity
 } from './services/dbService';
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
 import confetti from 'canvas-confetti';
@@ -130,72 +132,144 @@ export function App() {
     return initial;
   });
 
-  // Sync backend data smoothly in background on mount (Non-blocking instant render)
-  useEffect(() => {
-    async function syncBackendData() {
-      try {
-        const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes, dbOrdersRes] = await Promise.allSettled([
-          getProducts(),
-          getOffers(),
-          getReviews(),
-          getPopupAdSettings(),
-          getOrders()
-        ]);
+  // Network and PWA live synchronization states
+  const [isDataSyncFailed, setIsDataSyncFailed] = useState(false);
+  const [isRetryingSync, setIsRetryingSync] = useState(false);
 
-        if (dbProductsRes.status === 'fulfilled' && Array.isArray(dbProductsRes.value) && dbProductsRes.value.length > 0) {
-          setProductsList(dbProductsRes.value);
-          try {
-            localStorage.setItem('elvany_catalog_cache', JSON.stringify(dbProductsRes.value));
-          } catch {}
-        }
-        if (dbOffersRes.status === 'fulfilled' && Array.isArray(dbOffersRes.value)) {
-          setOffers(dbOffersRes.value);
-          try {
-            localStorage.setItem('elvany_offers_cache', JSON.stringify(dbOffersRes.value));
-          } catch {}
-        }
-        if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
-          setPopupAdSettings(dbPopupAdRes.value);
-        }
-        if (dbOrdersRes.status === 'fulfilled' && Array.isArray(dbOrdersRes.value)) {
-          setOrdersList(dbOrdersRes.value);
-        }
-
-        const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
-        if (Array.isArray(dbReviews) && dbReviews.length > 0) {
-          const currentProducts = (dbProductsRes.status === 'fulfilled' && dbProductsRes.value) || PRODUCTS;
-          setAllReviewsMap((prev) => {
-            const revMap = { ...prev };
-            dbReviews.forEach((r) => {
-              const pid = r.productId || r.product_id;
-              const prodTitle = r.productTitle || r.title;
-              const matched = currentProducts.find(
-                (p) => (pid && (p.id === pid || p.slug === pid)) || (prodTitle && p.title === prodTitle)
-              );
-
-              const keysToLink = new Set();
-              if (pid) keysToLink.add(pid);
-              if (matched?.id) keysToLink.add(matched.id);
-              if (matched?.slug) keysToLink.add(matched.slug);
-              if (matched?.title) keysToLink.add(matched.title);
-
-              keysToLink.forEach((key) => {
-                if (!revMap[key]) revMap[key] = [];
-                if (!revMap[key].some((ex) => ex.id === r.id)) {
-                  revMap[key].unshift(r);
-                }
-              });
-            });
-            return revMap;
-          });
-        }
-      } catch (err) {
-        console.warn('Backend sync notice:', err);
-      } finally {
-        setIsLoadingCatalog(false);
-      }
+  // Sync backend data smoothly in background on mount & on PWA resume
+  const syncBackendData = useCallback(async (isManualRetry = false) => {
+    if (isManualRetry) {
+      setIsRetryingSync(true);
     }
+
+    // Immediate check if browser reports offline
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsDataSyncFailed(true);
+      if (isManualRetry) setIsRetryingSync(false);
+      return;
+    }
+
+    try {
+      const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes, dbOrdersRes] = await Promise.allSettled([
+        getProducts(),
+        getOffers(),
+        getReviews(),
+        getPopupAdSettings(),
+        getOrders()
+      ]);
+
+      const fetchedProducts = dbProductsRes.status === 'fulfilled' ? dbProductsRes.value : null;
+      const fetchedOffers = dbOffersRes.status === 'fulfilled' ? dbOffersRes.value : null;
+
+      // Verify whether remote data was healthy or if network connection is missing
+      if (!isRemoteDataHealthy()) {
+        const isConnected = await testLiveConnectivity();
+        if (!isConnected) {
+          setIsDataSyncFailed(true);
+          return;
+        }
+      }
+
+      if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+        setProductsList(fetchedProducts);
+        try {
+          localStorage.setItem('elvany_catalog_cache', JSON.stringify(fetchedProducts));
+        } catch {}
+      }
+      if (Array.isArray(fetchedOffers)) {
+        setOffers(fetchedOffers);
+        try {
+          localStorage.setItem('elvany_offers_cache', JSON.stringify(fetchedOffers));
+        } catch {}
+      }
+      if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
+        setPopupAdSettings(dbPopupAdRes.value);
+      }
+      if (dbOrdersRes.status === 'fulfilled' && Array.isArray(dbOrdersRes.value)) {
+        setOrdersList(dbOrdersRes.value);
+      }
+
+      const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
+      if (Array.isArray(dbReviews) && dbReviews.length > 0) {
+        const currentProducts = fetchedProducts || PRODUCTS;
+        setAllReviewsMap((prev) => {
+          const revMap = { ...prev };
+          dbReviews.forEach((r) => {
+            const pid = r.productId || r.product_id;
+            const prodTitle = r.productTitle || r.title;
+            const matched = currentProducts.find(
+              (p) => (pid && (p.id === pid || p.slug === pid)) || (prodTitle && p.title === prodTitle)
+            );
+
+            const keysToLink = new Set();
+            if (pid) keysToLink.add(pid);
+            if (matched?.id) keysToLink.add(matched.id);
+            if (matched?.slug) keysToLink.add(matched.slug);
+            if (matched?.title) keysToLink.add(matched.title);
+
+            keysToLink.forEach((key) => {
+              if (!revMap[key]) revMap[key] = [];
+              if (!revMap[key].some((ex) => ex.id === r.id)) {
+                revMap[key].unshift(r);
+              }
+            });
+          });
+          return revMap;
+        });
+      }
+
+      // Sync completed successfully
+      setIsDataSyncFailed(false);
+    } catch (err) {
+      console.warn('Backend sync notice:', err);
+      const isConnected = await testLiveConnectivity();
+      if (!isConnected) {
+        setIsDataSyncFailed(true);
+      }
+    } finally {
+      setIsLoadingCatalog(false);
+      if (isManualRetry) setIsRetryingSync(false);
+    }
+  }, []);
+
+  useEffect(() => {
     syncBackendData();
+
+    // Re-sync when PWA or tab returns to foreground (vital for standalone PWA app)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncBackendData();
+      }
+    };
+    const handleFocus = () => {
+      syncBackendData();
+    };
+
+    // Online & Offline listeners
+    const handleOnline = () => {
+      setIsDataSyncFailed(false);
+      syncBackendData();
+    };
+    const handleOffline = () => {
+      setIsDataSyncFailed(true);
+    };
+
+    // Remote sync health events dispatched by dbService
+    const handleSyncHealth = (e) => {
+      if (e.detail?.healthy === false) {
+        testLiveConnectivity().then((online) => {
+          if (!online) setIsDataSyncFailed(true);
+        });
+      } else if (e.detail?.healthy === true) {
+        setIsDataSyncFailed(false);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('elvany_sync_health', handleSyncHealth);
 
     // Listen for live popup ad updates from Admin panel
     const handlePopupAdSync = (e) => {
@@ -272,6 +346,11 @@ export function App() {
     window.addEventListener('elvany_order_updated', handleOrderSync);
 
     return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('elvany_sync_health', handleSyncHealth);
       window.removeEventListener('elvany_popup_ad_updated', handlePopupAdSync);
       window.removeEventListener('elvany_catalog_updated', handleCatalogSync);
       window.removeEventListener('elvany_offers_updated', handleOffersSync);
@@ -279,7 +358,7 @@ export function App() {
       window.removeEventListener('elvany_order_placed', handleOrderSync);
       window.removeEventListener('elvany_order_updated', handleOrderSync);
     };
-  }, []);
+  }, [syncBackendData]);
 
 
 
@@ -1361,8 +1440,12 @@ const safeSaveCartToLocalStorage = (cart) => {
       {/* Luxury Progressive Web App (PWA) Install Prompt */}
       <PwaInstallPrompt />
 
-      {/* Haute Luxury Offline Mode Access Restriction Gate */}
-      <OfflineGate />
+      {/* Haute Luxury Offline Mode Access Restriction Gate & Live Sync Prompt */}
+      <OfflineGate 
+        syncFailed={isDataSyncFailed} 
+        onRetry={() => syncBackendData(true)} 
+        isRetrying={isRetryingSync} 
+      />
     </div>
   );
 }

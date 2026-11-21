@@ -31,7 +31,11 @@ export const Navbar = ({
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   // Close mobile navbar dropdown when user taps outside the navbar
@@ -82,7 +86,8 @@ export const Navbar = ({
 
   const handleProfileClick = () => {
     if (loggedInUser) {
-      setProfileDropdownOpen(!profileDropdownOpen);
+      if (mobileMenuOpen) setMobileMenuOpen(false);
+      setProfileDropdownOpen((prev) => !prev);
     } else {
       onOpenAuth();
     }
@@ -208,8 +213,8 @@ export const Navbar = ({
               </button>
 
               {/* Logged-In Luxury Profile Dropdown Menu */}
-              {loggedInUser && profileDropdownOpen && (
-                <div className="profile-dropdown-menu">
+              {loggedInUser && (
+                <div className={`profile-dropdown-menu ${profileDropdownOpen ? 'open' : ''}`}>
                   <div className="profile-dropdown-header">
                     <div className="profile-avatar-circle">
                       {loggedInUser.charAt(0).toUpperCase()}
@@ -263,7 +268,10 @@ export const Navbar = ({
 
             <button 
               className="mobile-menu-toggle"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => {
+                if (profileDropdownOpen) setProfileDropdownOpen(false);
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
               aria-label="Toggle navigation"
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -390,6 +398,17 @@ export const Navbar = ({
         className="mobile-nav-backdrop"
         onClick={() => setMobileMenuOpen(false)}
         onTouchStart={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+    )}
+
+    {/* Backdrop for mobile profile dropdown to close when tapping outside */}
+    {profileDropdownOpen && (
+      <div 
+        className="mobile-nav-backdrop"
+        style={{ zIndex: 9998 }}
+        onClick={() => setProfileDropdownOpen(false)}
+        onTouchStart={() => setProfileDropdownOpen(false)}
         aria-hidden="true"
       />
     )}

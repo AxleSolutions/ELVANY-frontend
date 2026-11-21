@@ -1,5 +1,5 @@
 // ELVANY — Haute Couture Progressive Web App Service Worker
-const CACHE_NAME = 'elvany-pwa-v4';
+const CACHE_NAME = 'elvany-pwa-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate Event: clean up old caches
+// Activate Event: clean up old caches & take control immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -39,13 +39,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Message Event: allow client to trigger skipWaiting
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Fetch Event: Stale-While-Revalidate for images/fonts, Network-First for same-origin navigation
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
   // 1. Only intercept same-origin requests or Google Fonts
-  // NEVER intercept third-party APIs/SDKs (Facebook, Supabase, Cloudinary, PayHere, etc.)
+  // NEVER intercept third-party APIs/SDKs, or cache-busted ping / health checks
   const isSameOrigin = url.origin === self.location.origin;
   const isGoogleFont = url.origin.includes('fonts.googleapis.com') || url.origin.includes('fonts.gstatic.com');
 
@@ -53,13 +60,15 @@ self.addEventListener('fetch', (event) => {
     request.method !== 'GET' ||
     (!isSameOrigin && !isGoogleFont) ||
     url.pathname.startsWith('/api') ||
+    url.searchParams.has('_ping') ||
+    url.searchParams.has('nocache') ||
     url.hostname.includes('facebook.com') ||
     url.hostname.includes('facebook.net') ||
     url.hostname.includes('payhere.lk') ||
     url.hostname.includes('supabase.co') ||
     url.hostname.includes('cloudinary.com')
   ) {
-    return; // Pass through to native browser network handler
+    return; // Pass through directly to native browser network handler
   }
 
   // 2. Google Fonts & Static Assets: Cache-First
@@ -89,9 +98,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Same-origin Navigation & Assets: Network with Cache Fallback
+  // 3. Same-origin Navigation & Assets: Network-First with Cache Fallback
+  // For navigation (HTML), bypass HTTP cache so PWA always fetches fresh code when online
+  const fetchPromise = request.mode === 'navigate'
+    ? fetch(request, { cache: 'no-cache' })
+    : fetch(request);
+
   event.respondWith(
-    fetch(request)
+    fetchPromise
       .then((response) => {
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();

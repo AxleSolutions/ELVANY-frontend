@@ -28,7 +28,61 @@ export function cleanSizeCode(code) {
   return cleaned || code;
 }
 
+/**
+ * Live Data & Network Health Synchronization Tracker
+ */
+let _isRemoteDataHealthy = true;
 
+export function isRemoteDataHealthy() {
+  return _isRemoteDataHealthy;
+}
+
+export function setRemoteSyncStatus(healthy) {
+  _isRemoteDataHealthy = Boolean(healthy);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('elvany_sync_health', {
+      detail: { healthy: _isRemoteDataHealthy, timestamp: Date.now() }
+    }));
+  }
+}
+
+/**
+ * Deep connectivity ping to verify actual internet access & live server reachability
+ * (Bypasses service worker cache with ?_ping)
+ */
+export async function testLiveConnectivity() {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return false;
+  }
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    // 1. Try Supabase ping if configured
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('products')
+        .select('id')
+        .limit(1)
+        .abortSignal(controller.signal);
+      clearTimeout(timeoutId);
+      if (!error) return true;
+    }
+
+    // 2. Fallback cache-busted ping to origin
+    const originController = new AbortController();
+    const originTimeout = setTimeout(() => originController.abort(), 3500);
+    const pingRes = await fetch(`/?_ping=${Date.now()}`, {
+      method: 'HEAD',
+      cache: 'no-store',
+      signal: originController.signal
+    });
+    clearTimeout(originTimeout);
+    return pingRes.ok || pingRes.status < 500;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * =========================================================================
@@ -282,6 +336,7 @@ export async function getProducts() {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json.data) && json.data.length > 0) {
+        setRemoteSyncStatus(true);
         return reconcileProducts(json.data.map(formatRawProduct));
       }
     }
@@ -298,6 +353,7 @@ export async function getProducts() {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data) && data.length > 0) {
+        setRemoteSyncStatus(true);
         return reconcileProducts(data.map(formatRawProduct));
       }
     } catch (err) {
@@ -305,6 +361,8 @@ export async function getProducts() {
     }
   }
 
+  // If neither API nor Supabase returned fresh data, mark remote sync as unhealthy
+  setRemoteSyncStatus(false);
   return reconcileProducts([]);
 }
 

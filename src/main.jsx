@@ -19,10 +19,30 @@ createRoot(document.getElementById('root')).render(
 
 // Register PWA Service Worker for offline capability & fast installation
 if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+
+      // Proactively check for service worker updates when returning to PWA or window gains focus
+      const checkForPwaUpdates = () => {
+        if (navigator.onLine && registration) {
+          registration.update().catch(() => {});
+        }
+      };
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          checkForPwaUpdates();
+        }
+      });
+      window.addEventListener('focus', checkForPwaUpdates);
+      window.addEventListener('online', checkForPwaUpdates);
+
+      // Periodic update check every 20 minutes
+      setInterval(checkForPwaUpdates, 20 * 60 * 1000);
+    } catch (err) {
       console.warn('[ELVANY PWA] Service Worker registration note:', err);
-    });
+    }
   });
 }
 

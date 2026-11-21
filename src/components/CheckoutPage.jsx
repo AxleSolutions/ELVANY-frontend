@@ -1485,12 +1485,11 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'card' ? 'active' : ''}`}
-                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                      <div className="checkout-payment-tab-logo">
                         <VisaMastercardLogo />
                       </div>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                      <span className="checkout-payment-tab-label">
                         CARD PAYMENT
                       </span>
                     </button>
@@ -1504,12 +1503,11 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'koko' ? 'active' : ''}`}
-                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                      <div className="checkout-payment-tab-logo">
                         <KokoLogo />
                       </div>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                      <span className="checkout-payment-tab-label">
                         3X INSTALMENTS
                       </span>
                     </button>
@@ -1522,12 +1520,11 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'qr' ? 'active' : ''}`}
-                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '34px' }}>
+                      <div className="checkout-payment-tab-logo">
                         <LankaQrLogo />
                       </div>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                      <span className="checkout-payment-tab-label">
                         LANKAQR TRANSFER
                       </span>
                     </button>
@@ -1540,21 +1537,11 @@ export const CheckoutPage = ({
                         setCardPaymentError(null);
                       }}
                       className={`checkout-payment-tab-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
-                      style={{ padding: '0.85rem 0.5rem', minHeight: '90px' }}
                     >
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        width: '76px', 
-                        height: '34px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        borderRadius: '6px'
-                      }}>
+                      <div className="checkout-payment-tab-logo checkout-bank-icon-box">
                         <Building2 size={20} color="var(--gold-bright)" />
                       </div>
-                      <span style={{ fontSize: '0.66rem', fontWeight: 600, letterSpacing: '0.04em', color: '#ffffff', marginTop: '6px' }}>
+                      <span className="checkout-payment-tab-label">
                         BANK TRANSFER
                       </span>
                     </button>

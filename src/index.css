@@ -443,7 +443,26 @@ img {
   padding: 1rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   z-index: 1000;
-  animation: sloganFadeIn 0.25s ease forwards;
+  transform-origin: top right;
+
+  /* Smooth Slower Bi-directional transition (same cubic bezier as mobile menu) */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-14px) scale(0.97);
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.4s ease;
+}
+
+.profile-dropdown-menu.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.5s ease;
 }
 
 .profile-dropdown-header {
@@ -4403,11 +4422,55 @@ img {
 
   .profile-dropdown-menu {
     position: fixed;
-    top: 64px;
+    top: calc(62px + env(safe-area-inset-top, 0px));
     left: 1rem;
     right: 1rem;
     width: auto;
+    background-color: rgba(18, 19, 22, 0.98);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--gold-border);
+    border-radius: 4px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    transform-origin: top center;
+    overflow: hidden;
+
+    /* Smooth Slower Bi-directional transition (identical to main nav menu) */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-24px) scaleY(0.96);
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0.55s ease;
   }
+
+  .profile-dropdown-menu.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scaleY(1);
+    transition: opacity 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0.68s ease;
+  }
+
+  .profile-dropdown-menu .profile-dropdown-item {
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+  }
+
+  .profile-dropdown-menu.open .profile-dropdown-item {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .profile-dropdown-menu.open .profile-dropdown-item:nth-of-type(1) { transition-delay: 0.08s; }
+  .profile-dropdown-menu.open .profile-dropdown-item:nth-of-type(2) { transition-delay: 0.15s; }
+  .profile-dropdown-menu.open .profile-dropdown-item:nth-of-type(3) { transition-delay: 0.22s; }
+  .profile-dropdown-menu.open .profile-dropdown-item:nth-of-type(4) { transition-delay: 0.29s; }
 
   /* Cart Drawer on Mobile */
   .cart-drawer-container {
@@ -5593,8 +5656,8 @@ img {
 
 @media (max-width: 540px) {
   .checkout-payment-tabs {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
   }
 }
 
@@ -5602,17 +5665,19 @@ img {
   background-color: #07080b;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-light-secondary);
-  padding: 1rem 0.85rem;
+  padding: 0.85rem 0.5rem;
+  min-height: 85px;
   border-radius: 4px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   transition: all 0.25s ease;
   position: relative;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .checkout-payment-tab-btn:hover {
@@ -5630,6 +5695,33 @@ img {
 
 .checkout-payment-tab-btn.active svg {
   color: var(--gold-bright);
+}
+
+.checkout-payment-tab-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.checkout-bank-icon-box {
+  width: 76px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkout-payment-tab-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  margin-top: 4px;
+  white-space: nowrap;
 }
 
 
@@ -5944,8 +6036,37 @@ img {
   }
 
   .checkout-payment-tabs {
-    grid-template-columns: 1fr !important;
-    gap: 0.75rem !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-bottom: 1.15rem !important;
+  }
+
+  .checkout-payment-tab-btn {
+    padding: 0.55rem 0.35rem !important;
+    min-height: 58px !important;
+    gap: 0.2rem !important;
+    border-radius: 4px !important;
+  }
+
+  .checkout-payment-tab-logo {
+    min-height: 24px !important;
+    transform: scale(0.88);
+  }
+
+  .checkout-bank-icon-box {
+    width: 58px !important;
+    height: 24px !important;
+  }
+
+  .checkout-bank-icon-box svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .checkout-payment-tab-label {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.02em !important;
+    margin-top: 2px !important;
   }
 
   .checkout-qr-hero {
