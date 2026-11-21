@@ -662,9 +662,9 @@ const ProductDetailPageInner = ({
                     return <span style={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600 }}>Size {selectedSize} Sold Out</span>;
                   }
                   if (selectedSizeStock <= 3) {
-                    return <span style={{ color: 'var(--gold-bright)', fontSize: '0.74rem', fontWeight: 700 }}>Only {selectedSizeStock} piece{selectedSizeStock > 1 ? 's' : ''} left in stock!</span>;
+                    return <span style={{ color: '#8f6f32', fontSize: '0.74rem', fontWeight: 700 }}>Only {selectedSizeStock} piece{selectedSizeStock > 1 ? 's' : ''} left in stock!</span>;
                   }
-                  return <span style={{ color: 'var(--text-light-muted)', fontSize: '0.74rem' }}>{selectedSizeStock} available</span>;
+                  return <span style={{ color: '#767982', fontSize: '0.74rem' }}>{selectedSizeStock} available</span>;
                 })()}
               </div>
 
@@ -762,9 +762,9 @@ const ProductDetailPageInner = ({
                     style={{
                       opacity: 1,
                       cursor: 'pointer',
-                      backgroundColor: !isAvailable ? 'rgba(197, 160, 89, 0.15)' : undefined,
-                      border: !isAvailable ? '1px solid var(--gold-bright)' : undefined,
-                      color: !isAvailable ? 'var(--gold-bright)' : undefined
+                      backgroundColor: !isAvailable ? 'rgba(143, 111, 50, 0.12)' : undefined,
+                      border: !isAvailable ? '1px solid #8f6f32' : undefined,
+                      color: !isAvailable ? '#8f6f32' : undefined
                     }}
                   >
                     {!isAvailable ? (
@@ -788,28 +788,24 @@ const ProductDetailPageInner = ({
               );
             })()}
 
-
-
-
-
             {/* Trust Badges */}
             <div className="pdp-trust-grid">
               <div className="pdp-trust-item">
-                <Truck size={18} color="var(--gold-bright)" />
+                <Truck size={18} color="#8f6f32" />
                 <div>
                   <div className="pdp-trust-title">Island-Wide Express</div>
                   <div className="pdp-trust-desc">Complimentary next-day dispatch</div>
                 </div>
               </div>
               <div className="pdp-trust-item">
-                <RefreshCw size={18} color="var(--gold-bright)" />
+                <RefreshCw size={18} color="#8f6f32" />
                 <div>
                   <div className="pdp-trust-title">7-Day Fit Guarantee</div>
                   <div className="pdp-trust-desc">Complimentary size exchanges</div>
                 </div>
               </div>
               <div className="pdp-trust-item">
-                <Shield size={18} color="var(--gold-bright)" />
+                <Shield size={18} color="#8f6f32" />
                 <div>
                   <div className="pdp-trust-title">Atelier Certified</div>
                   <div className="pdp-trust-desc">Includes QR provenance passport</div>
