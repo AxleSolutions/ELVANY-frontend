@@ -30,18 +30,18 @@ export const FeaturedTees = ({
   const displayedProducts = (products || []).slice(0, 4);
 
   return (
-    <section className="featured-tees-section" style={{ padding: '5.5rem 0 4rem 0', backgroundColor: '#0b0b0c', color: '#fff' }}>
+    <section className="featured-tees-section" style={{ padding: '5.5rem 0 4rem 0', backgroundColor: 'var(--bg-cream)', color: 'var(--text-dark-primary)' }}>
       <div className="container">
         {/* Section Header */}
-        <div className="section-header-row" style={{ marginBottom: '3rem' }}>
+        <div className="section-header-row" style={{ marginBottom: '3rem', borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
           <div>
-            <div className="section-tag" style={{ color: 'var(--gold-bright)' }}>CURATED CAPSULE</div>
-            <h2 className="section-main-title" style={{ color: '#fff' }}>Signature T-Shirt Editions</h2>
+            <div className="section-tag" style={{ color: 'var(--gold-dark)' }}>CURATED CAPSULE</div>
+            <h2 className="section-main-title" style={{ color: 'var(--text-dark-primary)' }}>Signature T-Shirt Editions</h2>
           </div>
           <button 
             className="section-action-link"
             onClick={onExploreCollection}
-            style={{ color: 'var(--gold-bright)', borderColor: 'var(--gold-border)' }}
+            style={{ color: '#121316', borderColor: 'rgba(0, 0, 0, 0.2)' }}
           >
             <span>VIEW ALL EDITIONS</span>
             <ArrowRight size={14} />
@@ -58,8 +58,8 @@ export const FeaturedTees = ({
                 key={i} 
                 className="product-card"
                 style={{
-                  backgroundColor: '#121316',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
                   minHeight: '400px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -69,7 +69,7 @@ export const FeaturedTees = ({
               >
                 <div style={{
                   flex: 1,
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.03)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -78,15 +78,15 @@ export const FeaturedTees = ({
                   <Loader2 size={24} className="spin-animation" color="var(--gold-border)" />
                 </div>
                 <div style={{ padding: '1.2rem 1rem' }}>
-                  <div style={{ height: '16px', width: '70%', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: '2px', marginBottom: '8px' }} />
-                  <div style={{ height: '12px', width: '40%', backgroundColor: 'rgba(197,160,89,0.15)', borderRadius: '2px', marginBottom: '12px' }} />
-                  <div style={{ height: '10px', width: '90%', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '2px' }} />
+                  <div style={{ height: '16px', width: '70%', backgroundColor: 'rgba(0, 0, 0, 0.06)', borderRadius: '2px', marginBottom: '8px' }} />
+                  <div style={{ height: '12px', width: '40%', backgroundColor: 'rgba(197, 160, 89, 0.2)', borderRadius: '2px', marginBottom: '12px' }} />
+                  <div style={{ height: '10px', width: '90%', backgroundColor: 'rgba(0, 0, 0, 0.04)', borderRadius: '2px' }} />
                 </div>
               </div>
             ))
           ) : products.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-light-muted)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', marginBottom: '6px' }}>NO CAPSULE EDITIONS PUBLISHED</div>
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-dark-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-dark)', marginBottom: '6px' }}>NO CAPSULE EDITIONS PUBLISHED</div>
               <p style={{ fontSize: '0.82rem' }}>New architectural silhouettes are being crafted in the atelier.</p>
             </div>
           ) : (
@@ -126,13 +126,13 @@ export const FeaturedTees = ({
                   onClick={() => onSelectProduct(product)}
                   style={{ 
                     cursor: 'pointer', 
-                    backgroundColor: '#121316', 
-                    border: '1px solid rgba(255, 255, 255, 0.28)', 
-                    boxShadow: '0 4px 18px rgba(0, 0, 0, 0.45)',
+                    backgroundColor: '#ffffff', 
+                    border: '1px solid rgba(0, 0, 0, 0.08)', 
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
                     opacity: isOutOfStock ? 0.75 : 1 
                   }}
                 >
-                  <div className="product-image-wrap" style={{ aspectRatio: '3/4' }}>
+                  <div className="product-image-wrap" style={{ aspectRatio: '3/4', backgroundColor: '#f1ede6' }}>
                     {isOutOfStock ? (
                       <span className="product-badge" style={{ backgroundColor: 'rgba(239,68,68,0.9)', color: '#ffffff', border: '1px solid #ef4444' }}>
                         SOLD OUT
@@ -251,27 +251,27 @@ export const FeaturedTees = ({
 
 
 
-                  <div className="product-info" style={{ padding: '1.2rem 1rem' }}>
+                  <div className="product-info" style={{ padding: '1.2rem 1rem', backgroundColor: '#ffffff' }}>
                     <div>
                       <div className="product-title-row">
-                        <h3 className="product-name" style={{ color: '#fff', fontSize: '1.1rem' }}>{product.name || product.title}</h3>
+                        <h3 className="product-name" style={{ color: '#121316', fontSize: '1.1rem' }}>{product.name || product.title}</h3>
                         {isDiscounted ? (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0 }}>
-                            <div className="product-price" style={{ color: 'var(--gold-bright)', fontWeight: 700 }}>
+                            <div className="product-price" style={{ color: '#121316', fontWeight: 700 }}>
                               {formatLKR(offerPrice)}
                             </div>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textDecoration: 'line-through', opacity: 0.7 }}>
+                            <div style={{ fontSize: '0.74rem', color: '#9ca3af', textDecoration: 'line-through', opacity: 0.8 }}>
                               {formatLKR(originalPrice)}
                             </div>
                           </div>
                         ) : (
-                          <div className="product-price" style={{ color: 'var(--gold-bright)' }}>{formatLKR(originalPrice)}</div>
+                          <div className="product-price" style={{ color: '#121316', fontWeight: 700 }}>{formatLKR(originalPrice)}</div>
                         )}
                       </div>
-                      <p className="product-tagline" style={{ color: 'var(--text-light-muted)' }}>{product.tagline || product.subtitle}</p>
+                      <p className="product-tagline" style={{ color: '#575960' }}>{product.tagline || product.subtitle}</p>
                     </div>
 
-                    <div className="product-meta-row" style={{ marginTop: '0.8rem', color: 'var(--text-light-secondary)' }}>
+                    <div className="product-meta-row" style={{ marginTop: '0.8rem', color: '#6b7280', borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
                       <span>{product.color || 'Onyx Black'}</span>
                       <div className="color-dots">
                         {(product.colorsAvailable || (product.colors ? product.colors.map(c => c.hex) : ['#141518'])).map((hex, idx) => (

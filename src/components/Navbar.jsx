@@ -401,17 +401,6 @@ export const Navbar = ({
         aria-hidden="true"
       />
     )}
-
-    {/* Backdrop for mobile profile dropdown to close when tapping outside */}
-    {profileDropdownOpen && (
-      <div 
-        className="mobile-nav-backdrop"
-        style={{ zIndex: 9998 }}
-        onClick={() => setProfileDropdownOpen(false)}
-        onTouchStart={() => setProfileDropdownOpen(false)}
-        aria-hidden="true"
-      />
-    )}
   </>
   );
 };

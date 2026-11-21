@@ -731,8 +731,8 @@ export const CheckoutPage = ({
     return (
       <div className="checkout-page" style={{ 
         minHeight: '100vh', 
-        backgroundColor: '#090a0c', 
-        color: '#ffffff', 
+        backgroundColor: '#f8f6f0', 
+        color: '#121316', 
         padding: '2rem 1rem',
         display: 'flex',
         alignItems: 'center',
@@ -741,19 +741,19 @@ export const CheckoutPage = ({
         <div className="container" style={{ maxWidth: '740px', width: '100%', margin: 'auto' }}>
           
           <div style={{
-            backgroundColor: '#0d0e12',
-            border: '1px solid var(--gold-border)',
-            borderRadius: '2px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2ddd5',
+            borderRadius: '4px',
             padding: '2.2rem 2rem 2.4rem 2rem',
             textAlign: 'center',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.85)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.06)',
             width: '100%',
             boxSizing: 'border-box'
           }}>
             {/* ELVANY Official Brand Logo */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.8rem' }}>
               <img 
-                src="/logo/Main.png" 
+                src="/logo/Main-6.png" 
                 alt="ELVANY" 
                 style={{ 
                   maxHeight: '44px', 
@@ -764,7 +764,7 @@ export const CheckoutPage = ({
             </div>
 
             <div style={{
-              color: 'var(--gold-bright)',
+              color: '#8f6f32',
               fontSize: '0.7rem',
               fontWeight: 700,
               letterSpacing: '0.2em',
@@ -774,41 +774,41 @@ export const CheckoutPage = ({
               ELVANY • ACQUISITION CONFIRMED
             </div>
 
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 2.8vw, 2.1rem)', color: '#ffffff', fontWeight: 400, margin: '0 0 0.5rem 0' }}>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 2.8vw, 2.1rem)', color: '#121316', fontWeight: 400, margin: '0 0 0.5rem 0' }}>
               Order Passport #{confirmedOrder.orderId}
             </h1>
 
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.85rem', maxWidth: '520px', margin: '0 auto 1.2rem auto', lineHeight: 1.5 }}>
-              Thank you, <strong style={{ color: '#ffffff' }}>{confirmedOrder.customerName}</strong>. Your acquisition has been registered and verified by the Florentine atelier.
+            <p style={{ color: '#4a4c54', fontSize: '0.85rem', maxWidth: '520px', margin: '0 auto 1.2rem auto', lineHeight: 1.5 }}>
+              Thank you, <strong style={{ color: '#121316' }}>{confirmedOrder.customerName}</strong>. Your acquisition has been registered and verified by the Florentine atelier.
             </p>
 
             {/* Passport Detail Summary */}
             <div style={{
-              backgroundColor: '#07080a',
-              border: '1px solid var(--border-dark)',
-              borderRadius: '2px',
+              backgroundColor: '#fbf8f2',
+              border: '1px solid #e5dfd5',
+              borderRadius: '4px',
               padding: '1.2rem 1.4rem',
               textAlign: 'left',
               marginBottom: '1.5rem'
             }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.9rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.9rem', marginBottom: '1rem', borderBottom: '1px solid #e5dfd5', paddingBottom: '1rem' }}>
                 <div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>DELIVERY DESTINATION</span>
-                  <strong style={{ fontSize: '0.84rem', color: '#ffffff' }}>{confirmedOrder.customerLocation}</strong>
+                  <span style={{ fontSize: '0.68rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>DELIVERY DESTINATION</span>
+                  <strong style={{ fontSize: '0.84rem', color: '#121316' }}>{confirmedOrder.customerLocation}</strong>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>PAYMENT METHOD</span>
-                  <strong style={{ fontSize: '0.84rem', color: '#ffffff' }}>{confirmedOrder.paymentMethod}</strong>
+                  <span style={{ fontSize: '0.68rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>PAYMENT METHOD</span>
+                  <strong style={{ fontSize: '0.84rem', color: '#121316' }}>{confirmedOrder.paymentMethod}</strong>
                   {confirmedOrder.hasSlipAttached ? (
-                    <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Bank Transfer Receipt Attached</span>
+                    <span style={{ display: 'block', fontSize: '0.68rem', color: '#8f6f32', marginTop: '2px' }}>✓ Bank Transfer Receipt Attached</span>
                   ) : confirmedOrder.paymentMethod?.toLowerCase().includes('cod') || confirmedOrder.paymentMethod?.includes('Cash') ? (
-                    <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px' }}>✓ Cash Collection Upon Handover</span>
+                    <span style={{ display: 'block', fontSize: '0.68rem', color: '#8f6f32', marginTop: '2px' }}>✓ Cash Collection Upon Handover</span>
                   ) : null}
 
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ESTIMATED DISPATCH</span>
-                  <strong style={{ fontSize: '0.84rem', color: 'var(--gold-bright)' }}>Next Business Day (Island-Wide)</strong>
+                  <span style={{ fontSize: '0.68rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ESTIMATED DISPATCH</span>
+                  <strong style={{ fontSize: '0.84rem', color: '#8f6f32' }}>Next Business Day (Island-Wide)</strong>
                 </div>
               </div>
 
@@ -817,13 +817,13 @@ export const CheckoutPage = ({
                 {confirmedOrder.items.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <img src={item.image} alt={item.name} style={{ width: '36px', height: '42px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }} />
+                      <img src={item.image} alt={item.name} style={{ width: '36px', height: '42px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #e2ddd5' }} />
                       <div>
-                        <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>{item.name}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>{item.selectedSize} • {item.color} • Qty: {item.quantity}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#121316', fontWeight: 600 }}>{item.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#767982' }}>{item.selectedSize} • {item.color} • Qty: {item.quantity}</div>
                       </div>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 700, fontSize: '0.92rem' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 700, fontSize: '0.92rem' }}>
                       {formatLKR(item.priceLKR * item.quantity)}
                     </span>
                   </div>
@@ -831,22 +831,22 @@ export const CheckoutPage = ({
               </div>
 
               {confirmedOrder.savingsLKR > 0 && (
-                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--gold-bright)' }}>Privilege Atelier Savings Applied:</span>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 700 }}>-LKR {confirmedOrder.savingsLKR.toLocaleString()}</span>
+                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid #e5dfd5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#8f6f32' }}>Privilege Atelier Savings Applied:</span>
+                  <span style={{ fontSize: '0.82rem', color: '#8f6f32', fontWeight: 700 }}>-LKR {confirmedOrder.savingsLKR.toLocaleString()}</span>
                 </div>
               )}
 
               {(confirmedOrder.voucherCode || confirmedOrder.voucherDiscountLKR > 0) && (
-                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#4ade80' }}>Atelier Voucher Applied ({confirmedOrder.voucherCode || 'GIFT'}):</span>
-                  <span style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: 700 }}>-LKR {Number(confirmedOrder.voucherDiscountLKR || 0).toLocaleString()}</span>
+                <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid #e5dfd5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>Atelier Voucher Applied ({confirmedOrder.voucherCode || 'GIFT'}):</span>
+                  <span style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: 700 }}>-LKR {Number(confirmedOrder.voucherDiscountLKR || 0).toLocaleString()}</span>
                 </div>
               )}
 
-              <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+              <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid #e5dfd5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: '#121316', fontWeight: 600 }}>Total Settled:</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: '#8f6f32', fontWeight: 700 }}>
                   {formatLKR(confirmedOrder.totalLKR)}
                 </span>
               </div>
@@ -913,12 +913,12 @@ export const CheckoutPage = ({
   // Empty cart fallback
   if (cart.length === 0) {
     return (
-      <div className="checkout-page" style={{ minHeight: '100vh', backgroundColor: '#090a0c', color: '#ffffff', padding: '5rem 0' }}>
+      <div className="checkout-page" style={{ minHeight: '100vh', backgroundColor: '#f8f6f0', color: '#121316', padding: '5rem 0' }}>
         <div className="container" style={{ maxWidth: '600px', textAlign: 'center' }}>
-          <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', padding: '3.5rem 2rem', borderRadius: '2px' }}>
-            <ShoppingBag size={48} color="var(--gold-bright)" style={{ margin: '0 auto 1.5rem auto' }} />
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', marginBottom: '0.8rem' }}>Your Shopping Bag is Empty</h2>
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.88rem', marginBottom: '2rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '3.5rem 2rem', borderRadius: '4px', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
+            <ShoppingBag size={48} color="#8f6f32" style={{ margin: '0 auto 1.5rem auto' }} />
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', color: '#121316', marginBottom: '0.8rem' }}>Your Shopping Bag is Empty</h2>
+            <p style={{ color: '#555861', fontSize: '0.88rem', marginBottom: '2rem' }}>
               Please select your desired garments from the collection before proceeding to checkout.
             </p>
             <button 
@@ -948,11 +948,11 @@ export const CheckoutPage = ({
               onClick={() => navigate('/')}
               style={{ marginBottom: 0 }}
             >
-              <Home size={14} color="var(--gold-bright)" />
+              <Home size={14} color="#8f6f32" />
               <span>HOME</span>
             </button>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+            <span style={{ color: '#d4cdc3' }}>/</span>
+            <span style={{ color: '#8f6f32', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               SECURE CLIENT CHECKOUT
             </span>
           </div>
@@ -1004,13 +1004,13 @@ export const CheckoutPage = ({
           aria-expanded={mobileSummaryOpen}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <ShoppingBag size={18} color="var(--gold-bright)" />
+            <ShoppingBag size={18} color="#8f6f32" />
             <span style={{ fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.04em' }}>
               {mobileSummaryOpen ? 'Hide order summary' : `Show order summary (${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'items'})`}
             </span>
-            {mobileSummaryOpen ? <ChevronUp size={15} color="var(--gold-bright)" /> : <ChevronDown size={15} color="var(--gold-bright)" />}
+            {mobileSummaryOpen ? <ChevronUp size={15} color="#8f6f32" /> : <ChevronDown size={15} color="#8f6f32" />}
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: '#8f6f32', fontWeight: 700 }}>
             {formatLKR(grandTotal)}
           </span>
         </button>
@@ -1030,12 +1030,12 @@ export const CheckoutPage = ({
               return (
                 <div key={idx} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
                   <div 
-                    style={{ position: 'relative', width: '52px', height: '62px', borderRadius: '3px', overflow: 'hidden', backgroundColor: '#07080a', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0, cursor: isBespoke ? 'pointer' : 'default' }}
+                    style={{ position: 'relative', width: '52px', height: '62px', borderRadius: '3px', overflow: 'hidden', backgroundColor: '#f7f5ef', border: '1px solid #e2ddd5', flexShrink: 0, cursor: isBespoke ? 'pointer' : 'default' }}
                     onClick={() => isBespoke && setInspectedBespokeItem(item)}
                     title={isBespoke ? 'Click to inspect 4-sides blueprint' : ''}
                   >
                     <img src={displayImg} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
+                    <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#c5a059', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
                       {item.qty || 1}
                     </span>
                     {isBespoke && (
@@ -1045,10 +1045,10 @@ export const CheckoutPage = ({
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.88rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.88rem', color: '#121316', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {item.name}
                     </h4>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#767982' }}>
                       {item.selectedSize || item.size} • {item.color}
                     </div>
                     {isBespoke && (
@@ -1059,8 +1059,8 @@ export const CheckoutPage = ({
                             type="button"
                             onClick={() => setActiveAngles(prev => ({ ...prev, [itemKey]: ang }))}
                             style={{
-                              background: currentAngle === ang ? 'var(--gold-bright)' : 'rgba(255,255,255,0.08)',
-                              color: currentAngle === ang ? '#000' : '#fff',
+                              background: currentAngle === ang ? '#c5a059' : '#f4eee2',
+                              color: currentAngle === ang ? '#000' : '#121316',
                               border: 'none',
                               borderRadius: '2px',
                               padding: '2px 5px',
@@ -1076,7 +1076,7 @@ export const CheckoutPage = ({
                     )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.88rem', color: '#8f6f32', fontWeight: 700 }}>
                       {formatLKR(getPrice(item) * (item.qty || 1))}
                     </div>
                   </div>
@@ -1085,43 +1085,43 @@ export const CheckoutPage = ({
             })}
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+          <div style={{ borderTop: '1px solid #e5dfd5', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4a4c54' }}>
               <span>Subtotal:</span>
-              <span style={{ color: '#ffffff' }}>{formatLKR(subtotal)}</span>
+              <span style={{ color: '#121316', fontWeight: 600 }}>{formatLKR(subtotal)}</span>
             </div>
             {totalSavings > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8f6f32' }}>
                 <span>Privilege Savings:</span>
                 <span>-LKR {totalSavings.toLocaleString()}</span>
               </div>
             )}
             {appliedVoucher && voucherDiscount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
                 <span>Voucher Applied ({appliedVoucher.code}):</span>
                 <span style={{ fontWeight: 700 }}>-{formatLKR(voucherDiscount)}</span>
               </div>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4a4c54' }}>
               <span>Delivery Fee:</span>
-              <span style={{ color: deliveryFee === 0 ? 'var(--gold-bright)' : '#ffffff' }}>
+              <span style={{ color: deliveryFee === 0 ? '#8f6f32' : '#121316', fontWeight: 600 }}>
                 {deliveryFee === 0 ? 'COMPLIMENTARY' : formatLKR(deliveryFee)}
               </span>
             </div>
             {isKoko && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8f6f32' }}>
                 <span>Koko BNPL Surcharge (12%):</span>
                 <span>+{formatLKR(kokoSurchargeLKR)}</span>
               </div>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ffffff', fontWeight: 700, fontSize: '0.92rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#121316', fontWeight: 700, fontSize: '0.92rem', paddingTop: '0.5rem', borderTop: '1px solid #e5dfd5' }}>
               <span>Total:</span>
-              <span style={{ color: 'var(--gold-bright)' }}>{formatLKR(grandTotal)}</span>
+              <span style={{ color: '#8f6f32' }}>{formatLKR(grandTotal)}</span>
             </div>
             {isKoko && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-muted)', fontSize: '0.74rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#767982', fontSize: '0.74rem' }}>
                 <span>3x Instalments:</span>
-                <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
+                <span style={{ color: '#8f6f32', fontWeight: 600 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
               </div>
             )}
           </div>
@@ -1161,9 +1161,9 @@ export const CheckoutPage = ({
                           gap: '6px',
                           padding: '0.55rem 0.95rem',
                           borderRadius: '3px',
-                          border: '1px solid var(--gold-primary, #c5a059)',
-                          backgroundColor: 'var(--gold-primary, #c5a059)',
-                          color: '#ffffff',
+                          border: '1px solid #b58d42',
+                          backgroundColor: '#c5a059',
+                          color: '#000000',
                           fontSize: '0.74rem',
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -1171,8 +1171,8 @@ export const CheckoutPage = ({
                           opacity: 1
                         }}
                       >
-                        <UserCheck size={13} color="#ffffff" />
-                        <span style={{ color: '#ffffff' }}>Sign In to Auto-Fill</span>
+                        <UserCheck size={13} color="#000000" />
+                        <span style={{ color: '#000000' }}>Sign In to Auto-Fill</span>
                       </button>
                     )}
                   </div>
@@ -1188,18 +1188,18 @@ export const CheckoutPage = ({
                           type="checkbox"
                           checked={useDefaultAddress}
                           onChange={(e) => handleToggleDefaultAddress(e.target.checked)}
-                          style={{ accentColor: 'var(--gold-bright)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          style={{ accentColor: '#c5a059', width: '16px', height: '16px', cursor: 'pointer' }}
                         />
                         <div>
-                          <div style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600 }}>
+                          <div style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600 }}>
                             Use Default Profile Address
                           </div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
+                          <div style={{ fontSize: '0.74rem', color: '#767982', marginTop: '2px' }}>
                             {savedDefault.address}, {savedDefault.city}
                           </div>
                         </div>
                       </div>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 600, letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#8f6f32', fontWeight: 600, letterSpacing: '0.04em' }}>
                         {useDefaultAddress ? 'ACTIVE' : 'SELECT'}
                       </span>
                     </div>
@@ -1329,7 +1329,7 @@ export const CheckoutPage = ({
                         className="form-select"
                       >
                         {CITIES_LIST.map((c) => (
-                          <option key={c} value={c} style={{ backgroundColor: '#0d0e12', color: '#fff' }}>{c}</option>
+                          <option key={c} value={c} style={{ backgroundColor: '#ffffff', color: '#121316' }}>{c}</option>
                         ))}
                       </select>
                     </div>
@@ -1358,13 +1358,13 @@ export const CheckoutPage = ({
                       cursor: 'pointer',
                       userSelect: 'none',
                       fontSize: '0.78rem',
-                      color: saveAsDefault ? 'var(--gold-bright)' : 'var(--text-light-secondary)'
+                      color: saveAsDefault ? '#8f6f32' : '#4a4c54'
                     }}>
                       <input 
                         type="checkbox"
                         checked={saveAsDefault}
                         onChange={(e) => setSaveAsDefault(e.target.checked)}
-                        style={{ accentColor: 'var(--gold-bright)', width: '15px', height: '15px', cursor: 'pointer' }}
+                        style={{ accentColor: '#c5a059', width: '15px', height: '15px', cursor: 'pointer' }}
                       />
                       <span>Set as Default Profile Address for future checkouts</span>
                     </label>
@@ -1382,10 +1382,10 @@ export const CheckoutPage = ({
                   </div>
 
                   {/* Courier Dispatch Guarantee */}
-                  <div style={{ padding: '0.9rem 1.15rem', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Truck size={18} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)', lineHeight: 1.5 }}>
-                      <strong style={{ color: '#ffffff' }}>White-Glove Island-Wide Delivery:</strong> {deliveryFee === 0 ? 'Complimentary next business day dispatch with live signature tracking applied.' : `Complimentary island-wide courier on orders over ${formatLKR(FREE_DELIVERY_THRESHOLD_LKR)} (Flat LKR ${STANDARD_DELIVERY_FEE_LKR} otherwise).`}
+                  <div style={{ padding: '0.9rem 1.15rem', backgroundColor: '#fbf8f2', border: '1px solid #e5dfd5', borderRadius: '3px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Truck size={18} color="#8f6f32" style={{ flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.78rem', color: '#4a4c54', lineHeight: 1.5 }}>
+                      <strong style={{ color: '#121316' }}>White-Glove Island-Wide Delivery:</strong> {deliveryFee === 0 ? 'Complimentary next business day dispatch with live signature tracking applied.' : `Complimentary island-wide courier on orders over ${formatLKR(FREE_DELIVERY_THRESHOLD_LKR)} (Flat LKR ${STANDARD_DELIVERY_FEE_LKR} otherwise).`}
                     </div>
                   </div>
                 </div>
@@ -1414,8 +1414,8 @@ export const CheckoutPage = ({
                 
                 {/* Destination Review Box */}
                 <div style={{
-                  backgroundColor: '#0c0d12',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2ddd5',
                   borderRadius: '4px',
                   padding: '1.1rem 1.35rem',
                   marginBottom: '1.5rem',
@@ -1426,13 +1426,13 @@ export const CheckoutPage = ({
                   gap: '0.85rem'
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '2px', fontWeight: 700 }}>
+                    <div style={{ fontSize: '0.68rem', color: '#8f6f32', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '2px', fontWeight: 700 }}>
                       DELIVERING TO
                     </div>
-                    <div style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 600 }}>
+                    <div style={{ fontSize: '0.88rem', color: '#121316', fontWeight: 600 }}>
                       {firstName} {lastName} • {address}, {city}
                     </div>
-                    <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)' }}>
+                    <div style={{ fontSize: '0.76rem', color: '#767982' }}>
                       {email} • {phone}
                     </div>
                   </div>
@@ -1445,8 +1445,8 @@ export const CheckoutPage = ({
                     }}
                     style={{
                       background: 'none',
-                      border: '1px solid var(--gold-border)',
-                      color: 'var(--gold-bright)',
+                      border: '1px solid #b58d42',
+                      color: '#8f6f32',
                       padding: '5px 11px',
                       borderRadius: '3px',
                       cursor: 'pointer',
@@ -1550,8 +1550,8 @@ export const CheckoutPage = ({
                   {/* 0. Credit / Debit Card Payment View (Professional & Clean) */}
                   {paymentMethod === 'card' && (
                     <div style={{
-                      backgroundColor: '#0c0d12',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2ddd5',
                       borderRadius: '4px',
                       padding: '1.25rem 1.4rem',
                       marginBottom: '1.5rem'
@@ -1565,8 +1565,8 @@ export const CheckoutPage = ({
                         marginBottom: '0.85rem'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <CreditCard size={18} color="var(--gold-bright)" />
-                          <span style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 700 }}>
+                          <CreditCard size={18} color="#8f6f32" />
+                          <span style={{ fontSize: '0.88rem', color: '#121316', fontWeight: 700 }}>
                             Credit / Debit Card (PayHere)
                           </span>
                         </div>
@@ -1577,7 +1577,7 @@ export const CheckoutPage = ({
 
                       <p style={{
                         fontSize: '0.8rem',
-                        color: 'var(--text-light-secondary)',
+                        color: '#4a4c54',
                         margin: 0,
                         lineHeight: 1.5
                       }}>
@@ -1588,16 +1588,16 @@ export const CheckoutPage = ({
                         <div style={{
                           marginTop: '0.85rem',
                           paddingTop: '0.75rem',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderTop: '1px solid #e5dfd5',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           flexWrap: 'wrap',
                           gap: '0.5rem',
                           fontSize: '0.74rem',
-                          color: 'var(--text-light-muted)'
+                          color: '#767982'
                         }}>
-                          <span>Test Card: <strong style={{ color: '#ffffff' }}>4916 2175 0161 1292</strong> (Exp: 12/28, CVV: 123)</span>
+                          <span>Test Card: <strong style={{ color: '#121316' }}>4916 2175 0161 1292</strong> (Exp: 12/28, CVV: 123)</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -1608,7 +1608,7 @@ export const CheckoutPage = ({
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: copiedTestCard ? '#4ade80' : 'var(--gold-bright)',
+                              color: copiedTestCard ? '#16a34a' : '#8f6f32',
                               cursor: 'pointer',
                               fontSize: '0.74rem',
                               fontWeight: 600
@@ -1623,10 +1623,10 @@ export const CheckoutPage = ({
                         <div style={{
                           marginTop: '0.75rem',
                           padding: '0.65rem 0.85rem',
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          backgroundColor: 'rgba(239, 68, 68, 0.08)',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           borderRadius: '3px',
-                          color: '#f87171',
+                          color: '#dc2626',
                           fontSize: '0.76rem'
                         }}>
                           {cardPaymentError}
@@ -1638,12 +1638,12 @@ export const CheckoutPage = ({
                   {/* 1. Koko Buy Now Pay Later (3x Instalments) Panel */}
                   {paymentMethod === 'koko' && (
                     <div style={{
-                      backgroundColor: '#0c0d12',
-                      border: '1px solid rgba(197, 160, 89, 0.35)',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid rgba(197, 160, 89, 0.45)',
                       borderRadius: '4px',
                       padding: '1.4rem',
                       marginBottom: '1.5rem',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)'
+                      boxShadow: '0 4px 18px rgba(0, 0, 0, 0.04)'
                     }}>
                       <div style={{
                         display: 'flex',
@@ -1655,15 +1655,15 @@ export const CheckoutPage = ({
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <KokoLogo style={{ height: '26px' }} />
-                          <span style={{ fontSize: '0.9rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em' }}>
+                          <span style={{ fontSize: '0.9rem', color: '#121316', fontWeight: 700, letterSpacing: '0.04em' }}>
                             Buy Now, Pay Later (3 Instalments)
                           </span>
                         </div>
                         <span style={{
                           fontSize: '0.68rem',
-                          backgroundColor: 'rgba(255, 0, 122, 0.15)',
-                          color: '#ff77b9',
-                          border: '1px solid rgba(255, 0, 122, 0.4)',
+                          backgroundColor: 'rgba(255, 0, 122, 0.1)',
+                          color: '#db2777',
+                          border: '1px solid rgba(255, 0, 122, 0.3)',
                           padding: '2px 9px',
                           borderRadius: '999px',
                           fontWeight: 700
@@ -1671,7 +1671,7 @@ export const CheckoutPage = ({
                         </span>
                       </div>
 
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginBottom: '1.1rem' }}>
+                      <p style={{ fontSize: '0.8rem', color: '#4a4c54', lineHeight: 1.5, marginBottom: '1.1rem' }}>
                         Split your purchase into 3 equal monthly payments using your Koko account or debit/credit card.
                       </p>
 
@@ -1683,55 +1683,55 @@ export const CheckoutPage = ({
                         marginBottom: '1.25rem'
                       }}>
                         <div style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                          border: '1px solid rgba(197, 160, 89, 0.3)',
+                          backgroundColor: '#fbf8f2',
+                          border: '1px solid rgba(197, 160, 89, 0.45)',
                           borderRadius: '4px',
                           padding: '0.85rem',
                           textAlign: 'center'
                         }}>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                          <div style={{ fontSize: '0.68rem', color: '#8f6f32', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
                             1st Instalment
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#767982', marginBottom: '5px' }}>
                             Due Today
                           </div>
-                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                          <div style={{ fontSize: '1rem', color: '#121316', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
                             {formatLKR(kokoInstalmentLKR)}
                           </div>
                         </div>
 
                         <div style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          backgroundColor: '#f7f5ef',
+                          border: '1px solid #e5dfd5',
                           borderRadius: '4px',
                           padding: '0.85rem',
                           textAlign: 'center'
                         }}>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-light-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                          <div style={{ fontSize: '0.68rem', color: '#4a4c54', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
                             2nd Instalment
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#767982', marginBottom: '5px' }}>
                             in 30 Days
                           </div>
-                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                          <div style={{ fontSize: '1rem', color: '#121316', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
                             {formatLKR(kokoInstalmentLKR)}
                           </div>
                         </div>
 
                         <div style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          backgroundColor: '#f7f5ef',
+                          border: '1px solid #e5dfd5',
                           borderRadius: '4px',
                           padding: '0.85rem',
                           textAlign: 'center'
                         }}>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-light-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
+                          <div style={{ fontSize: '0.68rem', color: '#4a4c54', fontWeight: 700, textTransform: 'uppercase', marginBottom: '3px' }}>
                             3rd Instalment
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginBottom: '5px' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#767982', marginBottom: '5px' }}>
                             in 60 Days
                           </div>
-                          <div style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                          <div style={{ fontSize: '1rem', color: '#121316', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
                             {formatLKR(kokoInstalmentLKR)}
                           </div>
                         </div>
@@ -1739,8 +1739,8 @@ export const CheckoutPage = ({
 
                       {/* Important Surcharge Disclosure Banner */}
                       <div style={{
-                        backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                        border: '1px solid rgba(197, 160, 89, 0.35)',
+                        backgroundColor: '#fbf6ec',
+                        border: '1px solid rgba(197, 160, 89, 0.45)',
                         borderRadius: '4px',
                         padding: '0.9rem 1.1rem',
                         marginBottom: '1rem',
@@ -1748,9 +1748,9 @@ export const CheckoutPage = ({
                         alignItems: 'flex-start',
                         gap: '0.75rem'
                       }}>
-                        <AlertCircle size={17} color="var(--gold-bright)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <div style={{ fontSize: '0.78rem', lineHeight: 1.5, color: '#e5e7eb' }}>
-                          <strong style={{ color: 'var(--gold-bright)', display: 'block', marginBottom: '2px' }}>
+                        <AlertCircle size={17} color="#8f6f32" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ fontSize: '0.78rem', lineHeight: 1.5, color: '#3a3528' }}>
+                          <strong style={{ color: '#8f6f32', display: 'block', marginBottom: '2px' }}>
                             Koko BNPL Processing Surcharge (+12%) Notice:
                           </strong>
                           An additional <strong>12% merchant processing fee (+{formatLKR(kokoSurchargeLKR)})</strong> is applied at checkout for Koko Buy Now Pay Later handling. 
@@ -1758,8 +1758,8 @@ export const CheckoutPage = ({
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                        <ShieldCheck size={14} color="var(--gold-bright)" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#767982' }}>
+                        <ShieldCheck size={14} color="#8f6f32" />
                         <span>Instant digital verification via Koko portal. No manual slip or deposit receipt needed.</span>
                       </div>
 
@@ -1767,10 +1767,10 @@ export const CheckoutPage = ({
                         <div style={{
                           marginTop: '0.75rem',
                           padding: '0.65rem 0.85rem',
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          backgroundColor: 'rgba(239, 68, 68, 0.08)',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           borderRadius: '3px',
-                          color: '#f87171',
+                          color: '#dc2626',
                           fontSize: '0.76rem'
                         }}>
                           {cardPaymentError}
@@ -1779,17 +1779,15 @@ export const CheckoutPage = ({
                     </div>
                   )}
 
-
-
                   {/* 1. LankaQR Payment Method Details */}
                   {paymentMethod === 'qr' && (
                     <div className="checkout-qr-card">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5dfd5' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <LankaQrLogo style={{ height: '24px' }} />
-                          <span style={{ fontSize: '0.86rem', color: '#ffffff', fontWeight: 700 }}>National LankaQR Instant Transfer</span>
+                          <span style={{ fontSize: '0.86rem', color: '#121316', fontWeight: 700 }}>National LankaQR Instant Transfer</span>
                         </div>
-                        <span style={{ fontSize: '0.66rem', color: '#4ade80', backgroundColor: 'rgba(74, 222, 128, 0.12)', border: '1px solid rgba(74, 222, 128, 0.3)', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                        <span style={{ fontSize: '0.66rem', color: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', border: '1px solid rgba(22, 163, 74, 0.3)', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
                           ZERO FEES • INSTANT
                         </span>
                       </div>
@@ -1829,7 +1827,7 @@ export const CheckoutPage = ({
 
                         {/* Amount Due & Copy Helper */}
                         <div className="checkout-qr-info">
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                             TOTAL PAYABLE AMOUNT
                           </div>
                           
@@ -1842,9 +1840,9 @@ export const CheckoutPage = ({
                               type="button"
                               onClick={handleCopyAmount}
                               style={{
-                                backgroundColor: copiedAmount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                                border: copiedAmount ? '1px solid #4ade80' : '1px solid rgba(255, 255, 255, 0.12)',
-                                color: copiedAmount ? '#4ade80' : '#ffffff',
+                                backgroundColor: copiedAmount ? 'rgba(22, 163, 74, 0.1)' : '#ffffff',
+                                border: copiedAmount ? '1px solid #16a34a' : '1px solid #d4cdc3',
+                                color: copiedAmount ? '#16a34a' : '#121316',
                                 padding: '6px 12px',
                                 borderRadius: '3px',
                                 fontSize: '0.74rem',
@@ -1861,8 +1859,8 @@ export const CheckoutPage = ({
                             </button>
                           </div>
 
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', lineHeight: 1.45, marginTop: '0.2rem' }}>
-                            Merchant: <strong style={{ color: '#ffffff' }}>ELVANY WEAR</strong><br />
+                          <div style={{ fontSize: '0.74rem', color: '#4a4c54', lineHeight: 1.45, marginTop: '0.2rem' }}>
+                            Merchant: <strong style={{ color: '#121316' }}>ELVANY WEAR</strong><br />
                             Accepted via any Sri Lankan Banking or FinTech app (e.g. Commercial Flash, FriMi, Genie, Sampath Vishwa, etc).
                           </div>
                         </div>
@@ -1870,7 +1868,7 @@ export const CheckoutPage = ({
 
                       {/* Streamlined Step-by-Step Guide */}
                       <div className="checkout-qr-steps">
-                        <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#8f6f32', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <Sparkles size={13} />
                           <span>QUICK PAYMENT STEPS</span>
                         </div>
@@ -1889,9 +1887,9 @@ export const CheckoutPage = ({
                         
                         {!paymentSlipPreview ? (
                           <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
-                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
-                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Screenshot</span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
+                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : '#8f6f32'} />
+                            <span style={{ fontSize: '0.82rem', color: '#121316', fontWeight: 600 }}>Click to Select or Upload Payment Screenshot</span>
+                            <span style={{ fontSize: '0.72rem', color: '#767982' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
@@ -1905,11 +1903,11 @@ export const CheckoutPage = ({
                               <img 
                                 src={paymentSlipPreview} 
                                 alt="Payment receipt screenshot" 
-                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }} 
+                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid #d4cdc3' }} 
                               />
                               <div>
-                                <div style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'QR_Payment_Receipt.png'}</div>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for immediate concierge dispatch</div>
+                                <div style={{ fontSize: '0.82rem', color: '#121316', fontWeight: 600 }}>{paymentSlipFile?.name || 'QR_Payment_Receipt.png'}</div>
+                                <div style={{ fontSize: '0.72rem', color: '#8f6f32' }}>✓ Receipt attached for immediate concierge dispatch</div>
                               </div>
                             </div>
 
@@ -1919,7 +1917,7 @@ export const CheckoutPage = ({
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: 'var(--text-light-muted)',
+                                color: '#767982',
                                 cursor: 'pointer',
                                 padding: '4px',
                                 display: 'flex',
@@ -1937,11 +1935,11 @@ export const CheckoutPage = ({
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
                             border: '1px solid #ef4444',
                             padding: '0.75rem 1rem',
                             borderRadius: '3px',
-                            color: '#f87171',
+                            color: '#dc2626',
                             fontSize: '0.76rem',
                             marginTop: '0.75rem',
                             fontWeight: 600
@@ -1958,7 +1956,7 @@ export const CheckoutPage = ({
                   {/* 2. Direct Bank Transfer Option Details */}
                   {paymentMethod === 'bank' && (
                     <div className="checkout-bank-details">
-                      <div style={{ color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '0.9rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ color: '#8f6f32', fontWeight: 700, letterSpacing: '0.12em', marginBottom: '0.9rem', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Building2 size={16} />
                         <span>ELVANY Official Bank Account</span>
                       </div>
@@ -1967,29 +1965,29 @@ export const CheckoutPage = ({
                       <div className="checkout-bank-card-inner">
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1rem', marginBottom: '1rem', fontSize: '0.82rem' }}>
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BENEFICIARY</span>
-                            <strong style={{ color: '#ffffff', fontSize: '0.92rem' }}>P C Jayaweera</strong>
+                            <span style={{ fontSize: '0.7rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BENEFICIARY</span>
+                            <strong style={{ color: '#121316', fontSize: '0.92rem' }}>P C Jayaweera</strong>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BANK & BRANCH</span>
-                            <strong style={{ color: '#ffffff' }}>Hatton National Bank (HNB)</strong>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>Kurunegala Branch (019)</div>
+                            <span style={{ fontSize: '0.7rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>BANK & BRANCH</span>
+                            <strong style={{ color: '#121316' }}>Hatton National Bank (HNB)</strong>
+                            <div style={{ fontSize: '0.74rem', color: '#767982' }}>Kurunegala Branch (019)</div>
                           </div>
                         </div>
 
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <div style={{ borderTop: '1px solid #e5dfd5', paddingTop: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                           <div>
-                            <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ACCOUNT NUMBER</span>
-                            <strong style={{ color: '#ffffff', fontSize: '1.15rem', letterSpacing: '0.06em', fontFamily: 'var(--font-display)' }}>019020601780</strong>
+                            <span style={{ fontSize: '0.68rem', color: '#8f6f32', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>ACCOUNT NUMBER</span>
+                            <strong style={{ color: '#121316', fontSize: '1.15rem', letterSpacing: '0.06em', fontFamily: 'var(--font-display)' }}>019020601780</strong>
                           </div>
 
                           <button
                             type="button"
                             onClick={() => handleCopyAccount('019020601780')}
                             style={{
-                              backgroundColor: copiedAccount ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255,255,255,0.08)',
-                              border: copiedAccount ? '1px solid #4ade80' : '1px solid rgba(255,255,255,0.12)',
-                              color: copiedAccount ? '#4ade80' : '#ffffff',
+                              backgroundColor: copiedAccount ? 'rgba(22, 163, 74, 0.1)' : '#ffffff',
+                              border: copiedAccount ? '1px solid #16a34a' : '1px solid #d4cdc3',
+                              color: copiedAccount ? '#16a34a' : '#121316',
                               padding: '5px 11px',
                               borderRadius: '3px',
                               fontSize: '0.72rem',
@@ -2005,8 +2003,8 @@ export const CheckoutPage = ({
                           </button>
                         </div>
 
-                        <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-light-muted)' }}>
-                          Payment Reference: <strong style={{ color: 'var(--gold-bright)' }}>Your Name / Mobile Number</strong>
+                        <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#767982' }}>
+                          Payment Reference: <strong style={{ color: '#8f6f32' }}>Your Name / Mobile Number</strong>
                         </div>
                       </div>
 
@@ -2016,9 +2014,9 @@ export const CheckoutPage = ({
                         
                         {!paymentSlipPreview ? (
                           <label className={`checkout-dropzone ${slipUploadError ? 'has-error' : ''}`}>
-                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : 'var(--gold-bright)'} />
-                            <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>Click to Select or Upload Payment Slip</span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
+                            <UploadCloud size={26} color={slipUploadError ? '#ef4444' : '#8f6f32'} />
+                            <span style={{ fontSize: '0.82rem', color: '#121316', fontWeight: 600 }}>Click to Select or Upload Payment Slip</span>
+                            <span style={{ fontSize: '0.72rem', color: '#767982' }}>webp, PNG, WEBP, PDF (Max 10MB)</span>
                             <input 
                               type="file" 
                               accept="image/*,application/pdf" 
@@ -2032,11 +2030,11 @@ export const CheckoutPage = ({
                               <img 
                                 src={paymentSlipPreview} 
                                 alt="Slip preview" 
-                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }} 
+                                style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '3px', border: '1px solid #d4cdc3' }} 
                               />
                               <div>
-                                <div style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Receipt attached for concierge verification</div>
+                                <div style={{ fontSize: '0.82rem', color: '#121316', fontWeight: 600 }}>{paymentSlipFile?.name || 'Payment_Slip.png'}</div>
+                                <div style={{ fontSize: '0.72rem', color: '#8f6f32' }}>✓ Receipt attached for concierge verification</div>
                               </div>
                             </div>
 
@@ -2046,7 +2044,7 @@ export const CheckoutPage = ({
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: 'var(--text-light-muted)',
+                                color: '#767982',
                                 cursor: 'pointer',
                                 padding: '4px',
                                 display: 'flex',
@@ -2064,11 +2062,11 @@ export const CheckoutPage = ({
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
                             border: '1px solid #ef4444',
                             padding: '0.75rem 1rem',
                             borderRadius: '3px',
-                            color: '#f87171',
+                            color: '#dc2626',
                             fontSize: '0.76rem',
                             marginTop: '0.75rem',
                             fontWeight: 600
@@ -2156,11 +2154,11 @@ export const CheckoutPage = ({
           <div>
             <div className="checkout-summary-card">
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.85rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.25rem', borderBottom: '1px solid #e5dfd5', paddingBottom: '0.85rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#121316', margin: 0, fontWeight: 400 }}>
                   Acquisition Ledger
                 </h3>
-                <span style={{ fontSize: '0.74rem', color: 'var(--gold-bright)', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '0.74rem', color: '#8f6f32', letterSpacing: '0.1em', fontWeight: 600 }}>
                   {totalItemsCount} {totalItemsCount === 1 ? 'PIECE' : 'PIECES'}
                 </span>
               </div>
@@ -2180,12 +2178,12 @@ export const CheckoutPage = ({
                     <div key={idx} className="checkout-summary-item" style={{ alignItems: 'flex-start' }}>
                       <div 
                         className="checkout-summary-item-img"
-                        style={{ width: '56px', height: '68px', cursor: isBespoke ? 'pointer' : 'default' }}
+                        style={{ width: '56px', height: '68px', cursor: isBespoke ? 'pointer' : 'default', backgroundColor: '#f7f5ef', border: '1px solid #e2ddd5' }}
                         onClick={() => isBespoke && setInspectedBespokeItem(item)}
                         title={isBespoke ? 'Click to inspect 4-sides blueprint' : ''}
                       >
                         <img src={displayImg} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                        <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'var(--gold-bright)', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
+                        <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#c5a059', color: '#000000', fontSize: '0.62rem', fontWeight: 800, padding: '1px 4px', borderRadius: '0 0 0 2px' }}>
                           {item.qty || 1}
                         </span>
                         {isBespoke && (
@@ -2196,15 +2194,15 @@ export const CheckoutPage = ({
                       </div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: '#ffffff', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: '#121316', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.name}
                         </h4>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#767982' }}>
                           {item.selectedSize || item.size} • {item.color}
                         </div>
                         {item.isOfferApplied && (
-                          <span style={{ fontSize: '0.64rem', color: 'var(--gold-bright)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px', background: 'transparent', border: 'none', padding: 0 }}>
-                            <Tag size={10} color="var(--gold-bright)" />
+                          <span style={{ fontSize: '0.64rem', color: '#8f6f32', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px', background: 'transparent', border: 'none', padding: 0 }}>
+                            <Tag size={10} color="#8f6f32" />
                             <span>PRIVILEGE APPLIED ({item.offerCode || 'PROMO'})</span>
                           </span>
                         )}
@@ -2218,8 +2216,8 @@ export const CheckoutPage = ({
                                 type="button"
                                 onClick={() => setActiveAngles(prev => ({ ...prev, [itemKey]: ang }))}
                                 style={{
-                                  background: currentAngle === ang ? 'var(--gold-bright)' : 'rgba(255,255,255,0.08)',
-                                  color: currentAngle === ang ? '#000' : '#ffffff',
+                                  background: currentAngle === ang ? '#c5a059' : '#f4eee2',
+                                  color: currentAngle === ang ? '#000' : '#121316',
                                   border: 'none',
                                   borderRadius: '2px',
                                   padding: '2px 6px',
@@ -2236,9 +2234,9 @@ export const CheckoutPage = ({
                               type="button"
                               onClick={() => setInspectedBespokeItem(item)}
                               style={{
-                                background: 'rgba(197, 160, 89, 0.15)',
-                                color: 'var(--gold-bright)',
-                                border: '1px solid rgba(197, 160, 89, 0.3)',
+                                background: '#fbf8f2',
+                                color: '#8f6f32',
+                                border: '1px solid #b58d42',
                                 borderRadius: '2px',
                                 padding: '2px 5px',
                                 fontSize: '0.6rem',
@@ -2258,11 +2256,11 @@ export const CheckoutPage = ({
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', color: '#8f6f32', fontWeight: 700 }}>
                           {formatLKR(getPrice(item) * (item.qty || 1))}
                         </div>
                         {item.isOfferApplied && item.originalPriceLKR && (
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#9ca3af', textDecoration: 'line-through' }}>
                             {formatLKR(item.originalPriceLKR * (item.qty || 1))}
                           </div>
                         )}
@@ -2276,19 +2274,19 @@ export const CheckoutPage = ({
               <div style={{
                 margin: '1.2rem 0',
                 padding: '0.9rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(197, 160, 89, 0.25)',
+                backgroundColor: '#fbf8f2',
+                border: '1px solid rgba(197, 160, 89, 0.45)',
                 borderRadius: '3px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Ticket size={13} color="var(--gold-bright)" />
-                    <span style={{ fontSize: '0.72rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    <Ticket size={13} color="#8f6f32" />
+                    <span style={{ fontSize: '0.72rem', color: '#121316', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       Voucher / Gift Card
                     </span>
                   </div>
                   {appliedVoucher && (
-                    <span style={{ fontSize: '0.65rem', color: '#4ade80', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: 700, letterSpacing: '0.04em' }}>
                       ✓ APPLIED
                     </span>
                   )}
@@ -2300,17 +2298,17 @@ export const CheckoutPage = ({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '0.55rem 0.75rem',
-                    backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                    border: '1px solid var(--gold-bright)',
+                    backgroundColor: '#f6f0e2',
+                    border: '1px solid #c5a059',
                     borderRadius: '2px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Tag size={13} color="var(--gold-bright)" />
+                      <Tag size={13} color="#8f6f32" />
                       <div>
-                        <div style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.06em' }}>
+                        <div style={{ fontSize: '0.82rem', color: '#8f6f32', fontWeight: 700, letterSpacing: '0.06em' }}>
                           {appliedVoucher.code}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>
+                        <div style={{ fontSize: '0.68rem', color: '#767982' }}>
                           {appliedVoucher.discountType === 'percentage' 
                             ? `${appliedVoucher.discountValue}% Privileged Deduction` 
                             : `LKR ${Number(appliedVoucher.discountValue || 0).toLocaleString()} Off Acquisition`}
@@ -2324,7 +2322,7 @@ export const CheckoutPage = ({
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--text-light-muted)',
+                        color: '#767982',
                         cursor: 'pointer',
                         padding: '4px',
                         display: 'flex',
@@ -2341,7 +2339,7 @@ export const CheckoutPage = ({
                       <div style={{
                         marginBottom: '0.75rem',
                         padding: '0.2rem 0',
-                        color: '#f87171',
+                        color: '#ef4444',
                         fontSize: '0.72rem',
                         display: 'flex',
                         alignItems: 'flex-start',
@@ -2375,11 +2373,11 @@ export const CheckoutPage = ({
                         }}
                         style={{
                           flex: 1,
-                          backgroundColor: rateLimitLock?.isLocked ? '#121316' : '#07080a',
-                          border: voucherError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.15)',
+                          backgroundColor: rateLimitLock?.isLocked ? '#f5f5f5' : '#ffffff',
+                          border: voucherError ? '1px solid #ef4444' : '1px solid #d4cdc3',
                           borderRadius: '2px',
                           padding: '0.55rem 0.75rem',
-                          color: rateLimitLock?.isLocked ? 'rgba(255,255,255,0.3)' : '#ffffff',
+                          color: rateLimitLock?.isLocked ? '#9ca3af' : '#121316',
                           fontSize: '0.76rem',
                           letterSpacing: '0.08em',
                           textTransform: 'uppercase',
@@ -2393,8 +2391,8 @@ export const CheckoutPage = ({
                         onClick={handleApplyVoucher}
                         disabled={isCheckingVoucher || !voucherInput.trim() || rateLimitLock?.isLocked}
                         style={{
-                          backgroundColor: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#c5a059' : 'rgba(255,255,255,0.08)',
-                          color: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#000000' : 'rgba(255,255,255,0.4)',
+                          backgroundColor: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#c5a059' : '#eae6dd',
+                          color: (voucherInput.trim() && !rateLimitLock?.isLocked) ? '#000000' : '#9ca3af',
                           border: 'none',
                           borderRadius: '2px',
                           padding: '0.55rem 1rem',
@@ -2417,7 +2415,7 @@ export const CheckoutPage = ({
                     </div>
 
                     {voucherError && !rateLimitLock?.isLocked && (
-                      <div style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#ef4444', marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <AlertCircle size={12} />
                         <span>{voucherError}</span>
                       </div>
@@ -2427,48 +2425,48 @@ export const CheckoutPage = ({
               </div>
 
               {/* Ledger Totals */}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+              <div style={{ borderTop: '1px solid #e5dfd5', paddingTop: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.82rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4a4c54' }}>
                   <span>Garment Subtotal:</span>
-                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{formatLKR(subtotal)}</span>
+                  <span style={{ color: '#121316', fontWeight: 600 }}>{formatLKR(subtotal)}</span>
                 </div>
 
                 {totalSavings > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8f6f32' }}>
                     <span>Special Privilege Savings:</span>
                     <span style={{ fontWeight: 700 }}>-LKR {totalSavings.toLocaleString()}</span>
                   </div>
                 )}
 
                 {appliedVoucher && voucherDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4ade80' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
                     <span>Atelier Voucher ({appliedVoucher.code}):</span>
                     <span style={{ fontWeight: 700 }}>-LKR {voucherDiscount.toLocaleString()}</span>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4a4c54' }}>
                   <span>Island-Wide Courier Delivery:</span>
-                  <span style={{ color: deliveryFee === 0 ? 'var(--gold-bright)' : '#ffffff', fontWeight: 700 }}>
+                  <span style={{ color: deliveryFee === 0 ? '#8f6f32' : '#121316', fontWeight: 700 }}>
                     {deliveryFee === 0 ? 'COMPLIMENTARY' : formatLKR(deliveryFee)}
                   </span>
                 </div>
 
                 {isKoko && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8f6f32' }}>
                     <span>Koko BNPL Surcharge (12%):</span>
                     <span style={{ fontWeight: 700 }}>+{formatLKR(kokoSurchargeLKR)}</span>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-light-secondary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4a4c54' }}>
                   <span>Import Taxes & Atelier VAT:</span>
-                  <span style={{ color: '#ffffff' }}>INCLUDED</span>
+                  <span style={{ color: '#121316' }}>INCLUDED</span>
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '0.4rem', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: 600 }}>Total Settled:</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--gold-bright)', fontWeight: 800 }}>
+                <div style={{ borderTop: '1px solid #e5dfd5', marginTop: '0.4rem', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '0.95rem', color: '#121316', fontWeight: 600 }}>Total Settled:</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: '#8f6f32', fontWeight: 800 }}>
                     {formatLKR(grandTotal)}
                   </span>
                 </div>
@@ -2477,28 +2475,28 @@ export const CheckoutPage = ({
                   <div style={{
                     marginTop: '0.4rem',
                     padding: '0.55rem 0.75rem',
-                    backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                    border: '1px solid rgba(197, 160, 89, 0.3)',
+                    backgroundColor: '#fbf6ec',
+                    border: '1px solid rgba(197, 160, 89, 0.45)',
                     borderRadius: '4px',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '0.74rem'
                   }}>
-                    <span style={{ color: 'var(--text-light-secondary)' }}>3x Monthly Payments:</span>
-                    <span style={{ color: 'var(--gold-bright)', fontWeight: 700 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
+                    <span style={{ color: '#4a4c54' }}>3x Monthly Payments:</span>
+                    <span style={{ color: '#8f6f32', fontWeight: 700 }}>3 x {formatLKR(kokoInstalmentLKR)} / mo</span>
                   </div>
                 )}
               </div>
 
               {/* Trust Assurances */}
-              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5dfd5', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.72rem', color: '#767982' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <ShieldCheck size={14} color="var(--gold-bright)" />
+                  <ShieldCheck size={14} color="#8f6f32" />
                   <span>256-Bit Encrypted</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Clock size={14} color="var(--gold-bright)" />
+                  <Clock size={14} color="#8f6f32" />
                   <span>7-Day Fit Guarantee</span>
                 </div>
               </div>
@@ -2520,19 +2518,19 @@ export const CheckoutPage = ({
           <div 
             className="fitting-dialog"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', borderRadius: '4px', padding: '1.8rem', boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8f6f32', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
                   <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#121316', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
                 </h3>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
-                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                <div style={{ fontSize: '0.78rem', color: '#4a4c54' }}>
+                  Code: <strong style={{ color: '#8f6f32' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
                 </div>
               </div>
 
@@ -2557,21 +2555,21 @@ export const CheckoutPage = ({
                 <div 
                   key={panel.key}
                   style={{
-                    backgroundColor: '#07080a',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    backgroundColor: '#fbf8f2',
+                    border: '1px solid #e5dfd5',
                     borderRadius: '3px',
                     padding: '8px',
                     textAlign: 'center'
                   }}
                 >
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', marginBottom: '6px' }}>
                     <img 
                       src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: '0.68rem', color: '#8f6f32', fontWeight: 700, letterSpacing: '0.08em' }}>
                     {panel.label}
                   </div>
                 </div>
@@ -2579,13 +2577,13 @@ export const CheckoutPage = ({
             </div>
 
             {/* Placements & Notes */}
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+            <div style={{ backgroundColor: '#f8f5ee', border: '1px solid #e5dfd5', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: '#4a4c54' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
-                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
+                <span>Custom Prints: <strong style={{ color: '#121316' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: '#8f6f32' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
-                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #e5dfd5', fontStyle: 'italic', color: '#121316' }}>
                   "{inspectedBespokeItem.customNotes}"
                 </div>
               )}

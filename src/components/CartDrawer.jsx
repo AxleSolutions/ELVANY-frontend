@@ -73,7 +73,7 @@ export const CartDrawer = ({
         {/* Cart Drawer Header */}
         <div className="cart-header">
           <div className="cart-title-group">
-            <ShoppingBag size={18} color="var(--gold-bright)" />
+            <ShoppingBag size={18} color="var(--gold-dark)" />
             <h3 className="cart-title">
               {orderConfirmedData ? 'ORDER PASSPORT' : `SHOPPING BAG (${totalItemsCount})`}
             </h3>
@@ -145,12 +145,12 @@ export const CartDrawer = ({
             {/* Free Courier Telemetry Progress Banner */}
             <div className="cart-shipping-banner">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Sparkles size={14} color="var(--gold-bright)" />
+                <Sparkles size={14} color="var(--gold-dark)" />
                 <span>
                   {subtotal >= freeShippingThreshold ? (
-                    <strong style={{ color: 'var(--gold-bright)' }}>Complimentary Island-Wide Courier Applied</strong>
+                    <strong style={{ color: '#96763a' }}>Complimentary Island-Wide Courier Applied</strong>
                   ) : (
-                    <span>Add <strong style={{ color: 'var(--gold-bright)' }}>{formatLKR(freeShippingThreshold - subtotal)}</strong> for Free Courier</span>
+                    <span>Add <strong style={{ color: '#96763a' }}>{formatLKR(freeShippingThreshold - subtotal)}</strong> for Free Courier</span>
                   )}
                 </span>
               </div>
@@ -167,7 +167,7 @@ export const CartDrawer = ({
               {cartItems.length === 0 ? (
                 <div className="cart-empty-state">
                   <div className="cart-empty-icon-wrap">
-                    <ShoppingBag size={34} color="var(--gold-bright)" />
+                    <ShoppingBag size={34} color="var(--gold-dark)" />
                   </div>
                   <h4 className="cart-empty-title">Your shopping bag is empty</h4>
                   <p className="cart-empty-desc">
@@ -242,12 +242,12 @@ export const CartDrawer = ({
                               <h4 className="cart-item-name">{itemName}</h4>
                               {isBespoke && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
-                                  <span className="cart-item-offer-pill" style={{ backgroundColor: 'rgba(197, 160, 89, 0.15)', color: 'var(--gold-bright)', borderColor: 'rgba(197, 160, 89, 0.4)' }}>
+                                  <span className="cart-item-offer-pill" style={{ backgroundColor: 'rgba(197, 160, 89, 0.15)', color: '#96763a', borderColor: 'rgba(197, 160, 89, 0.4)' }}>
                                     <Sparkles size={10} />
                                     <span>BESPOKE ATELIER LAB</span>
                                   </span>
                                   {item.designCode && (
-                                    <span style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                                    <span style={{ fontSize: '0.66rem', color: '#575960', fontFamily: 'var(--font-mono, monospace)' }}>
                                       #{item.designCode}
                                     </span>
                                   )}
@@ -255,7 +255,7 @@ export const CartDrawer = ({
                               )}
                               {item.isOfferApplied && (
                                 <span className="cart-item-offer-pill" style={{ background: 'transparent', border: 'none', padding: 0 }}>
-                                  <Tag size={10} color="var(--gold-bright)" />
+                                  <Tag size={10} color="#b45309" />
                                   <span>PRIVILEGE APPLIED ({item.offerCode || 'PROMO'})</span>
                                 </span>
                               )}
@@ -299,13 +299,12 @@ export const CartDrawer = ({
                           <div className="cart-item-meta-tags">
                             <span className="cart-meta-pill">Size: <strong>{itemSize}</strong></span>
                             <span className="cart-meta-pill">Color: {item.color || 'Onyx Black'}</span>
-                            {item.fabric && <span className="cart-meta-pill">{item.fabric}</span>}
                           </div>
 
                           {item.customPlacements && item.customPlacements.length > 0 && (
-                            <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', marginTop: '2px', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ fontSize: '0.68rem', color: '#96763a', marginTop: '2px', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span>Prints ({item.customPlacements.length}):</span>
-                              <strong style={{ color: '#fff' }}>{item.customPlacements.join(' • ')}</strong>
+                              <strong style={{ color: '#121316' }}>{item.customPlacements.join(' • ')}</strong>
                             </div>
                           )}
 
@@ -344,12 +343,12 @@ export const CartDrawer = ({
 
                                 <div className="cart-item-price-wrap">
                                   {itemMaxStock <= 3 && (
-                                    <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 600, display: 'block' }}>
+                                    <span style={{ fontSize: '0.68rem', color: '#b45309', fontWeight: 600, display: 'block' }}>
                                       {itemMaxStock === 1 ? 'Last piece in stock' : `Only ${itemMaxStock} left`}
                                     </span>
                                   )}
                                   {hasDiscount && (
-                                    <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 600, marginBottom: '2px', display: 'block' }}>
+                                    <span style={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600, marginBottom: '2px', display: 'block' }}>
                                       Save {formatLKR(itemSavings)}
                                     </span>
                                   )}
@@ -387,9 +386,9 @@ export const CartDrawer = ({
                       <span>{formatLKR(originalSubtotal)}</span>
                     </div>
 
-                    <div className="cart-subtotal-row sub" style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>
+                    <div className="cart-subtotal-row sub" style={{ color: '#b45309', fontWeight: 600 }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Tag size={13} color="var(--gold-bright)" />
+                        <Tag size={13} color="#b45309" />
                         <span>Privilege Savings Applied</span>
                       </span>
                       <span>-{formatLKR(totalSavings)}</span>
@@ -404,7 +403,7 @@ export const CartDrawer = ({
 
                 <div className="cart-subtotal-row sub">
                   <span>Island-Wide Delivery</span>
-                  <span style={{ color: 'var(--gold-bright)', fontWeight: 600 }}>
+                  <span style={{ color: '#96763a', fontWeight: 600 }}>
                     {subtotal >= freeShippingThreshold ? 'Complimentary Courier' : `LKR 450 (Free over ${formatLKR(freeShippingThreshold)})`}
                   </span>
                 </div>
@@ -433,19 +432,19 @@ export const CartDrawer = ({
           <div 
             className="fitting-dialog"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#ffffff', border: '1px solid rgba(197, 160, 89, 0.35)', borderRadius: '4px', padding: '1.8rem', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#96763a', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
                   <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#121316', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
                 </h3>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
-                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                <div style={{ fontSize: '0.78rem', color: '#575960' }}>
+                  Code: <strong style={{ color: '#96763a' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
                 </div>
               </div>
 
@@ -453,7 +452,7 @@ export const CartDrawer = ({
                 type="button" 
                 className="modal-close-icon" 
                 onClick={() => setInspectedBespokeItem(null)}
-                style={{ position: 'static' }}
+                style={{ position: 'static', color: '#121316' }}
               >
                 <X size={20} />
               </button>
@@ -470,21 +469,21 @@ export const CartDrawer = ({
                 <div 
                   key={panel.key}
                   style={{
-                    backgroundColor: '#07080a',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    backgroundColor: '#faf8f5',
+                    border: '1px solid rgba(0,0,0,0.08)',
                     borderRadius: '3px',
                     padding: '8px',
                     textAlign: 'center'
                   }}
                 >
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#f1ede6', marginBottom: '6px' }}>
                     <img 
                       src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: '0.68rem', color: '#96763a', fontWeight: 700, letterSpacing: '0.08em' }}>
                     {panel.label}
                   </div>
                 </div>
@@ -492,13 +491,13 @@ export const CartDrawer = ({
             </div>
 
             {/* Placements & Notes */}
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+            <div style={{ backgroundColor: '#f9f8f5', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: '#575960' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
-                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
+                <span>Custom Prints: <strong style={{ color: '#121316' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: '#96763a' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
-                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(0,0,0,0.06)', fontStyle: 'italic', color: '#121316' }}>
                   "{inspectedBespokeItem.customNotes}"
                 </div>
               )}

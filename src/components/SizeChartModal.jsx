@@ -30,9 +30,9 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(5, 6, 8, 0.92)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backgroundColor: 'rgba(18, 19, 22, 0.65)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         zIndex: 99999,
         overflowY: 'auto',
         display: 'flex',
@@ -54,12 +54,12 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           maxWidth: '480px',
           maxHeight: '94vh',
           margin: '0 auto',
-          backgroundColor: '#0c0d12',
-          border: '1px solid var(--gold-border)',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e2ddd5',
           borderRadius: '4px',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(197, 160, 89, 0.15)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.18)',
           animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           overflow: 'hidden'
         }}
@@ -76,9 +76,9 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             width: '30px',
             height: '30px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            color: '#ffffff',
+            backgroundColor: '#f8f6f0',
+            border: '1px solid #e2ddd5',
+            color: '#121316',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -87,13 +87,13 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--gold-bright)';
-            e.currentTarget.style.color = '#000000';
+            e.currentTarget.style.backgroundColor = '#8f6f32';
+            e.currentTarget.style.color = '#ffffff';
             e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.backgroundColor = '#f8f6f0';
+            e.currentTarget.style.color = '#121316';
             e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
           }}
         >
@@ -102,17 +102,17 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
 
         {/* Modal Header */}
         <div style={{
-          padding: '0.75rem 1rem',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'linear-gradient(180deg, rgba(197, 160, 89, 0.08) 0%, transparent 100%)',
+          padding: '0.85rem 1.1rem',
+          borderBottom: '1px solid #e5dfd5',
+          backgroundColor: '#fcfaf6',
           flexShrink: 0
         }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            color: 'var(--gold-bright)',
-            fontSize: '0.64rem',
+            color: '#8f6f32',
+            fontSize: '0.66rem',
             fontWeight: 700,
             letterSpacing: '0.18em',
             textTransform: 'uppercase'
@@ -122,9 +122,9 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           </div>
           <h2 style={{
             fontFamily: 'var(--font-serif)',
-            fontSize: '1.15rem',
-            color: '#ffffff',
-            fontWeight: 400,
+            fontSize: '1.2rem',
+            color: '#121316',
+            fontWeight: 600,
             margin: '2px 0 0 0'
           }}>
             Garment Dimension Chart
@@ -135,24 +135,23 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
         <div 
           data-lenis-prevent="true"
           style={{
-            padding: '0.75rem 1rem',
+            padding: '0.85rem 1.1rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.6rem',
             overflowY: 'auto'
           }}
         >
           <div style={{
             width: '100%',
-            backgroundColor: '#07080a',
-            border: '1px solid rgba(197, 160, 89, 0.2)',
-            borderRadius: '3px',
-            padding: '0.25rem',
+            backgroundColor: '#f8f6f0',
+            border: '1px solid #e2ddd5',
+            borderRadius: '4px',
+            padding: '0.35rem',
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            boxShadow: 'inset 0 0 30px rgba(0, 0, 0, 0.8)'
+            alignItems: 'center'
           }}>
             <img 
               src="/Size chart/sizechart.webp" 
@@ -177,12 +176,12 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             padding: '0 0.15rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.2rem'
+            gap: '0.25rem'
           }}>
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.4, margin: 0 }}>
-              * <strong style={{ color: '#ffffff' }}>Note:</strong> Measurements are for <strong>real t-shirts (in inches)</strong>, not body measurements.
+            <p style={{ color: '#62646c', fontSize: '0.78rem', lineHeight: 1.45, margin: 0 }}>
+              * <strong style={{ color: '#121316' }}>Note:</strong> Measurements are for <strong>real t-shirts (in inches)</strong>, not body measurements.
             </p>
-            <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.78rem', lineHeight: 1.4, margin: 0 }}>
+            <p style={{ color: '#62646c', fontSize: '0.78rem', lineHeight: 1.45, margin: 0 }}>
               * When purchasing <strong>baggy t-shirts</strong>, use your <strong>normal t-shirt size</strong>. We adjust the baggy fit for you.
             </p>
           </div>
@@ -190,9 +189,9 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
 
         {/* Modal Footer */}
         <div style={{
-          padding: '0.65rem 1rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: '#090a0d',
+          padding: '0.75rem 1.1rem',
+          borderTop: '1px solid #e5dfd5',
+          backgroundColor: '#fcfaf6',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -208,16 +207,17 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '5px',
-              padding: '0.45rem 0.8rem',
-              backgroundColor: 'rgba(197, 160, 89, 0.08)',
-              border: '1px solid var(--gold-border)',
-              color: 'var(--gold-bright)',
-              borderRadius: '2px',
-              fontSize: '0.7rem',
-              fontWeight: 600,
+              padding: '0.5rem 0.9rem',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dcc48e',
+              color: '#8f6f32',
+              borderRadius: '3px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
               textDecoration: 'none',
               letterSpacing: '0.04em',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
             }}
           >
             <MessageSquare size={12} />
@@ -229,8 +229,8 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="btn-primary-gold"
             style={{
-              padding: '0.45rem 1.1rem',
-              fontSize: '0.72rem',
+              padding: '0.5rem 1.2rem',
+              fontSize: '0.74rem',
               fontWeight: 700
             }}
           >

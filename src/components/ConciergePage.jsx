@@ -46,11 +46,11 @@ export const ConciergePage = () => {
               onClick={() => navigate('/')}
               style={{ marginBottom: 0 }}
             >
-              <Home size={14} color="var(--gold-bright)" />
+              <Home size={14} color="#8f6f32" />
               <span>HOME</span>
             </button>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+            <span style={{ color: '#d4cdc3' }}>/</span>
+            <span style={{ color: '#8f6f32', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               PRIVATE CLIENT CONCIERGE
             </span>
           </div>
@@ -79,10 +79,10 @@ export const ConciergePage = () => {
               </div>
 
               <div>
-                <div style={{ color: 'var(--gold-bright)', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.25rem' }}>
+                <div style={{ color: '#8f6f32', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.25rem' }}>
                   ELVANY ATELIER CONCIERGE
                 </div>
-                <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3.2vw, 2.3rem)', fontWeight: 400, color: '#ffffff', margin: 0 }}>
+                <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3.2vw, 2.3rem)', fontWeight: 400, color: '#121316', margin: 0 }}>
                   Private Client Advisory
                 </h1>
               </div>
@@ -106,30 +106,30 @@ export const ConciergePage = () => {
                   width: '42px',
                   height: '42px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                  border: '1px solid var(--gold-bright)',
+                  backgroundColor: '#fbf8f2',
+                  border: '1px solid #b58d42',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--gold-bright)',
+                  color: '#8f6f32',
                   flexShrink: 0
                 }}>
                   <Mail size={18} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <div style={{ fontSize: '0.66rem', color: '#8f6f32', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
                     DIRECT EMAIL CONCIERGE
                   </div>
                   <a 
                     href="mailto:elvanywear@gmail.com"
-                    style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: '#ffffff', fontWeight: 600, textDecoration: 'none' }}
+                    style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: '#121316', fontWeight: 600, textDecoration: 'none' }}
                   >
                     elvanywear@gmail.com
                   </a>
                 </div>
               </div>
 
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.82rem', color: '#4a4c54', lineHeight: 1.6, marginBottom: '1.5rem' }}>
                 Guaranteed priority response within 2 hours for styling recommendations, custom garment measurements, and order tracking.
               </p>
             </div>
@@ -149,9 +149,9 @@ export const ConciergePage = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  background: 'none',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: copiedEmail ? 'var(--gold-bright)' : 'var(--text-light-secondary)',
+                  background: copiedEmail ? 'rgba(22, 163, 74, 0.1)' : '#ffffff',
+                  border: copiedEmail ? '1px solid #16a34a' : '1px solid #d4cdc3',
+                  color: copiedEmail ? '#16a34a' : '#4a4c54',
                   padding: '0.75rem 1.2rem',
                   borderRadius: '3px',
                   fontSize: '0.76rem',
@@ -173,21 +173,21 @@ export const ConciergePage = () => {
                   width: '42px',
                   height: '42px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                  border: '1px solid var(--gold-bright)',
+                  backgroundColor: '#fbf8f2',
+                  border: '1px solid #b58d42',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'var(--gold-bright)',
+                  color: '#8f6f32',
                   flexShrink: 0
                 }}>
                   <Phone size={18} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <div style={{ fontSize: '0.66rem', color: '#8f6f32', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
                     DIRECT ADVISORY HOTLINES
                   </div>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#ffffff' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#121316' }}>
                     Voice & WhatsApp Concierge
                   </div>
                 </div>
@@ -196,15 +196,15 @@ export const ConciergePage = () => {
               {/* Primary Advisor */}
               <div className="concierge-advisor-row">
                 <div>
-                  <div style={{ fontSize: '0.64rem', color: 'var(--text-light-muted)', letterSpacing: '0.08em' }}>PRIMARY ADVISOR</div>
-                  <a href="tel:0719092726" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
+                  <div style={{ fontSize: '0.64rem', color: '#767982', letterSpacing: '0.08em' }}>PRIMARY ADVISOR</div>
+                  <a href="tel:0719092726" style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
                     071 909 2726
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: '0.45rem' }}>
                   <a
                     href="tel:0719092726"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#ffffff', background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '3px', textDecoration: 'none' }}
+                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#121316', background: '#ffffff', border: '1px solid #d4cdc3', borderRadius: '3px', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Call
                   </a>
@@ -212,7 +212,7 @@ export const ConciergePage = () => {
                     href="https://wa.me/94719092726"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.08)', border: '1px solid var(--gold-border)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
                   >
                     WhatsApp
                   </a>
@@ -222,15 +222,15 @@ export const ConciergePage = () => {
               {/* Secondary Advisor */}
               <div className="concierge-advisor-row" style={{ marginBottom: 0 }}>
                 <div>
-                  <div style={{ fontSize: '0.64rem', color: 'var(--text-light-muted)', letterSpacing: '0.08em' }}>SECONDARY ADVISOR</div>
-                  <a href="tel:0712529942" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
+                  <div style={{ fontSize: '0.64rem', color: '#767982', letterSpacing: '0.08em' }}>SECONDARY ADVISOR</div>
+                  <a href="tel:0712529942" style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
                     071 252 9942
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: '0.45rem' }}>
                   <a
                     href="tel:0712529942"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#ffffff', background: 'transparent', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '3px', textDecoration: 'none' }}
+                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#121316', background: '#ffffff', border: '1px solid #d4cdc3', borderRadius: '3px', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Call
                   </a>
@@ -238,7 +238,7 @@ export const ConciergePage = () => {
                     href="https://wa.me/94712529942"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.08)', border: '1px solid var(--gold-border)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
                   >
                     WhatsApp
                   </a>
@@ -252,42 +252,42 @@ export const ConciergePage = () => {
         {/* Atelier Operating Hours & Commitments Banner */}
         <div className="concierge-privileges-grid">
           <div className="concierge-privilege-item">
-            <Clock size={20} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
+            <Clock size={20} color="#8f6f32" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>OPERATING HOURS</div>
-              <div style={{ fontSize: '0.82rem', color: '#ffffff', marginTop: '2px' }}>Mon – Fri • 9:00 AM – 9:00 PM</div>
+              <div style={{ fontSize: '0.66rem', color: '#8f6f32', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>OPERATING HOURS</div>
+              <div style={{ fontSize: '0.82rem', color: '#121316', marginTop: '2px', fontWeight: 600 }}>Mon – Fri • 9:00 AM – 9:00 PM</div>
             </div>
           </div>
 
           <div className="concierge-privilege-item">
-            <PackageCheck size={20} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
+            <PackageCheck size={20} color="#8f6f32" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>ISLAND-WIDE COURIER</div>
-              <div style={{ fontSize: '0.82rem', color: '#ffffff', marginTop: '2px' }}>24 – 48 Hour White-Glove Dispatch</div>
+              <div style={{ fontSize: '0.66rem', color: '#8f6f32', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>ISLAND-WIDE COURIER</div>
+              <div style={{ fontSize: '0.82rem', color: '#121316', marginTop: '2px', fontWeight: 600 }}>24 – 48 Hour White-Glove Dispatch</div>
             </div>
           </div>
 
           <div className="concierge-privilege-item">
-            <ShieldCheck size={20} color="var(--gold-bright)" style={{ flexShrink: 0 }} />
+            <ShieldCheck size={20} color="#8f6f32" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>CONFIDENTIALITY</div>
-              <div style={{ fontSize: '0.82rem', color: '#ffffff', marginTop: '2px' }}>Private Client Discretion</div>
+              <div style={{ fontSize: '0.66rem', color: '#8f6f32', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>CONFIDENTIALITY</div>
+              <div style={{ fontSize: '0.82rem', color: '#121316', marginTop: '2px', fontWeight: 600 }}>Private Client Discretion</div>
             </div>
           </div>
         </div>
 
         {/* Frequently Answered Inquiries Accordion */}
         <div className="concierge-faq-card">
-          <div style={{ color: 'var(--gold-bright)', fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.25rem' }}>
+          <div style={{ color: '#8f6f32', fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.25rem' }}>
             FREQUENTLY ANSWERED INQUIRIES
           </div>
-          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.45rem', color: '#ffffff', marginBottom: '1.25rem', fontWeight: 400 }}>
+          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.45rem', color: '#121316', marginBottom: '1.25rem', fontWeight: 400 }}>
             Atelier Protocols & Services
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             {faqs.map((faq, idx) => (
-              <div key={idx} style={{ borderBottom: idx === faqs.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '0.85rem' }}>
+              <div key={idx} style={{ borderBottom: idx === faqs.length - 1 ? 'none' : '1px solid #e5dfd5', paddingBottom: '0.85rem' }}>
                 <button
                   type="button"
                   className={`concierge-faq-btn ${openFaq === idx ? 'active' : ''}`}
@@ -297,7 +297,7 @@ export const ConciergePage = () => {
                   <ChevronDown size={15} style={{ transform: openFaq === idx ? 'rotate(180deg)' : 'none', transition: 'var(--transition-fast)' }} />
                 </button>
                 {openFaq === idx && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', lineHeight: 1.65, marginTop: '0.4rem', margin: 0, paddingBottom: '0.4rem' }}>
+                  <p style={{ fontSize: '0.82rem', color: '#4a4c54', lineHeight: 1.65, marginTop: '0.4rem', margin: 0, paddingBottom: '0.4rem' }}>
                     {faq.a}
                   </p>
                 )}

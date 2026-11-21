@@ -486,7 +486,7 @@ export const AccountPage = ({
   ];
 
   return (
-    <div className="account-page" style={{ minHeight: '100vh', backgroundColor: '#090a0c', color: '#fff', padding: '3.5rem 0 6rem 0' }}>
+    <div className="account-page" style={{ minHeight: '100vh', backgroundColor: '#f8f6f0', color: '#121316', padding: '3.5rem 0 6rem 0' }}>
       <div className="container" style={{ maxWidth: '960px' }}>
         
         {/* Top Breadcrumb Navigation */}
@@ -495,13 +495,13 @@ export const AccountPage = ({
             <button 
               className="search-back-btn"
               onClick={() => navigate('/')}
-              style={{ marginBottom: 0 }}
+              style={{ marginBottom: 0, color: '#4a4c54', backgroundColor: '#ffffff', border: '1px solid #e2ddd5' }}
             >
-              <Home size={14} color="var(--gold-bright)" />
+              <Home size={14} color="#8f6f32" />
               <span>HOME</span>
             </button>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold-primary)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ color: '#b8b4ab' }}>/</span>
+            <span style={{ color: '#8f6f32', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
               CLIENT PRIVATE PORTAL
             </span>
           </div>
@@ -509,7 +509,7 @@ export const AccountPage = ({
           <button 
             onClick={() => navigate('/')}
             className="section-action-link"
-            style={{ fontSize: '0.78rem' }}
+            style={{ fontSize: '0.78rem', color: '#8f6f32' }}
           >
             <ArrowLeft size={13} />
             <span>BACK TO STORE</span>
@@ -529,7 +529,7 @@ export const AccountPage = ({
               </div>
 
               <div>
-                <div style={{ color: 'var(--gold-bright)', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '2px' }}>
+                <div style={{ color: '#8f6f32', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px' }}>
                   PRIVATE CLIENT ID
                 </div>
                 <h1 className="account-client-title">
@@ -581,10 +581,10 @@ export const AccountPage = ({
           <div>
             <div style={{ marginBottom: '1.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#fff', marginBottom: '0.3rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#121316', marginBottom: '0.3rem' }}>
                   Your Orders & Evaluations
                 </h2>
-                <p style={{ color: 'var(--text-light-muted)', fontSize: '0.86rem' }}>
+                <p style={{ color: '#62646c', fontSize: '0.86rem' }}>
                   View your confirmed acquisitions and submit verified evaluations for each garment.
                 </p>
               </div>
@@ -594,16 +594,18 @@ export const AccountPage = ({
                 onClick={fetchClientOrders}
                 disabled={isLoadingOrders}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-dark)',
-                  color: 'var(--gold-bright)',
+                  background: '#ffffff',
+                  border: '1px solid #dcd7ce',
+                  color: '#8f6f32',
                   fontSize: '0.74rem',
-                  padding: '6px 12px',
-                  borderRadius: '2px',
+                  fontWeight: 600,
+                  padding: '6px 14px',
+                  borderRadius: '3px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
                 }}
               >
                 <RefreshCw size={12} className={isLoadingOrders ? 'animate-spin' : ''} />
@@ -612,13 +614,13 @@ export const AccountPage = ({
             </div>
 
             {isLoadingOrders && effectiveOrders.length === 0 ? (
-              <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '3.5rem', textAlign: 'center', borderRadius: '2px' }}>
-                <RefreshCw size={28} color="var(--gold-bright)" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', display: 'inline-block' }} />
-                <p style={{ color: '#fff', fontSize: '0.9rem', margin: 0 }}>Syncing your order history from the atelier...</p>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '3.5rem', textAlign: 'center', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+                <RefreshCw size={28} color="#8f6f32" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', display: 'inline-block' }} />
+                <p style={{ color: '#121316', fontSize: '0.9rem', margin: 0 }}>Syncing your order history from the atelier...</p>
               </div>
             ) : effectiveOrders.length === 0 ? (
-              <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '3.5rem', textAlign: 'center', borderRadius: '2px' }}>
-                <p style={{ color: 'var(--text-light-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>You have no recorded client orders in this session.</p>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '3.5rem', textAlign: 'center', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
+                <p style={{ color: '#62646c', marginBottom: '1.5rem', fontSize: '0.9rem' }}>You have no recorded client orders in this session.</p>
                 <button className="btn-primary-gold" onClick={() => navigate('/collection')}>
                   EXPLORE T-SHIRTS
                 </button>
@@ -649,17 +651,18 @@ export const AccountPage = ({
                     <div
                       key={order.orderId}
                       style={{
-                        backgroundColor: '#121316',
-                        border: isRejected ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-dark)',
-                        borderRadius: '2px',
-                        overflow: 'hidden'
+                        backgroundColor: '#ffffff',
+                        border: isRejected ? '1px solid #ef4444' : '1px solid #e2ddd5',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
                       }}
                     >
                       {/* Order Header */}
                       <div style={{
                         padding: '1.4rem 1.5rem',
-                        backgroundColor: isRejected ? 'rgba(239, 68, 68, 0.05)' : '#17181c',
-                        borderBottom: isRejected ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid var(--border-dark)',
+                        backgroundColor: isRejected ? '#fef2f2' : '#fcfaf6',
+                        borderBottom: isRejected ? '1px solid #fecaca' : '1px solid #e5dfd5',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -668,16 +671,16 @@ export const AccountPage = ({
                       }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-                              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#ffffff', fontWeight: 600 }}>
+                              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#121316', fontWeight: 600 }}>
                               #{order.orderId}
                             </span>
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '0.35rem',
-                              backgroundColor: isRejected ? 'rgba(239, 68, 68, 0.15)' : isCod ? 'rgba(197, 160, 89, 0.15)' : 'var(--gold-bright)',
-                              border: isRejected ? '1px solid #ef4444' : isCod ? '1px solid var(--gold-border)' : 'none',
-                              color: isRejected ? '#ef4444' : isCod ? 'var(--gold-bright)' : '#000000',
+                              backgroundColor: isRejected ? '#fee2e2' : isDelivered ? '#dcfce7' : isCod ? '#fef3c7' : '#f5edd8',
+                              border: isRejected ? '1px solid #ef4444' : isDelivered ? '1px solid #86efac' : isCod ? '1px solid #fde68a' : '1px solid #dcc48e',
+                              color: isRejected ? '#dc2626' : isDelivered ? '#16a34a' : isCod ? '#b45309' : '#8f6f32',
                               fontSize: '0.7rem',
                               fontWeight: 800,
                               letterSpacing: '0.08em',
@@ -688,7 +691,7 @@ export const AccountPage = ({
                               {isRejected ? '✕ ' : '✓ '}{displayBadgeStatus}
                             </span>
                           </div>
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)' }}>
+                          <div style={{ fontSize: '0.76rem', color: '#62646c' }}>
                             Placed on {order.orderDate} • {order.items.length} {order.items.length === 1 ? 'Garment' : 'Garments'} • {order.paymentMethod || (isCod ? 'Cash on Delivery' : 'Bank Transfer')}
                           </div>
                         </div>
@@ -708,16 +711,17 @@ export const AccountPage = ({
                               alignItems: 'center',
                               fontWeight: 700,
                               whiteSpace: 'nowrap',
-                              color: 'var(--gold-bright)',
-                              border: '1px solid var(--gold-border)',
-                              backgroundColor: 'rgba(197, 160, 89, 0.08)',
+                              color: '#8f6f32',
+                              border: '1px solid #dcc48e',
+                              backgroundColor: '#ffffff',
                               cursor: 'pointer',
-                              borderRadius: '2px',
-                              transition: 'all 0.2s ease'
+                              borderRadius: '3px',
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
                             }}
                             title={`View complete receipt & specifications for Order #${order.orderId}`}
                           >
-                            <Eye size={13} color="var(--gold-bright)" />
+                            <Eye size={13} color="#8f6f32" />
                             <span>VIEW DETAILS</span>
                           </button>
 
@@ -753,15 +757,15 @@ export const AccountPage = ({
                                 alignItems: 'center',
                                 gap: '6px',
                                 padding: '6px 14px',
-                                borderRadius: '2px',
-                                backgroundColor: 'rgba(197, 160, 89, 0.1)',
-                                border: '1px solid var(--gold-border)',
-                                color: 'var(--gold-bright)',
+                                borderRadius: '3px',
+                                backgroundColor: '#dcfce7',
+                                border: '1px solid #86efac',
+                                color: '#16a34a',
                                 fontSize: '0.74rem',
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 letterSpacing: '0.04em'
                               }}>
-                                <Check size={14} color="var(--gold-bright)" />
+                                <Check size={14} color="#16a34a" />
                                 <span>EVALUATION SUBMITTED</span>
                               </div>
                             ) : (
@@ -783,9 +787,9 @@ export const AccountPage = ({
                         <div style={{
                           margin: '1rem 1.5rem 1rem 1.5rem',
                           padding: '1.2rem 1.4rem',
-                          backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                          border: '1px solid #ef4444',
-                          borderRadius: '2px',
+                          backgroundColor: '#fef2f2',
+                          border: '1px solid #fecaca',
+                          borderRadius: '3px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -793,11 +797,11 @@ export const AccountPage = ({
                           flexWrap: 'wrap'
                         }}>
                           <div style={{ flex: 1, minWidth: '240px' }}>
-                            <div style={{ fontSize: '0.86rem', color: '#ef4444', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                              <AlertTriangle size={16} color="#ef4444" />
+                            <div style={{ fontSize: '0.86rem', color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <AlertTriangle size={16} color="#dc2626" />
                               <span>Payment Slip Rejected by Atelier</span>
                             </div>
-                            <p style={{ fontSize: '0.78rem', color: '#ffffff', margin: 0, lineHeight: 1.5 }}>
+                            <p style={{ fontSize: '0.78rem', color: '#7f1d1d', margin: 0, lineHeight: 1.5 }}>
                               The uploaded payment receipt was reviewed and rejected. This order cannot proceed and new receipts cannot be attached to this order. Please click <strong>Reorder Garments</strong> to place a fresh order with a valid payment slip.
                             </p>
                           </div>
@@ -811,8 +815,8 @@ export const AccountPage = ({
                               fontSize: '0.76rem',
                               gap: '6px',
                               whiteSpace: 'nowrap',
-                              backgroundColor: 'var(--gold-bright)',
-                              color: '#000',
+                              backgroundColor: '#8f6f32',
+                              color: '#fff',
                               fontWeight: 700
                             }}
                           >
@@ -826,13 +830,13 @@ export const AccountPage = ({
                         <div style={{
                           margin: '0 1.5rem 1rem 1.5rem',
                           padding: '0.8rem 1.2rem',
-                          backgroundColor: 'rgba(197, 160, 89, 0.12)',
-                          border: '1px solid var(--gold-bright)',
-                          borderRadius: '2px',
+                          backgroundColor: '#fbf8f2',
+                          border: '1px solid #dcc48e',
+                          borderRadius: '3px',
                           fontSize: '0.8rem',
-                          color: '#ffffff'
+                          color: '#121316'
                         }}>
-                          <strong style={{ color: 'var(--gold-bright)' }}>✓ Bank Transfer Verified:</strong> Your payment receipt has been verified by the atelier. Parcel is currently being packed for express courier dispatch.
+                          <strong style={{ color: '#8f6f32' }}>✓ Bank Transfer Verified:</strong> Your payment receipt has been verified by the atelier. Parcel is currently being packed for express courier dispatch.
                         </div>
                       )}
 
@@ -846,7 +850,7 @@ export const AccountPage = ({
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '1.1rem 0',
-                            borderBottom: idx === order.items.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
+                            borderBottom: idx === order.items.length - 1 ? 'none' : '1px solid #f0ede6',
                             flexWrap: 'wrap',
                             gap: '0.8rem'
                           }}
@@ -856,10 +860,10 @@ export const AccountPage = ({
                               style={{
                                 width: '48px',
                                 height: '58px',
-                                borderRadius: '2px',
+                                borderRadius: '3px',
                                 overflow: 'hidden',
-                                backgroundColor: '#090a0c',
-                                border: '1px solid var(--border-dark)',
+                                backgroundColor: '#f8f6f0',
+                                border: '1px solid #e2ddd5',
                                 flexShrink: 0,
                                 cursor: (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) ? 'pointer' : 'default'
                               }}
@@ -875,7 +879,7 @@ export const AccountPage = ({
 
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-                                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: '#ffffff', margin: 0, fontWeight: 500 }}>
+                                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: '#121316', margin: 0, fontWeight: 500 }}>
                                   {item.name}
                                 </h4>
                                 {(item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && (
@@ -883,9 +887,9 @@ export const AccountPage = ({
                                     type="button"
                                     onClick={() => setInspectedBespokeItem(item)}
                                     style={{
-                                      background: 'rgba(197, 160, 89, 0.15)',
-                                      border: '1px solid var(--gold-border)',
-                                      color: 'var(--gold-bright)',
+                                      background: '#fcfaf6',
+                                      border: '1px solid #dcc48e',
+                                      color: '#8f6f32',
                                       padding: '2px 7px',
                                       borderRadius: '2px',
                                       fontSize: '0.66rem',
@@ -901,12 +905,12 @@ export const AccountPage = ({
                                   </button>
                                 )}
                               </div>
-                              <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                <span>Size: <strong style={{ color: '#fff' }}>{item.selectedSize}</strong></span>
-                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                                <span>Color: <strong style={{ color: '#fff' }}>{item.color}</strong></span>
-                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                                <span style={{ color: 'var(--gold-bright)' }}>LKR {item.priceLKR ? item.priceLKR.toLocaleString() : '18,500'}</span>
+                              <div style={{ fontSize: '0.76rem', color: '#62646c', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <span>Size: <strong style={{ color: '#121316' }}>{item.selectedSize}</strong></span>
+                                <span style={{ color: '#b8b4ab' }}>•</span>
+                                <span>Color: <strong style={{ color: '#121316' }}>{item.color}</strong></span>
+                                <span style={{ color: '#b8b4ab' }}>•</span>
+                                <span style={{ color: '#8f6f32', fontWeight: 700 }}>LKR {item.priceLKR ? item.priceLKR.toLocaleString() : '18,500'}</span>
                               </div>
                             </div>
                           </div>
@@ -925,14 +929,14 @@ export const AccountPage = ({
                                   alignItems: 'center',
                                   gap: '5px',
                                   padding: '5px 11px',
-                                  borderRadius: '2px',
-                                  backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                                  border: '1px solid var(--gold-border)',
-                                  color: 'var(--gold-bright)',
+                                  borderRadius: '3px',
+                                  backgroundColor: '#dcfce7',
+                                  border: '1px solid #86efac',
+                                  color: '#16a34a',
                                   fontSize: '0.72rem',
-                                  fontWeight: 600
+                                  fontWeight: 700
                                 }}>
-                                  <Check size={12} color="var(--gold-bright)" />
+                                  <Check size={12} color="#16a34a" />
                                   <span>Reviewed</span>
                                 </div>
                               );
@@ -942,9 +946,9 @@ export const AccountPage = ({
                               <button
                                 onClick={() => handleGoToOrderReview(order.orderId)}
                                 style={{
-                                  backgroundColor: 'rgba(197, 160, 89, 0.12)',
-                                  border: '1px solid var(--gold-border)',
-                                  color: 'var(--gold-bright)',
+                                  backgroundColor: '#fbf8f2',
+                                  border: '1px solid #dcc48e',
+                                  color: '#8f6f32',
                                   fontSize: '0.74rem',
                                   fontWeight: 600,
                                   cursor: 'pointer',
@@ -952,13 +956,13 @@ export const AccountPage = ({
                                   alignItems: 'center',
                                   gap: '0.4rem',
                                   padding: '6px 12px',
-                                  borderRadius: '2px',
+                                  borderRadius: '3px',
                                   letterSpacing: '0.04em',
                                   transition: 'all 0.2s ease'
                                 }}
                                 title="Submit verified review for this delivered piece"
                               >
-                                <Star size={13} fill="var(--gold-bright)" color="var(--gold-bright)" />
+                                <Star size={13} fill="#8f6f32" color="#8f6f32" />
                                 <span>Evaluate Delivered Piece</span>
                                 <ArrowRight size={12} />
                               </button>
@@ -979,8 +983,8 @@ export const AccountPage = ({
 
                       return (
                         <div style={{
-                          backgroundColor: '#0c0d10',
-                          borderTop: '1px solid var(--border-dark)',
+                          backgroundColor: '#fcfaf6',
+                          borderTop: '1px solid #e5dfd5',
                           padding: '0.9rem 1.5rem',
                           display: 'flex',
                           alignItems: 'center',
@@ -988,24 +992,24 @@ export const AccountPage = ({
                           flexWrap: 'wrap',
                           gap: '0.8rem'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)', flexWrap: 'wrap' }}>
-                            <span>Items Subtotal: <strong style={{ color: '#ffffff' }}>LKR {itemsSubtotal.toLocaleString()}</strong></span>
-                            <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.76rem', color: '#62646c', flexWrap: 'wrap' }}>
+                            <span>Items Subtotal: <strong style={{ color: '#121316' }}>LKR {itemsSubtotal.toLocaleString()}</strong></span>
+                            <span style={{ color: '#b8b4ab' }}>•</span>
                             <span>
-                              Delivery: <strong style={{ color: deliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80' }}>
+                              Delivery: <strong style={{ color: deliveryFee > 0 ? '#8f6f32' : '#16a34a' }}>
                                 {deliveryFee > 0 ? `+ LKR ${deliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
                               </strong>
                             </span>
                             {savings > 0 && (
                               <>
-                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                                <span style={{ color: '#4ade80' }}>Savings: -LKR {savings.toLocaleString()}</span>
+                                <span style={{ color: '#b8b4ab' }}>•</span>
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>Savings: -LKR {savings.toLocaleString()}</span>
                               </>
                             )}
                             {(voucherCode || voucherDiscount > 0) && (
                               <>
-                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                                <span style={{ color: '#4ade80', fontWeight: 600 }}>
+                                <span style={{ color: '#b8b4ab' }}>•</span>
+                                <span style={{ color: '#16a34a', fontWeight: 600 }}>
                                   🏷️ Voucher ({voucherCode || 'GIFT'}): -LKR {voucherDiscount.toLocaleString()}
                                 </span>
                               </>
@@ -1013,10 +1017,10 @@ export const AccountPage = ({
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.72rem', color: '#62646c', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                               Total Paid:
                             </span>
-                            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: 'var(--gold-bright)', fontWeight: 700 }}>
+                            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#8f6f32', fontWeight: 700 }}>
                               LKR {grandTotal.toLocaleString()}
                             </span>
                           </div>
@@ -1037,13 +1041,13 @@ export const AccountPage = ({
             TAB 2: SIZING PROFILE & ARCHITECTURAL MEASUREMENT GUIDE
             ========================================================================= */}
         {activeTab === 'profile' && (
-          <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '2.2rem 1.8rem', borderRadius: '2px' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '2.2rem 1.8rem', borderRadius: '4px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
             <div style={{ marginBottom: '1.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#fff', marginBottom: '0.3rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#121316', marginBottom: '0.3rem' }}>
                   Preferred T-Shirt Sizing Profile
                 </h2>
-                <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem', margin: 0 }}>
+                <p style={{ color: '#62646c', fontSize: '0.84rem', margin: 0 }}>
                   Select your standard size and reference the official garment measurement blueprint.
                 </p>
               </div>
@@ -1051,7 +1055,7 @@ export const AccountPage = ({
               <button
                 type="button"
                 onClick={() => setIsSizeChartOpen(true)}
-                className="btn-secondary-dark"
+                className="btn-secondary-outline"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1059,19 +1063,22 @@ export const AccountPage = ({
                   padding: '0.65rem 1.1rem',
                   fontSize: '0.75rem',
                   letterSpacing: '0.08em',
-                  fontWeight: 600,
-                  color: 'var(--gold-bright)',
-                  borderColor: 'var(--gold-border)'
+                  fontWeight: 700,
+                  color: '#8f6f32',
+                  border: '1px solid #dcc48e',
+                  backgroundColor: '#fcfaf6',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
                 }}
               >
-                <Ruler size={13} />
+                <Ruler size={13} color="#8f6f32" />
                 <span>OPEN SIZE CHART DIAGRAM</span>
               </button>
             </div>
 
             {/* Size Pill Selector */}
             <div style={{ marginBottom: '2rem' }}>
-              <label className="form-label" style={{ marginBottom: '0.8rem', display: 'block' }}>
+              <label className="form-label" style={{ marginBottom: '0.8rem', display: 'block', color: '#121316', fontWeight: 600 }}>
                 Select Preferred Size
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '0.6rem' }}>
@@ -1082,15 +1089,16 @@ export const AccountPage = ({
                     onClick={() => setSavedSize(s)}
                     style={{
                       padding: '0.85rem 0.5rem',
-                      backgroundColor: savedSize === s ? 'rgba(197, 160, 89, 0.15)' : '#090a0c',
-                      border: savedSize === s ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                      color: savedSize === s ? 'var(--gold-bright)' : 'var(--text-light-secondary)',
-                      borderRadius: '2px',
+                      backgroundColor: savedSize === s ? '#8f6f32' : '#f8f6f0',
+                      border: savedSize === s ? '1px solid #8f6f32' : '1px solid #e2ddd5',
+                      color: savedSize === s ? '#ffffff' : '#121316',
+                      borderRadius: '3px',
                       cursor: 'pointer',
                       fontWeight: 700,
                       fontSize: '0.9rem',
                       transition: 'var(--transition-fast)',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      boxShadow: savedSize === s ? '0 3px 10px rgba(143, 111, 50, 0.25)' : 'none'
                     }}
                   >
                     {s}
@@ -1101,17 +1109,17 @@ export const AccountPage = ({
 
             {/* Visual Size Guide Table with Sticky First Column */}
             <div style={{
-              backgroundColor: '#090a0c',
-              border: '1px solid var(--border-dark)',
+              backgroundColor: '#fcfaf6',
+              border: '1px solid #e2ddd5',
               padding: '1.4rem',
-              borderRadius: '2px',
+              borderRadius: '4px',
               marginBottom: '1.8rem'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.4rem' }}>
-                <div style={{ fontSize: '0.74rem', color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+                <div style={{ fontSize: '0.74rem', color: '#8f6f32', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>
                   OFFICIAL GARMENT MEASUREMENTS (INCHES)
                 </div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
+                <span style={{ fontSize: '0.7rem', color: '#62646c' }}>
                   Flat garment measurements • Inches
                 </span>
               </div>
@@ -1119,11 +1127,11 @@ export const AccountPage = ({
               <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left', minWidth: '420px' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-dark)', color: 'var(--gold-primary)' }}>
-                      <th style={{ padding: '0.7rem 0.8rem', position: 'sticky', left: 0, background: '#090a0c', zIndex: 2 }}>SIZE</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>CHEST (Around)</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>LENGTH</th>
-                      <th style={{ padding: '0.7rem 0.8rem' }}>SHOULDERS</th>
+                    <tr style={{ borderBottom: '1px solid #e2ddd5', color: '#8f6f32' }}>
+                      <th style={{ padding: '0.7rem 0.8rem', position: 'sticky', left: 0, background: '#fcfaf6', zIndex: 2, fontWeight: 700 }}>SIZE</th>
+                      <th style={{ padding: '0.7rem 0.8rem', fontWeight: 700 }}>CHEST (Around)</th>
+                      <th style={{ padding: '0.7rem 0.8rem', fontWeight: 700 }}>LENGTH</th>
+                      <th style={{ padding: '0.7rem 0.8rem', fontWeight: 700 }}>SHOULDERS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1136,19 +1144,19 @@ export const AccountPage = ({
                           key={spec.size}
                           onClick={() => setSavedSize(spec.size)}
                           style={{
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                            backgroundColor: isSelected ? 'rgba(197, 160, 89, 0.08)' : 'transparent',
-                            color: isSelected ? '#ffffff' : 'var(--text-light-secondary)',
+                            borderBottom: '1px solid #e8e3d9',
+                            backgroundColor: isSelected ? '#f5edd8' : 'transparent',
+                            color: isSelected ? '#121316' : '#4a4c54',
                             fontWeight: isSelected ? 600 : 400,
                             cursor: 'pointer'
                           }}
                         >
                           <td style={{
                             padding: '0.75rem 0.8rem',
-                            color: isSelected ? 'var(--gold-bright)' : '#fff',
+                            color: isSelected ? '#8f6f32' : '#121316',
                             position: 'sticky',
                             left: 0,
-                            background: isSelected ? '#161512' : '#090a0c',
+                            background: isSelected ? '#ede4d4' : '#fcfaf6',
                             zIndex: 2,
                             fontWeight: 700
                           }}>
@@ -1168,15 +1176,15 @@ export const AccountPage = ({
               <div style={{
                 marginTop: '1.2rem',
                 paddingTop: '1rem',
-                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                borderTop: '1px solid #e2ddd5',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.4rem',
                 fontSize: '0.82rem',
-                color: 'var(--text-light-secondary)'
+                color: '#62646c'
               }}>
                 <p style={{ margin: 0 }}>
-                  * <strong style={{ color: '#ffffff' }}>Note:</strong> These measurements are for <strong>real t-shirts (in inches)</strong>, not for your body measurements.
+                  * <strong style={{ color: '#121316' }}>Note:</strong> These measurements are for <strong>real t-shirts (in inches)</strong>, not for your body measurements.
                 </p>
                 <p style={{ margin: 0 }}>
                   * When purchasing <strong>baggy t-shirts</strong>, please use your <strong>normal t-shirt size</strong>. We adjust the baggy t-shirt cut automatically for you.
@@ -1209,26 +1217,25 @@ export const AccountPage = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             
             {/* 1. Account Credentials Form */}
-            <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '2.2rem 1.8rem', borderRadius: '2px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '2.2rem 1.8rem', borderRadius: '4px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
               <form onSubmit={handleSaveSecurity}>
                 <div style={{ marginBottom: '1.8rem' }}>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#121316', marginBottom: '0.3rem' }}>
                     Account Identity & Credentials
                   </h2>
-                  <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem' }}>
+                  <p style={{ color: '#62646c', fontSize: '0.84rem' }}>
                     Manage your profile name, verified primary email, contact phone, and security.
                   </p>
                 </div>
 
                 {unlinkSuccess && (
-                  <div style={{ backgroundColor: 'rgba(197, 160, 89, 0.12)', border: '1px solid var(--gold-border)', color: 'var(--gold-bright)', padding: '0.8rem 1.2rem', borderRadius: '2px', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
+                  <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '0.8rem 1.2rem', borderRadius: '3px', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
                     ✓ Social account unlinked. You can now configure your custom password below.
                   </div>
                 )}
 
-
                 {securityError && (
-                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '0.8rem 1.2rem', borderRadius: '2px', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
+                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '0.8rem 1.2rem', borderRadius: '3px', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
                     {securityError}
                   </div>
                 )}
@@ -1236,22 +1243,22 @@ export const AccountPage = ({
                 {/* Responsive 2-Col / 1-Col Inputs */}
                 <div className="form-row-responsive">
                   <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Client Full Name</label>
+                    <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Client Full Name</label>
                     <input
                       type="text"
                       required
                       className="form-input"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                      style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                     />
                   </div>
 
                   {/* Locked Email Address Field */}
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                      <label className="form-label" style={{ marginBottom: 0 }}>Email Address</label>
-                      <span style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <label className="form-label" style={{ marginBottom: 0, color: '#121316', fontWeight: 600 }}>Email Address</label>
+                      <span style={{ fontSize: '0.66rem', color: '#8f6f32', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 700 }}>
                         <Lock size={10} />
                         <span>LOCKED</span>
                       </span>
@@ -1263,10 +1270,10 @@ export const AccountPage = ({
                       value={clientEmail || storedUser.email || ''}
                       title="Primary account email identifier"
                       style={{
-                        backgroundColor: '#141518',
-                        color: '#ffffff',
-                        WebkitTextFillColor: '#ffffff',
-                        borderColor: 'var(--border-dark)',
+                        backgroundColor: '#f8f6f0',
+                        color: '#121316',
+                        WebkitTextFillColor: '#121316',
+                        borderColor: '#dcd7ce',
                         cursor: 'default',
                         fontWeight: 500,
                         letterSpacing: '0.02em',
@@ -1278,7 +1285,7 @@ export const AccountPage = ({
 
                 {/* Phone Number */}
                 <div className="form-group" style={{ marginTop: '1.2rem', marginBottom: '1.8rem' }}>
-                  <label className="form-label">Phone / Mobile Number (For Courier SMS)</label>
+                  <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Phone / Mobile Number (For Courier SMS)</label>
                   <input
                     type="tel"
                     inputMode="tel"
@@ -1299,20 +1306,20 @@ export const AccountPage = ({
                       const digits = raw.replace(/\D/g, '');
                       setClientPhone((hasPlus ? '+' : '') + digits);
                     }}
-                    style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                   />
                 </div>
 
                 {/* Conditional Password vs Social Unlink Section */}
-                <div style={{ borderTop: '1px solid var(--border-dark)', paddingTop: '1.5rem', marginBottom: '1.8rem' }}>
+                <div style={{ borderTop: '1px solid #e5dfd5', paddingTop: '1.5rem', marginBottom: '1.8rem' }}>
                   
                   {authProvider !== 'email' ? (
                     /* Social Login Linked Card */
                     <div style={{
-                      backgroundColor: '#090a0c',
-                      border: '1px solid var(--gold-border)',
+                      backgroundColor: '#fcfaf6',
+                      border: '1px solid #dcc48e',
                       padding: '1.5rem',
-                      borderRadius: '2px'
+                      borderRadius: '4px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
@@ -1320,21 +1327,21 @@ export const AccountPage = ({
                             width: '38px',
                             height: '38px',
                             borderRadius: '50%',
-                            backgroundColor: 'rgba(197, 160, 89, 0.15)',
-                            border: '1px solid var(--gold-bright)',
+                            backgroundColor: '#f5edd8',
+                            border: '1px solid #dcc48e',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'var(--gold-bright)',
+                            color: '#8f6f32',
                             flexShrink: 0
                           }}>
                             <Link2 size={18} />
                           </div>
                           <div>
-                            <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#fff', marginBottom: '0.2rem' }}>
+                            <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#121316', marginBottom: '0.2rem' }}>
                               Linked with {authProvider}
                             </h4>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', lineHeight: 1.45, maxWidth: '520px' }}>
+                            <p style={{ fontSize: '0.8rem', color: '#62646c', lineHeight: 1.45, maxWidth: '520px' }}>
                               Authenticated via {authProvider}. Direct password changes are disabled while social single sign-on is active.
                             </p>
                           </div>
@@ -1353,18 +1360,19 @@ export const AccountPage = ({
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.7rem 1.2rem',
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            color: '#fff',
-                            borderRadius: '2px',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #dcd7ce',
+                            color: '#121316',
+                            borderRadius: '3px',
                             fontSize: '0.76rem',
                             cursor: 'pointer',
-                            fontWeight: 500,
+                            fontWeight: 600,
                             width: '100%',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
                           }}
                         >
-                          <Unlink size={13} color="var(--gold-bright)" />
+                          <Unlink size={13} color="#8f6f32" />
                           <span>UNLINK {authProvider.toUpperCase()} & CREATE PASSWORD</span>
                         </button>
                       </div>
@@ -1372,45 +1380,45 @@ export const AccountPage = ({
                   ) : (
                     /* Standard Password Change Section for Email/Password Users */
                     <div>
-                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: 'var(--gold-bright)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#8f6f32', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <KeyRound size={15} />
                         <span>Change Password</span>
                       </h3>
 
                       <div className="form-group">
-                        <label className="form-label">Current Password</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Current Password</label>
                         <input
                           type="password"
                           placeholder="Enter current password"
                           className="form-input"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                          style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                         />
                       </div>
 
                       <div className="form-row-responsive">
                         <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label className="form-label">New Password</label>
+                          <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>New Password</label>
                           <input
                             type="password"
                             placeholder="Min 6 characters"
                             className="form-input"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                            style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                           />
                         </div>
 
                         <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label className="form-label">Confirm New Password</label>
+                          <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Confirm New Password</label>
                           <input
                             type="password"
                             placeholder="Confirm new password"
                             className="form-input"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                            style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                           />
                         </div>
                       </div>
@@ -1433,13 +1441,13 @@ export const AccountPage = ({
             </div>
 
             {/* 2. Interactive Shipping Addresses Manager */}
-            <div style={{ backgroundColor: '#121316', border: '1px solid var(--border-dark)', padding: '2.2rem 1.8rem', borderRadius: '2px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '2.2rem 1.8rem', borderRadius: '4px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.6rem' }}>
                 <div>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: '#121316', marginBottom: '0.3rem' }}>
                     Saved Shipping Addresses
                   </h2>
-                  <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem' }}>
+                  <p style={{ color: '#62646c', fontSize: '0.84rem' }}>
                     Configure delivery destinations for express courier dispatch.
                   </p>
                 </div>
@@ -1459,15 +1467,15 @@ export const AccountPage = ({
 
               {/* Form to Add New Address with Selectable City */}
               {isAddingAddress && (
-                <div style={{ backgroundColor: '#090a0c', border: '1px solid var(--gold-border)', padding: '1.6rem', borderRadius: '2px', marginBottom: '1.8rem' }}>
+                <div style={{ backgroundColor: '#fcfaf6', border: '1px solid #dcc48e', padding: '1.6rem', borderRadius: '4px', marginBottom: '1.8rem' }}>
                   <form onSubmit={handleCreateAddress}>
-                    <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#fff', marginBottom: '1rem' }}>
+                    <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#121316', marginBottom: '1rem' }}>
                       Add New Delivery Destination
                     </h4>
 
                     <div className="form-row-responsive">
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Recipient Full Name</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Recipient Full Name</label>
                         <input
                           type="text"
                           required
@@ -1475,11 +1483,12 @@ export const AccountPage = ({
                           className="form-input"
                           value={newAddressForm.recipientName}
                           onChange={(e) => setNewAddressForm({ ...newAddressForm, recipientName: e.target.value })}
+                          style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                         />
                       </div>
 
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Street Address & Apartment</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Street Address & Apartment</label>
                         <input
                           type="text"
                           required
@@ -1487,6 +1496,7 @@ export const AccountPage = ({
                           className="form-input"
                           value={newAddressForm.streetAddress}
                           onChange={(e) => setNewAddressForm({ ...newAddressForm, streetAddress: e.target.value })}
+                          style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                         />
                       </div>
                     </div>
@@ -1494,20 +1504,20 @@ export const AccountPage = ({
                     <div className="form-row-3col" style={{ marginTop: '1rem', marginBottom: '1.4rem' }}>
                       {/* Selectable City Dropdown */}
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Select City</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Select City</label>
                         <select
                           className="form-input"
                           value={newAddressForm.city}
                           onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
                           style={{
-                            backgroundColor: '#121316',
-                            color: '#ffffff',
-                            borderColor: 'var(--border-dark)',
+                            backgroundColor: '#ffffff',
+                            color: '#121316',
+                            borderColor: '#dcd7ce',
                             cursor: 'pointer'
                           }}
                         >
                           {CITIES_LIST.map((city) => (
-                            <option key={city} value={city} style={{ backgroundColor: '#121316', color: '#ffffff' }}>
+                            <option key={city} value={city} style={{ backgroundColor: '#ffffff', color: '#121316' }}>
                               {city}
                             </option>
                           ))}
@@ -1515,18 +1525,19 @@ export const AccountPage = ({
                       </div>
 
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Postal / ZIP Code</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Postal / ZIP Code</label>
                         <input
                           type="text"
                           placeholder="00300"
                           className="form-input"
                           value={newAddressForm.postalCode}
                           onChange={(e) => setNewAddressForm({ ...newAddressForm, postalCode: e.target.value })}
+                          style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                         />
                       </div>
 
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Country</label>
+                        <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Country</label>
                         <input
                           type="text"
                           required
@@ -1534,6 +1545,7 @@ export const AccountPage = ({
                           className="form-input"
                           value={newAddressForm.country}
                           onChange={(e) => setNewAddressForm({ ...newAddressForm, country: e.target.value })}
+                          style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                         />
                       </div>
                     </div>
@@ -1545,7 +1557,7 @@ export const AccountPage = ({
                       <button
                         type="button"
                         onClick={() => setIsAddingAddress(false)}
-                        style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text-light-muted)', padding: '0.75rem 1.2rem', borderRadius: '2px', cursor: 'pointer', fontSize: '0.76rem' }}
+                        style={{ background: '#ffffff', border: '1px solid #dcd7ce', color: '#4a4c54', padding: '0.75rem 1.2rem', borderRadius: '3px', cursor: 'pointer', fontSize: '0.76rem' }}
                       >
                         Cancel
                       </button>
@@ -1559,15 +1571,15 @@ export const AccountPage = ({
                 <div style={{
                   textAlign: 'center',
                   padding: '3rem 1.5rem',
-                  backgroundColor: '#090a0c',
-                  border: '1px dashed var(--border-dark)',
-                  borderRadius: '2px'
+                  backgroundColor: '#fcfaf6',
+                  border: '1px dashed #dcd7ce',
+                  borderRadius: '4px'
                 }}>
-                  <MapPin size={30} color="var(--gold-bright)" style={{ margin: '0 auto 0.8rem auto', opacity: 0.8 }} />
-                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#fff', marginBottom: '0.4rem' }}>
+                  <MapPin size={30} color="#8f6f32" style={{ margin: '0 auto 0.8rem auto', opacity: 0.8 }} />
+                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#121316', marginBottom: '0.4rem' }}>
                     No Shipping Addresses Saved
                   </h4>
-                  <p style={{ color: 'var(--text-light-muted)', fontSize: '0.82rem', maxWidth: '420px', margin: '0 auto 1.4rem auto' }}>
+                  <p style={{ color: '#62646c', fontSize: '0.82rem', maxWidth: '420px', margin: '0 auto 1.4rem auto' }}>
                     You have not registered any delivery destinations yet. Add your primary residence or international address for express courier dispatch.
                   </p>
                   <button
@@ -1586,51 +1598,52 @@ export const AccountPage = ({
                     <div
                       key={addr.id}
                       style={{
-                        backgroundColor: '#090a0c',
-                        border: addr.isDefault ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
+                        backgroundColor: '#fcfaf6',
+                        border: addr.isDefault ? '1px solid #8f6f32' : '1px solid #e2ddd5',
                         padding: '1.4rem',
-                        borderRadius: '2px',
+                        borderRadius: '4px',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        position: 'relative'
+                        position: 'relative',
+                        boxShadow: addr.isDefault ? '0 4px 14px rgba(143, 111, 50, 0.1)' : 'none'
                       }}
                     >
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                          <strong style={{ color: '#fff', fontSize: '0.92rem' }}>{addr.recipientName}</strong>
+                          <strong style={{ color: '#121316', fontSize: '0.92rem' }}>{addr.recipientName}</strong>
                           {addr.isDefault && (
-                            <span style={{ fontSize: '0.62rem', color: 'var(--gold-bright)', border: '1px solid var(--gold-border)', background: 'rgba(197, 160, 89, 0.1)', padding: '2px 6px', borderRadius: '2px', letterSpacing: '0.08em' }}>
+                            <span style={{ fontSize: '0.62rem', color: '#8f6f32', border: '1px solid #dcc48e', background: '#f5edd8', padding: '2px 6px', borderRadius: '2px', letterSpacing: '0.08em', fontWeight: 700 }}>
                               DEFAULT
                             </span>
                           )}
                         </div>
 
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginBottom: '1rem' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#62646c', lineHeight: 1.5, marginBottom: '1rem' }}>
                           <div>{addr.streetAddress}</div>
                           <div>{addr.city}{addr.postalCode ? `, ${addr.postalCode}` : ''}</div>
                           <div>{addr.country}</div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.7rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.7rem', borderTop: '1px solid #e5dfd5' }}>
                         {!addr.isDefault ? (
                           <button
                             type="button"
                             onClick={() => handleSetDefaultAddress(addr.id)}
-                            style={{ background: 'none', border: 'none', color: 'var(--gold-primary)', fontSize: '0.72rem', cursor: 'pointer', padding: 0 }}
+                            style={{ background: 'none', border: 'none', color: '#8f6f32', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', padding: 0 }}
                           >
                             Set as Default
                           </button>
                         ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)' }}>✓ Default Destination</span>
+                          <span style={{ fontSize: '0.72rem', color: '#8f6f32', fontWeight: 700 }}>✓ Default Destination</span>
                         )}
 
                         {shippingAddresses.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleDeleteAddress(addr.id)}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', opacity: 0.8 }}
+                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px', opacity: 0.8 }}
                             title="Remove address"
                           >
                             <Trash2 size={13} />
@@ -1652,16 +1665,17 @@ export const AccountPage = ({
         <div 
           className="modal-backdrop"
           onClick={() => setIsUnlinkModalOpen(false)}
-          style={{ zIndex: 10000, padding: '1.5rem', overflowY: 'auto' }}
+          style={{ zIndex: 10000, padding: '1.5rem', overflowY: 'auto', backgroundColor: 'rgba(18, 19, 22, 0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div 
             className="fitting-dialog"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '480px', margin: 'auto', backgroundColor: '#101114', border: '1px solid var(--gold-border)' }}
+            style={{ maxWidth: '480px', margin: 'auto', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', borderRadius: '4px', boxShadow: '0 25px 60px rgba(0,0,0,0.18)' }}
           >
             <button 
               className="modal-close-icon" 
               onClick={() => setIsUnlinkModalOpen(false)}
+              style={{ color: '#121316' }}
             >
               <X size={20} />
             </button>
@@ -1671,44 +1685,44 @@ export const AccountPage = ({
                 width: '52px',
                 height: '52px',
                 borderRadius: '50%',
-                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1rem auto',
-                color: '#ef4444'
+                color: '#dc2626'
               }}>
                 <AlertTriangle size={24} />
               </div>
-              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#fff', marginBottom: '0.4rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#121316', marginBottom: '0.4rem' }}>
                 Unlink {authProvider} Account
               </h3>
-              <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.84rem', lineHeight: 1.5 }}>
+              <p style={{ color: '#62646c', fontSize: '0.84rem', lineHeight: 1.5 }}>
                 Unlinking your {authProvider} account will convert your ELVANY profile to standalone email & password authentication.
               </p>
             </div>
 
             <div style={{
-              backgroundColor: '#090a0c',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: '#fcfaf6',
+              border: '1px solid #e2ddd5',
               padding: '1rem',
-              borderRadius: '2px',
+              borderRadius: '3px',
               marginBottom: '1.5rem',
               fontSize: '0.8rem',
-              color: 'var(--text-light-muted)'
+              color: '#62646c'
             }}>
-              <strong style={{ color: 'var(--gold-bright)' }}>IMPORTANT: </strong>
+              <strong style={{ color: '#8f6f32' }}>IMPORTANT: </strong>
               Please create a new secure password below to ensure uninterrupted access to your orders, sizing profile, and client passport.
             </div>
 
             {unlinkError && (
               <div style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                border: '1px solid rgba(239, 68, 68, 0.45)',
-                color: '#fca5a5',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
                 padding: '0.75rem 1rem',
-                borderRadius: '2px',
+                borderRadius: '3px',
                 marginBottom: '1.2rem',
                 fontSize: '0.8rem'
               }}>
@@ -1718,7 +1732,7 @@ export const AccountPage = ({
 
             <form onSubmit={handleConfirmUnlinkAndSetPassword}>
               <div className="form-group">
-                <label className="form-label">New Account Password</label>
+                <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>New Account Password</label>
                 <input
                   type="password"
                   required
@@ -1726,12 +1740,12 @@ export const AccountPage = ({
                   className="form-input"
                   value={unlinkNewPassword}
                   onChange={(e) => setUnlinkNewPassword(e.target.value)}
-                  style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.8rem' }}>
-                <label className="form-label">Confirm New Password</label>
+                <label className="form-label" style={{ color: '#121316', fontWeight: 600 }}>Confirm New Password</label>
                 <input
                   type="password"
                   required
@@ -1739,7 +1753,7 @@ export const AccountPage = ({
                   className="form-input"
                   value={unlinkConfirmPassword}
                   onChange={(e) => setUnlinkConfirmPassword(e.target.value)}
-                  style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #dcd7ce' }}
                 />
               </div>
 
@@ -1756,11 +1770,11 @@ export const AccountPage = ({
                   type="button"
                   onClick={() => setIsUnlinkModalOpen(false)}
                   style={{
-                    background: 'none',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    color: 'var(--text-light-muted)',
+                    background: '#ffffff',
+                    border: '1px solid #dcd7ce',
+                    color: '#4a4c54',
                     padding: '0.75rem',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '0.78rem'
                   }}
@@ -1778,24 +1792,24 @@ export const AccountPage = ({
         <div 
           className="modal-backdrop" 
           onClick={() => setInspectedBespokeItem(null)}
-          style={{ zIndex: 11000, padding: '1.5rem', overflowY: 'auto' }}
+          style={{ zIndex: 11000, padding: '1.5rem', overflowY: 'auto', backgroundColor: 'rgba(18, 19, 22, 0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div 
             className="fitting-dialog"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.8rem' }}
+            style={{ maxWidth: '860px', width: '100%', margin: 'auto', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', borderRadius: '4px', padding: '1.8rem', boxShadow: '0 25px 60px rgba(0,0,0,0.18)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.8rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--gold-bright)', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8f6f32', fontSize: '0.72rem', letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase' }}>
                   <Sparkles size={13} />
                   <span>ELVANY • BESPOKE 4-AXIS BLUEPRINT</span>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: '0.2rem 0 0.4rem 0' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#121316', margin: '0.2rem 0 0.4rem 0' }}>
                   {inspectedBespokeItem.name || 'Custom Bespoke Garment'}
                 </h3>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)' }}>
-                  Code: <strong style={{ color: 'var(--gold-bright)' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
+                <div style={{ fontSize: '0.78rem', color: '#62646c' }}>
+                  Code: <strong style={{ color: '#8f6f32' }}>#{inspectedBespokeItem.designCode || 'BL-CUSTOM'}</strong> • {inspectedBespokeItem.color} • Size {inspectedBespokeItem.selectedSize || inspectedBespokeItem.size || 'L'}
                 </div>
               </div>
 
@@ -1803,7 +1817,7 @@ export const AccountPage = ({
                 type="button" 
                 className="modal-close-icon" 
                 onClick={() => setInspectedBespokeItem(null)}
-                style={{ position: 'static' }}
+                style={{ position: 'static', color: '#121316' }}
               >
                 <X size={20} />
               </button>
@@ -1820,21 +1834,21 @@ export const AccountPage = ({
                 <div 
                   key={panel.key}
                   style={{
-                    backgroundColor: '#07080a',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    backgroundColor: '#fcfaf6',
+                    border: '1px solid #e2ddd5',
                     borderRadius: '3px',
                     padding: '8px',
                     textAlign: 'center'
                   }}
                 >
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#040507', marginBottom: '6px' }}>
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1.1', overflow: 'hidden', borderRadius: '2px', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', marginBottom: '6px' }}>
                     <img 
                       src={panel.img || '/images/hero_tshirt.webp'} 
                       alt={panel.label}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                     />
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: '0.68rem', color: '#8f6f32', fontWeight: 700, letterSpacing: '0.08em' }}>
                     {panel.label}
                   </div>
                 </div>
@@ -1842,13 +1856,13 @@ export const AccountPage = ({
             </div>
 
             {/* Placements & Notes */}
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: 'var(--text-light-secondary)' }}>
+            <div style={{ backgroundColor: '#fcfaf6', border: '1px solid #e5dfd5', borderRadius: '3px', padding: '10px 14px', marginBottom: '1.4rem', fontSize: '0.76rem', color: '#62646c' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
-                <span>Custom Prints: <strong style={{ color: '#fff' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
-                <span>Fabric Grade: <strong style={{ color: 'var(--gold-bright)' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
+                <span>Custom Prints: <strong style={{ color: '#121316' }}>{inspectedBespokeItem.customPlacements?.join(' • ') || 'Configured Graphic Prints'}</strong></span>
+                <span>Fabric Grade: <strong style={{ color: '#8f6f32' }}>{inspectedBespokeItem.fabric || 'Signature Comfort Knit'}</strong></span>
               </div>
               {inspectedBespokeItem.customNotes && (
-                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', fontStyle: 'italic', color: '#fff' }}>
+                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #e5dfd5', fontStyle: 'italic', color: '#121316' }}>
                   "{inspectedBespokeItem.customNotes}"
                 </div>
               )}
@@ -1888,9 +1902,9 @@ export const AccountPage = ({
           style={{ 
             position: 'fixed', 
             inset: 0, 
-            backgroundColor: 'rgba(0, 0, 0, 0.88)', 
-            backdropFilter: 'blur(10px)', 
-            WebkitBackdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(18, 19, 22, 0.65)', 
+            backdropFilter: 'blur(12px)', 
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center', 
@@ -1906,12 +1920,12 @@ export const AccountPage = ({
               maxWidth: '680px', 
               width: '100%', 
               maxHeight: '88vh', 
-              backgroundColor: '#0c0d10', 
-              border: '1px solid var(--gold-border)', 
+              backgroundColor: '#ffffff', 
+              border: '1px solid #e2ddd5', 
               borderRadius: '4px', 
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(197, 160, 89, 0.15)',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.15)',
               overflow: 'hidden'
             }}
           >
@@ -1920,22 +1934,22 @@ export const AccountPage = ({
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'flex-start', 
-              borderBottom: '1px solid rgba(255,255,255,0.08)', 
+              borderBottom: '1px solid #e5dfd5', 
               padding: '1.3rem 1.6rem',
-              backgroundColor: '#0f1014',
+              backgroundColor: '#fcfaf6',
               flexShrink: 0 
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <img src="/logo/Main-4.png" alt="ELVANY" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
-                  <span style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <span style={{ fontSize: '0.7rem', color: '#8f6f32', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
                     ATELIER ORDER PASSPORT
                   </span>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                   Order #{inspectingOrderDetails.orderId}
                 </h3>
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
+                <span style={{ fontSize: '0.74rem', color: '#62646c' }}>
                   Placed on {inspectingOrderDetails.orderDate}
                 </span>
               </div>
@@ -1946,7 +1960,7 @@ export const AccountPage = ({
                 style={{ 
                   background: 'none', 
                   border: 'none', 
-                  color: 'var(--text-light-muted)', 
+                  color: '#62646c', 
                   cursor: 'pointer', 
                   padding: '6px',
                   borderRadius: '50%',
@@ -1955,8 +1969,8 @@ export const AccountPage = ({
                   justifyContent: 'center',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold-bright)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-light-muted)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#121316'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#62646c'; }}
                 title="Close Order Details"
               >
                 <X size={20} />
@@ -1979,21 +1993,21 @@ export const AccountPage = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                 gap: '0.8rem',
-                backgroundColor: '#121317',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                backgroundColor: '#fcfaf6',
+                border: '1px solid #e5dfd5',
                 borderRadius: '3px',
                 padding: '1rem 1.2rem',
                 marginBottom: '1.4rem'
               }}>
                 <div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#62646c', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
                     Current Status
                   </span>
                   <span style={{
                     display: 'inline-block',
-                    backgroundColor: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? 'rgba(34, 197, 94, 0.15)' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(197, 160, 89, 0.18)',
-                    color: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '#4ade80' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '#ef4444' : 'var(--gold-bright)',
-                    border: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '1px solid rgba(34, 197, 94, 0.3)' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '1px solid #ef4444' : '1px solid var(--gold-border)',
+                    backgroundColor: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '#dcfce7' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '#fee2e2' : '#f5edd8',
+                    color: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '#16a34a' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '#dc2626' : '#8f6f32',
+                    border: inspectingOrderDetails.status?.toLowerCase().includes('delivered') ? '1px solid #86efac' : inspectingOrderDetails.status?.toLowerCase().includes('rejected') ? '1px solid #ef4444' : '1px solid #dcc48e',
                     fontSize: '0.72rem',
                     fontWeight: 700,
                     padding: '2px 8px',
@@ -2005,11 +2019,11 @@ export const AccountPage = ({
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#62646c', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>
                     Payment Method
                   </span>
-                  <span style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <CreditCard size={13} color="var(--gold-bright)" />
+                  <span style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <CreditCard size={13} color="#8f6f32" />
                     <span>{inspectingOrderDetails.paymentMethod || 'Direct Bank Transfer'}</span>
                   </span>
                 </div>
@@ -2018,8 +2032,8 @@ export const AccountPage = ({
               {/* Courier Dispatch & Tracking Info (if active) */}
               {(inspectingOrderDetails.trackingNumber || inspectingOrderDetails.tracking_number) && (
                 <div style={{
-                  backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                  border: '1px solid var(--gold-border)',
+                  backgroundColor: '#fbf8f2',
+                  border: '1px solid #dcc48e',
                   borderRadius: '3px',
                   padding: '0.9rem 1.2rem',
                   marginBottom: '1.4rem',
@@ -2030,12 +2044,12 @@ export const AccountPage = ({
                   gap: '0.8rem'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Truck size={18} color="var(--gold-bright)" />
+                    <Truck size={18} color="#8f6f32" />
                     <div>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', fontWeight: 700, letterSpacing: '0.08em', display: 'block' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#8f6f32', fontWeight: 700, letterSpacing: '0.08em', display: 'block' }}>
                         CITYPAK COURIER TRACKING
                       </span>
-                      <span style={{ fontSize: '0.84rem', color: '#ffffff', fontFamily: 'monospace', fontWeight: 700 }}>
+                      <span style={{ fontSize: '0.84rem', color: '#121316', fontFamily: 'monospace', fontWeight: 700 }}>
                         {inspectingOrderDetails.trackingNumber || inspectingOrderDetails.tracking_number}
                       </span>
                     </div>
@@ -2064,23 +2078,23 @@ export const AccountPage = ({
 
               {/* Delivery Address Details */}
               <div style={{
-                backgroundColor: '#121317',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                backgroundColor: '#fcfaf6',
+                border: '1px solid #e5dfd5',
                 borderRadius: '3px',
                 padding: '1rem 1.2rem',
                 marginBottom: '1.4rem'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                  <MapPin size={14} color="var(--gold-bright)" />
-                  <span style={{ fontSize: '0.76rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  <MapPin size={14} color="#8f6f32" />
+                  <span style={{ fontSize: '0.76rem', color: '#121316', fontWeight: 700, letterSpacing: '0.04em' }}>
                     SHIPPING & RECIPIENT INFORMATION
                   </span>
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#ffffff', lineHeight: 1.6 }}>
+                <div style={{ fontSize: '0.78rem', color: '#121316', lineHeight: 1.6 }}>
                   <div><strong>Recipient:</strong> {inspectingOrderDetails.customerName || inspectingOrderDetails.deliveryAddress?.recipientName || 'Valued Client'}</div>
                   {inspectingOrderDetails.customerPhone && <div><strong>Phone:</strong> {inspectingOrderDetails.customerPhone}</div>}
                   {inspectingOrderDetails.customerEmail && <div><strong>Email:</strong> {inspectingOrderDetails.customerEmail}</div>}
-                  <div style={{ color: 'var(--text-light-secondary)', marginTop: '4px' }}>
+                  <div style={{ color: '#62646c', marginTop: '4px' }}>
                     <strong>Address:</strong> {[
                       inspectingOrderDetails.deliveryAddress?.streetAddress || inspectingOrderDetails.customerLocation,
                       inspectingOrderDetails.deliveryAddress?.apartment,
@@ -2089,7 +2103,7 @@ export const AccountPage = ({
                     ].filter(Boolean).join(', ')}
                   </div>
                   {inspectingOrderDetails.deliveryAddress?.deliveryNotes && (
-                    <div style={{ fontStyle: 'italic', color: 'var(--gold-bright)', marginTop: '4px' }}>
+                    <div style={{ fontStyle: 'italic', color: '#8f6f32', marginTop: '4px' }}>
                       Notes: {inspectingOrderDetails.deliveryAddress.deliveryNotes}
                     </div>
                   )}
@@ -2098,7 +2112,7 @@ export const AccountPage = ({
 
               {/* Order Items List */}
               <div style={{ marginBottom: '1.4rem' }}>
-                <span style={{ fontSize: '0.76rem', color: '#ffffff', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.76rem', color: '#121316', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                   GARMENTS ORDERED ({inspectingOrderDetails.items?.length || 0})
                 </span>
 
@@ -2110,9 +2124,9 @@ export const AccountPage = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        backgroundColor: '#121317',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '2px',
+                        backgroundColor: '#fcfaf6',
+                        border: '1px solid #e5dfd5',
+                        borderRadius: '3px',
                         padding: '10px 12px',
                         gap: '10px'
                       }}
@@ -2121,18 +2135,18 @@ export const AccountPage = ({
                         <img 
                           src={item.image || '/images/hero_tshirt.webp'} 
                           alt="" 
-                          style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}
+                          style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #e2ddd5', backgroundColor: '#f8f6f0', flexShrink: 0 }}
                           onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                         />
                         <div style={{ minWidth: 0 }}>
-                          <span style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.name || item.title || 'Haute Atelier Garment'}
                           </span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
+                          <span style={{ fontSize: '0.7rem', color: '#62646c' }}>
                             Size: {item.selectedSize || item.size} • Color: {item.color} • Qty: {item.quantity || item.qty || 1}
                           </span>
                           {item.designCode && (
-                            <span style={{ fontSize: '0.66rem', color: 'var(--gold-bright)', display: 'block', marginTop: '1px' }}>
+                            <span style={{ fontSize: '0.66rem', color: '#8f6f32', fontWeight: 600, display: 'block', marginTop: '1px' }}>
                               ★ Bespoke Lab: {item.designCode}
                             </span>
                           )}
@@ -2140,7 +2154,7 @@ export const AccountPage = ({
                       </div>
 
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                        <span style={{ fontSize: '0.82rem', color: '#8f6f32', fontWeight: 700 }}>
                           LKR {((item.priceLKR || item.price || 0) * (item.quantity || item.qty || 1)).toLocaleString()}
                         </span>
                       </div>
@@ -2162,8 +2176,8 @@ export const AccountPage = ({
                   <div>
                     {(modalVoucherCode || modalVoucherDiscount > 0) && (
                       <div style={{
-                        backgroundColor: 'rgba(74, 222, 128, 0.08)',
-                        border: '1px solid rgba(74, 222, 128, 0.25)',
+                        backgroundColor: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
                         borderRadius: '3px',
                         padding: '0.75rem 1rem',
                         marginBottom: '1rem',
@@ -2174,41 +2188,41 @@ export const AccountPage = ({
                         gap: '0.5rem'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Tag size={14} color="#4ade80" />
-                          <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600 }}>
-                            Voucher Applied: <strong style={{ color: '#4ade80', fontFamily: 'monospace', letterSpacing: '0.04em' }}>{modalVoucherCode || 'GIFT'}</strong>
+                          <Tag size={14} color="#16a34a" />
+                          <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>
+                            Voucher Applied: <strong style={{ color: '#166534', fontFamily: 'monospace', letterSpacing: '0.04em' }}>{modalVoucherCode || 'GIFT'}</strong>
                           </span>
                         </div>
-                        <span style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: 700 }}>
+                        <span style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: 700 }}>
                           - LKR {modalVoucherDiscount.toLocaleString()} Deducted
                         </span>
                       </div>
                     )}
 
                     <div style={{
-                      backgroundColor: '#121317',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      backgroundColor: '#fcfaf6',
+                      border: '1px solid #e5dfd5',
                       borderRadius: '3px',
                       padding: '1rem 1.2rem'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#62646c', marginBottom: '6px' }}>
                         <span>Garments Subtotal:</span>
-                        <span style={{ color: '#ffffff', fontWeight: 600 }}>LKR {modalItemsSubtotal.toLocaleString()}</span>
+                        <span style={{ color: '#121316', fontWeight: 600 }}>LKR {modalItemsSubtotal.toLocaleString()}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-light-secondary)', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#62646c', marginBottom: '6px' }}>
                         <span>Island-Wide Courier Delivery:</span>
-                        <span style={{ color: modalDeliveryFee > 0 ? 'var(--gold-bright)' : '#4ade80', fontWeight: 600 }}>
+                        <span style={{ color: modalDeliveryFee > 0 ? '#8f6f32' : '#16a34a', fontWeight: 600 }}>
                           {modalDeliveryFee > 0 ? `+ LKR ${modalDeliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
                         </span>
                       </div>
                       {modalSavings > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#16a34a', marginBottom: '6px' }}>
                           <span>Privilege / Promo Savings:</span>
                           <span>- LKR {modalSavings.toLocaleString()}</span>
                         </div>
                       )}
                       {modalVoucherDiscount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#4ade80', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#16a34a', marginBottom: '6px' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span>🏷️ Atelier Voucher ({modalVoucherCode || 'GIFT'}):</span>
                           </span>
@@ -2220,13 +2234,13 @@ export const AccountPage = ({
                         justifyContent: 'space-between',
                         fontSize: '0.96rem',
                         fontWeight: 700,
-                        color: '#ffffff',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#121316',
+                        borderTop: '1px solid #e5dfd5',
                         paddingTop: '8px',
                         marginTop: '6px'
                       }}>
                         <span>Total Settled:</span>
-                        <span style={{ color: 'var(--gold-bright)', fontFamily: 'var(--font-display)' }}>
+                        <span style={{ color: '#8f6f32', fontFamily: 'var(--font-display)' }}>
                           LKR {modalGrandTotal.toLocaleString()}
                         </span>
                       </div>
@@ -2243,8 +2257,8 @@ export const AccountPage = ({
               gap: '10px', 
               flexWrap: 'wrap',
               padding: '1rem 1.6rem',
-              borderTop: '1px solid rgba(255,255,255,0.08)',
-              backgroundColor: '#0f1014',
+              borderTop: '1px solid #e5dfd5', 
+              backgroundColor: '#fcfaf6',
               flexShrink: 0
             }}>
               <button
