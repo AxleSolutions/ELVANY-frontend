@@ -4,7 +4,7 @@
 
 /**
  * Standardize Sri Lankan or international phone numbers for WhatsApp wa.me links.
- * E.g., '071 909 2726' -> '94719092726'
+ * E.g., '076 529 3943' -> '94765293943'
  *       '+94 77 123 4567' -> '94771234567'
  *       '0771234567' -> '94771234567'
  */

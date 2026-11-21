@@ -87,7 +87,7 @@ export const RestockRequestModal = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.88)',
+        backgroundColor: 'rgba(18, 19, 22, 0.65)',
         backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
@@ -103,12 +103,12 @@ export const RestockRequestModal = ({
         style={{ 
           maxWidth: '540px', 
           width: '100%',
-          backgroundColor: '#0c0d11', 
-          border: '1px solid var(--gold-border)',
+          backgroundColor: '#ffffff', 
+          border: '1px solid #e2ddd5',
           borderRadius: '4px',
           padding: '2.5rem 2rem',
           position: 'relative',
-          boxShadow: '0 25px 80px rgba(0,0,0,0.9)',
+          boxShadow: '0 25px 80px rgba(0,0,0,0.18)',
           margin: 'auto',
           maxHeight: '90vh',
           overflowY: 'auto'
@@ -125,7 +125,7 @@ export const RestockRequestModal = ({
             right: '1.2rem',
             background: 'none',
             border: 'none',
-            color: 'var(--text-light-muted)',
+            color: '#767982',
             cursor: 'pointer'
           }}
         >
@@ -141,30 +141,30 @@ export const RestockRequestModal = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                color: 'var(--gold-bright)',
+                color: '#8f6f32',
                 fontSize: '0.72rem',
                 fontWeight: 800,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 marginBottom: '0.4rem'
               }}>
-                <Bell size={13} />
+                <Bell size={13} color="#8f6f32" />
                 <span>ATELIER DEMAND GAUGE • NO OBLIGATION</span>
               </div>
               
               <h3 style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: '1.6rem',
-                color: '#ffffff',
+                color: '#121316',
                 margin: '0 0 0.5rem 0',
-                fontWeight: 400
+                fontWeight: 500
               }}>
                 Request Garment Re-Issue
               </h3>
 
               <p style={{
                 fontSize: '0.82rem',
-                color: 'var(--text-light-secondary)',
+                color: '#62646c',
                 lineHeight: 1.5,
                 margin: 0
               }}>
@@ -177,18 +177,18 @@ export const RestockRequestModal = ({
               display: 'flex',
               alignItems: 'flex-start',
               gap: '10px',
-              backgroundColor: 'rgba(197, 160, 89, 0.08)',
-              border: '1px solid rgba(197, 160, 89, 0.3)',
-              borderRadius: '2px',
+              backgroundColor: '#fbf9f4',
+              border: '1px solid #ebd9b5',
+              borderRadius: '4px',
               padding: '0.85rem 1rem',
               marginBottom: '1.3rem',
               fontSize: '0.76rem',
-              color: 'var(--text-light-secondary)',
+              color: '#4a4c54',
               lineHeight: 1.45
             }}>
-              <Bell size={16} color="var(--gold-bright)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <Bell size={16} color="#8f6f32" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong style={{ color: 'var(--gold-bright)' }}>Please Note (Restock Not Guaranteed):</strong> Registering this request does not guarantee that the garment will be re-made. However, if collective demand reaches our atelier production threshold, a new limited batch will be scheduled and you will receive priority notification.
+                <strong style={{ color: '#8f6f32' }}>Please Note (Restock Not Guaranteed):</strong> Registering this request does not guarantee that the garment will be re-made. However, if collective demand reaches our atelier production threshold, a new limited batch will be scheduled and you will receive priority notification.
               </div>
             </div>
 
@@ -197,22 +197,22 @@ export const RestockRequestModal = ({
               display: 'flex',
               gap: '1rem',
               alignItems: 'center',
-              backgroundColor: '#07080a',
+              backgroundColor: '#f8f6f0',
               padding: '1rem',
-              borderRadius: '2px',
-              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '4px',
+              border: '1px solid #e2ddd5',
               marginBottom: '1.4rem'
             }}>
               <img 
                 src={product.image || product.images?.[0] || '/images/hero_tshirt.webp'} 
                 alt={product.name || product.title} 
-                style={{ width: '54px', height: '65px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)' }}
+                style={{ width: '54px', height: '65px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #e2ddd5' }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.95rem', color: '#ffffff', margin: '0 0 4px 0' }}>
+                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '0.95rem', color: '#121316', margin: '0 0 4px 0' }}>
                   {product.name || product.title}
                 </h4>
-                <div style={{ fontSize: '0.75rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                <div style={{ fontSize: '0.75rem', color: '#8f6f32', fontWeight: 600 }}>
                   Selected: {color} • Size {size}
                 </div>
               </div>
@@ -225,12 +225,12 @@ export const RestockRequestModal = ({
               {/* Variant Selector Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.72rem' }}>DESIRED SIZE *</label>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>DESIRED SIZE *</label>
                   <select 
                     value={size} 
                     onChange={(e) => setSize(e.target.value)}
                     className="form-input"
-                    style={{ backgroundColor: '#07080a', fontSize: '0.85rem' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce', fontSize: '0.85rem' }}
                   >
                     {availableSizes.map(s => (
                       <option key={s} value={s}>{s}</option>
@@ -239,12 +239,12 @@ export const RestockRequestModal = ({
                 </div>
 
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.72rem' }}>COLORWAY</label>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>COLORWAY</label>
                   <select 
                     value={color} 
                     onChange={(e) => setColor(e.target.value)}
                     className="form-input"
-                    style={{ backgroundColor: '#07080a', fontSize: '0.85rem' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce', fontSize: '0.85rem' }}
                   >
                     {availableColors.map(c => (
                       <option key={c} value={c}>{c}</option>
@@ -255,33 +255,33 @@ export const RestockRequestModal = ({
 
               {/* Name */}
               <div>
-                <label className="form-label" style={{ fontSize: '0.72rem' }}>FULL NAME</label>
+                <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>FULL NAME</label>
                 <input 
                   type="text" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Christine Jayasuriya"
                   className="form-input"
-                  style={{ backgroundColor: '#07080a' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce' }}
                 />
               </div>
 
               {/* Contact Row: Email and Phone */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.72rem' }}>EMAIL ADDRESS *</label>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>EMAIL ADDRESS *</label>
                   <input 
                     type="email" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="client@domain.com"
                     className="form-input"
-                    style={{ backgroundColor: '#07080a' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce' }}
                   />
                 </div>
 
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.72rem' }}>PHONE / WHATSAPP</label>
+                  <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>PHONE / WHATSAPP</label>
                   <input 
                     type="tel" 
                     inputMode="tel"
@@ -302,21 +302,21 @@ export const RestockRequestModal = ({
                     }}
                     placeholder="0771234567 or +94771234567"
                     className="form-input"
-                    style={{ backgroundColor: '#07080a' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce' }}
                   />
                 </div>
               </div>
 
               {/* Optional Notes */}
               <div>
-                <label className="form-label" style={{ fontSize: '0.72rem' }}>ADDITIONAL ATELIER REQUEST NOTES (OPTIONAL)</label>
+                <label className="form-label" style={{ fontSize: '0.72rem', color: '#4a4c54', fontWeight: 600 }}>ADDITIONAL ATELIER REQUEST NOTES (OPTIONAL)</label>
                 <textarea 
                   value={notes} 
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Interested in ordering 2 pieces if produced..."
                   rows={2}
                   className="form-input"
-                  style={{ backgroundColor: '#07080a', resize: 'vertical' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', borderColor: '#dcd7ce', resize: 'vertical' }}
                 />
               </div>
 
@@ -362,28 +362,28 @@ export const RestockRequestModal = ({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(197, 160, 89, 0.15)',
-              border: '2px solid var(--gold-bright)',
+              backgroundColor: 'rgba(143, 111, 50, 0.12)',
+              border: '2px solid #8f6f32',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1.5rem auto'
             }}>
-              <Check size={32} color="var(--gold-bright)" />
+              <Check size={32} color="#8f6f32" />
             </div>
 
-            <div style={{ color: 'var(--gold-bright)', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+            <div style={{ color: '#8f6f32', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
               INTEREST RECORDED
             </div>
 
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#ffffff', margin: '0 0 0.8rem 0' }}>
+            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#121316', margin: '0 0 0.8rem 0' }}>
               Atelier Request Confirmed
             </h3>
 
-            <p style={{ fontSize: '0.84rem', color: 'var(--text-light-secondary)', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 1.8rem auto' }}>
-              Your acquisition interest for <strong style={{ color: '#ffffff' }}>{product.name || product.title} ({color}, Size {size})</strong> has been recorded in our demand registry.
+            <p style={{ fontSize: '0.84rem', color: '#4a4c54', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 1.8rem auto' }}>
+              Your acquisition interest for <strong style={{ color: '#121316' }}>{product.name || product.title} ({color}, Size {size})</strong> has been recorded in our demand registry.
               <br /><br />
-              <span style={{ fontSize: '0.78rem', color: 'var(--gold-bright)' }}>
+              <span style={{ fontSize: '0.78rem', color: '#8f6f32' }}>
                 Please note: Re-production is demand-dependent. If sufficient client interest is registered, a limited batch will be scheduled and you will receive priority notification.
               </span>
             </p>

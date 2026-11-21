@@ -178,20 +178,20 @@ class ProductDetailErrorBoundary extends React.Component {
           justifyContent: 'center',
           textAlign: 'center',
           padding: '4rem 1.5rem',
-          backgroundColor: '#090a0c',
-          color: '#ffffff'
+          backgroundColor: '#f8f6f0',
+          color: '#121316'
         }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', color: '#ffffff', marginBottom: '0.8rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', color: '#121316', marginBottom: '0.8rem' }}>
             Atelier Garment Archive
           </h2>
-          <p style={{ color: 'var(--text-light-muted)', fontSize: '0.9rem', maxWidth: '480px', marginBottom: '2rem', lineHeight: 1.6 }}>
+          <p style={{ color: '#62646c', fontSize: '0.9rem', maxWidth: '480px', marginBottom: '2rem', lineHeight: 1.6 }}>
             The requested piece telemetry is refreshing. You may continue exploring our full haute collection or return to the storefront.
           </p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href="/collection" className="btn-primary-gold" style={{ textDecoration: 'none', padding: '0.8rem 1.6rem', fontSize: '0.82rem' }}>
               BROWSE COLLECTION
             </a>
-            <a href="/" style={{ textDecoration: 'none', padding: '0.8rem 1.6rem', fontSize: '0.82rem', color: 'var(--gold-bright)', border: '1px solid var(--gold-border)', borderRadius: '2px' }}>
+            <a href="/" style={{ textDecoration: 'none', padding: '0.8rem 1.6rem', fontSize: '0.82rem', color: '#8f6f32', border: '1px solid rgba(143, 111, 50, 0.35)', borderRadius: '2px', backgroundColor: '#ffffff' }}>
               RETURN TO HOME
             </a>
           </div>
@@ -381,18 +381,18 @@ const ProductDetailPageInner = ({
               onClick={onBackToHome}
               style={{ marginBottom: 0 }}
             >
-              <Home size={14} color="var(--gold-bright)" />
+              <Home size={14} color="#8f6f32" />
               <span>HOME</span>
             </button>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
+            <span style={{ color: '#b8b4ab' }}>/</span>
             <button 
               onClick={onBackToCollection}
-              style={{ background: 'none', border: 'none', color: 'var(--text-light-secondary)', cursor: 'pointer', fontSize: '0.8rem', letterSpacing: '0.08em' }}
+              style={{ background: 'none', border: 'none', color: '#4a4c54', cursor: 'pointer', fontSize: '0.8rem', letterSpacing: '0.08em', fontWeight: 500 }}
             >
               COLLECTION
             </button>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold-bright)', letterSpacing: '0.06em' }}>{product.name}</span>
+            <span style={{ color: '#b8b4ab' }}>/</span>
+            <span style={{ color: '#8f6f32', letterSpacing: '0.06em', fontWeight: 600 }}>{product.name}</span>
           </div>
 
           <button 
@@ -400,7 +400,7 @@ const ProductDetailPageInner = ({
             onClick={onBackToCollection}
             style={{ marginBottom: 0 }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={14} color="#8f6f32" />
             <span>BACK TO COLLECTION</span>
           </button>
         </div>
@@ -522,24 +522,24 @@ const ProductDetailPageInner = ({
             {/* Star Rating Summary Header */}
             {totalReviewsCount > 0 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.2rem' }}>
-                <div style={{ display: 'flex', color: 'var(--gold-bright)', gap: '2px' }}>
+                <div style={{ display: 'flex', color: '#8f6f32', gap: '2px' }}>
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       size={15}
-                      fill={i < Math.round(Number(averageRating || 5)) ? "var(--gold-bright)" : "none"}
-                      color="var(--gold-bright)"
+                      fill={i < Math.round(Number(averageRating || 5)) ? "#8f6f32" : "none"}
+                      color="#8f6f32"
                     />
                   ))}
                 </div>
-                <span style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600 }}>{averageRating}</span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)' }}>
+                <span style={{ fontSize: '0.84rem', color: '#121316', fontWeight: 700 }}>{averageRating}</span>
+                <span style={{ fontSize: '0.78rem', color: '#767982' }}>
                   ({totalReviewsCount} Verified Client {totalReviewsCount === 1 ? 'Review' : 'Reviews'})
                 </span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.2rem' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '0.78rem', color: '#767982', letterSpacing: '0.04em' }}>
                   No client reviews yet
                 </span>
               </div>
@@ -548,12 +548,12 @@ const ProductDetailPageInner = ({
 
             {/* Price Row (Offers Support) */}
             <div className="pdp-price-row" style={{ alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
-              <span className="pdp-price" style={{ color: 'var(--gold-bright)' }}>
+              <span className="pdp-price" style={{ color: '#8f6f32' }}>
                 {formatLKR(effectivePrice)}
               </span>
               
               {isOfferActive && originalPrice && (
-                <span style={{ fontSize: '1.15rem', color: 'var(--text-light-muted)', textDecoration: 'line-through', opacity: 0.6 }}>
+                <span style={{ fontSize: '1.15rem', color: '#767982', textDecoration: 'line-through', opacity: 0.7 }}>
                   {formatLKR(originalPrice)}
                 </span>
               )}
@@ -561,8 +561,8 @@ const ProductDetailPageInner = ({
               {isOfferActive && (
                 <span style={{
                   fontSize: '0.74rem',
-                  backgroundColor: 'var(--gold-bright)',
-                  color: '#000000',
+                  backgroundColor: '#8f6f32',
+                  color: '#ffffff',
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '2px',
@@ -582,11 +582,11 @@ const ProductDetailPageInner = ({
               gap: '8px',
               padding: '2px 0',
               fontSize: '0.76rem',
-              color: 'var(--text-light-secondary)',
+              color: '#4a4c54',
               marginBottom: '1.2rem'
             }}>
-              <Sparkles size={12} color="var(--gold-bright)" />
-              <span>or 3 instalments of <strong style={{ color: 'var(--gold-bright)' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
+              <Sparkles size={12} color="#8f6f32" />
+              <span>or 3 instalments of <strong style={{ color: '#8f6f32' }}>LKR {Math.round((effectivePrice * 1.12) / 3).toLocaleString()}</strong> with</span>
               <KokoLogo style={{ padding: '1px 5px', height: '18px' }} imgStyle={{ height: '14px' }} />
             </div>
 
@@ -617,7 +617,7 @@ const ProductDetailPageInner = ({
                         height: '26px',
                         borderRadius: '50%',
                         border: 'none',
-                        outline: isSelected ? '2px solid var(--gold-bright)' : '1px solid rgba(255,255,255,0.25)',
+                        outline: isSelected ? '2px solid #8f6f32' : '1px solid #dcd7ce',
                         outlineOffset: '3px',
                         cursor: 'pointer',
                         transform: isSelected ? 'scale(1.15)' : 'scale(1)',
@@ -920,10 +920,10 @@ const ProductDetailPageInner = ({
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
-                    <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#ffffff', margin: '0 0 0.2rem 0' }}>
+                    <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: '#121316', margin: '0 0 0.2rem 0' }}>
                       Client Evaluations & Fit Telemetry
                     </h3>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)', margin: 0 }}>
+                    <p style={{ fontSize: '0.78rem', color: '#62646c', margin: 0 }}>
                       Verified feedback recorded by patrons upon parcel delivery.
                     </p>
                   </div>
@@ -934,25 +934,25 @@ const ProductDetailPageInner = ({
                     gap: '6px',
                     padding: '5px 12px',
                     borderRadius: '2px',
-                    backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                    border: '1px solid var(--gold-border)',
+                    backgroundColor: 'rgba(143, 111, 50, 0.08)',
+                    border: '1px solid rgba(143, 111, 50, 0.25)',
                     fontSize: '0.72rem',
-                    color: 'var(--gold-bright)',
+                    color: '#8f6f32',
                     fontWeight: 600
                   }}>
-                    <ShieldCheck size={13} />
+                    <ShieldCheck size={13} color="#8f6f32" />
                     <span>VERIFIED PURCHASERS ONLY</span>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
                   {localReviews.length === 0 ? (
-                    <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', borderRadius: '2px' }}>
-                      <ShieldCheck size={28} color="var(--gold-bright)" style={{ margin: '0 auto 0.8rem auto' }} />
-                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#fff', marginBottom: '0.4rem', fontWeight: 400 }}>
+                    <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', backgroundColor: '#ffffff', border: '1px solid #e2ddd5', borderRadius: '4px' }}>
+                      <ShieldCheck size={28} color="#8f6f32" style={{ margin: '0 auto 0.8rem auto' }} />
+                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#121316', marginBottom: '0.4rem', fontWeight: 500 }}>
                         No client evaluations yet
                       </h4>
-                      <p style={{ color: 'var(--text-light-muted)', fontSize: '0.84rem', maxWidth: '440px', margin: '0 auto', lineHeight: 1.5 }}>
+                      <p style={{ color: '#62646c', fontSize: '0.84rem', maxWidth: '440px', margin: '0 auto', lineHeight: 1.5 }}>
                         Client evaluations are unlocked exclusively for patrons upon successful courier parcel delivery.
                       </p>
                     </div>
@@ -962,35 +962,36 @@ const ProductDetailPageInner = ({
                       <div 
                         key={rev.id} 
                         style={{
-                          border: '1px solid var(--border-dark)',
+                          border: '1px solid #e2ddd5',
                           padding: '1.6rem',
-                          borderRadius: '2px',
-                          backgroundColor: '#0d0e12'
+                          borderRadius: '4px',
+                          backgroundColor: '#ffffff',
+                          boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                            <div style={{ display: 'flex', color: 'var(--gold-bright)', gap: '2px' }}>
+                            <div style={{ display: 'flex', color: '#8f6f32', gap: '2px' }}>
                               {[...Array(rev.rating || 5)].map((_, i) => (
-                                <Star key={i} size={14} fill="var(--gold-bright)" color="var(--gold-bright)" />
+                                <Star key={i} size={14} fill="#8f6f32" color="#8f6f32" />
                               ))}
                             </div>
-                            <strong style={{ color: '#ffffff', fontSize: '0.95rem' }}>{rev.author || rev.clientName || rev.customerName || 'Verified Client'}</strong>
-                            <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', backgroundColor: 'rgba(197, 160, 89, 0.12)', border: '1px solid var(--gold-border)', padding: '1px 6px', borderRadius: '1px' }}>
+                            <strong style={{ color: '#121316', fontSize: '0.95rem' }}>{rev.author || rev.clientName || rev.customerName || 'Verified Client'}</strong>
+                            <span style={{ fontSize: '0.68rem', color: '#8f6f32', backgroundColor: 'rgba(143, 111, 50, 0.08)', border: '1px solid rgba(143, 111, 50, 0.25)', padding: '1px 6px', borderRadius: '2px', fontWeight: 600 }}>
                               ✓ Verified Buyer
                             </span>
                           </div>
 
-                          <span style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)' }}>{rev.date || 'Recently'}</span>
+                          <span style={{ fontSize: '0.76rem', color: '#767982' }}>{rev.date || 'Recently'}</span>
                         </div>
 
                         {rev.title && (
-                          <h4 style={{ color: '#ffffff', fontSize: '1.05rem', fontWeight: 500, margin: '0 0 0.5rem 0', fontFamily: 'var(--font-serif)' }}>
+                          <h4 style={{ color: '#121316', fontSize: '1.05rem', fontWeight: 500, margin: '0 0 0.5rem 0', fontFamily: 'var(--font-serif)' }}>
                             {rev.title}
                           </h4>
                         )}
 
-                        <p style={{ fontSize: '0.9rem', color: 'var(--text-light-secondary)', lineHeight: 1.65, margin: '0 0 0.8rem 0' }}>
+                        <p style={{ fontSize: '0.9rem', color: '#4a4c54', lineHeight: 1.65, margin: '0 0 0.8rem 0' }}>
                           "{rev.content || rev.comment}"
                         </p>
 
@@ -1010,7 +1011,7 @@ const ProductDetailPageInner = ({
                                   onClick={() => setActivePhotoModal(photoUrl)}
                                   style={{
                                     background: 'none',
-                                    border: '1px solid rgba(197, 160, 89, 0.35)',
+                                    border: '1px solid #e2ddd5',
                                     padding: 0,
                                     borderRadius: '4px',
                                     overflow: 'hidden',
@@ -1036,7 +1037,7 @@ const ProductDetailPageInner = ({
                                     display: 'flex',
                                     alignItems: 'center'
                                   }}>
-                                    <Maximize2 size={9} color="var(--gold-bright)" />
+                                    <Maximize2 size={9} color="#ffffff" />
                                   </div>
                                 </button>
                               ))}
@@ -1044,9 +1045,9 @@ const ProductDetailPageInner = ({
                           );
                         })()}
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.6rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                            Fit: <span style={{ color: 'var(--gold-bright)' }}>{rev.fitRating || 'True to Atelier Boxy Spec'}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.6rem', borderTop: '1px solid #f0ede6' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#62646c' }}>
+                            Fit: <span style={{ color: '#8f6f32', fontWeight: 600 }}>{rev.fitRating || 'True to Atelier Boxy Spec'}</span>
                           </span>
 
                           <button
@@ -1055,12 +1056,13 @@ const ProductDetailPageInner = ({
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: helpfulMap[rev.id] ? 'var(--gold-bright)' : 'var(--text-light-muted)',
+                              color: helpfulMap[rev.id] ? '#8f6f32' : '#62646c',
                               cursor: helpfulMap[rev.id] ? 'default' : 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '5px',
-                              fontSize: '0.76rem'
+                              fontSize: '0.76rem',
+                              fontWeight: 500
                             }}
                           >
                             <ThumbsUp size={13} />
@@ -1078,11 +1080,11 @@ const ProductDetailPageInner = ({
         </div>
 
         {/* Complementary Silhouettes (Suggested Pieces) */}
-        <div style={{ marginTop: '5.5rem', paddingTop: '3.5rem', borderTop: '1px solid var(--border-dark)' }}>
+        <div style={{ marginTop: '5.5rem', paddingTop: '3.5rem', borderTop: '1px solid #e2ddd5' }}>
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <div style={{
               fontSize: '0.74rem',
-              color: 'var(--gold-bright)',
+              color: '#8f6f32',
               letterSpacing: '0.22em',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -1093,7 +1095,7 @@ const ProductDetailPageInner = ({
             <h3 style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(1.8rem, 3vw, 2.3rem)',
-              color: '#ffffff',
+              color: '#121316',
               fontWeight: 400,
               margin: 0
             }}>

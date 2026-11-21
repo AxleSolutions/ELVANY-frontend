@@ -24,6 +24,7 @@ import { PopupAdModal } from './components/PopupAdModal';
 import { PromotionsSection } from './components/PromotionsSection';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { OfflineGate } from './components/OfflineGate';
+import { WhatsAppFloatingButton } from './components/WhatsAppFloatingButton';
 
 // Code-split heavy routes for maximum performance & lightning-fast initial load
 const AdminApp = React.lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
@@ -1439,6 +1440,9 @@ const safeSaveCartToLocalStorage = (cart) => {
 
       {/* Luxury Progressive Web App (PWA) Install Prompt */}
       <PwaInstallPrompt />
+
+      {/* Floating WhatsApp Quick Contact Button */}
+      <WhatsAppFloatingButton phoneNumber="0765293943" />
 
       {/* Haute Luxury Offline Mode Access Restriction Gate & Live Sync Prompt */}
       <OfflineGate 

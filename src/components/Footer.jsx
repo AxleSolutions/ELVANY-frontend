@@ -28,12 +28,8 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <Phone size={14} color="var(--gold-primary)" />
-                <a href="tel:0719092726" style={{ color: 'var(--text-light-secondary)' }}>
-                  071 909 2726
-                </a>
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                <a href="tel:0712529942" style={{ color: 'var(--text-light-secondary)' }}>
-                  071 252 9942
+                <a href="tel:0765293943" style={{ color: 'var(--text-light-secondary)' }}>
+                  076 529 3943
                 </a>
               </div>
             </div>

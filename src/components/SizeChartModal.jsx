@@ -200,7 +200,7 @@ export const SizeChartModal = ({ isOpen, onClose }) => {
           flexShrink: 0
         }}>
           <a
-            href="https://wa.me/94719092726?text=Hi%20ELVANY%2C%20I%20need%20help%20choosing%20my%20exact%20t-shirt%20size"
+            href="https://wa.me/94765293943?text=Hi%20ELVANY%2C%20I%20need%20help%20choosing%20my%20exact%20t-shirt%20size"
             target="_blank"
             rel="noopener noreferrer"
             style={{

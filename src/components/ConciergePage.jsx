@@ -193,52 +193,26 @@ export const ConciergePage = () => {
                 </div>
               </div>
 
-              {/* Primary Advisor */}
-              <div className="concierge-advisor-row">
-                <div>
-                  <div style={{ fontSize: '0.64rem', color: '#767982', letterSpacing: '0.08em' }}>PRIMARY ADVISOR</div>
-                  <a href="tel:0719092726" style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
-                    071 909 2726
-                  </a>
-                </div>
-                <div style={{ display: 'flex', gap: '0.45rem' }}>
-                  <a
-                    href="tel:0719092726"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#121316', background: '#ffffff', border: '1px solid #d4cdc3', borderRadius: '3px', textDecoration: 'none', fontWeight: 600 }}
-                  >
-                    Call
-                  </a>
-                  <a
-                    href="https://wa.me/94719092726"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
-                  >
-                    WhatsApp
-                  </a>
-                </div>
-              </div>
-
-              {/* Secondary Advisor */}
+              {/* Dedicated Atelier Advisor */}
               <div className="concierge-advisor-row" style={{ marginBottom: 0 }}>
                 <div>
-                  <div style={{ fontSize: '0.64rem', color: '#767982', letterSpacing: '0.08em' }}>SECONDARY ADVISOR</div>
-                  <a href="tel:0712529942" style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
-                    071 252 9942
+                  <div style={{ fontSize: '0.64rem', color: '#767982', letterSpacing: '0.08em' }}>DIRECT ATELIER ADVISOR</div>
+                  <a href="tel:0765293943" style={{ fontFamily: 'var(--font-display)', color: '#8f6f32', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
+                    076 529 3943
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: '0.45rem' }}>
                   <a
-                    href="tel:0712529942"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#121316', background: '#ffffff', border: '1px solid #d4cdc3', borderRadius: '3px', textDecoration: 'none', fontWeight: 600 }}
+                    href="tel:0765293943"
+                    style={{ padding: '6px 14px', fontSize: '0.74rem', color: '#121316', background: '#ffffff', border: '1px solid #d4cdc3', borderRadius: '3px', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Call
                   </a>
                   <a
-                    href="https://wa.me/94712529942"
+                    href="https://wa.me/94765293943"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ padding: '6px 12px', fontSize: '0.72rem', color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                    style={{ padding: '6px 14px', fontSize: '0.74rem', color: '#15803d', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}
                   >
                     WhatsApp
                   </a>

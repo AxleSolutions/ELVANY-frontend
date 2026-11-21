@@ -691,8 +691,8 @@ export const AccountPage = ({
                               {isRejected ? '✕ ' : '✓ '}{displayBadgeStatus}
                             </span>
                           </div>
-                          <div style={{ fontSize: '0.76rem', color: '#62646c' }}>
-                            Placed on {order.orderDate} • {order.items.length} {order.items.length === 1 ? 'Garment' : 'Garments'} • {order.paymentMethod || (isCod ? 'Cash on Delivery' : 'Bank Transfer')}
+                          <div style={{ fontSize: '0.78rem', color: '#62646c' }}>
+                            Placed on {order.orderDate}
                           </div>
                         </div>
 
@@ -840,146 +840,109 @@ export const AccountPage = ({
                         </div>
                       )}
 
-                    {/* Order Item Rows */}
-                    <div style={{ padding: '0.5rem 1.5rem' }}>
-                      {order.items.map((item, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '1.1rem 0',
-                            borderBottom: idx === order.items.length - 1 ? 'none' : '1px solid #f0ede6',
-                            flexWrap: 'wrap',
-                            gap: '0.8rem'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div 
-                              style={{
-                                width: '48px',
-                                height: '58px',
-                                borderRadius: '3px',
-                                overflow: 'hidden',
-                                backgroundColor: '#f8f6f0',
-                                border: '1px solid #e2ddd5',
-                                flexShrink: 0,
-                                cursor: (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) ? 'pointer' : 'default'
-                              }}
-                              onClick={() => (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && setInspectedBespokeItem(item)}
-                              title="Click to view 4-sides blueprint"
-                            >
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                              />
+                    {/* Order Item Rows with Larger, Clear Garment Images */}
+                    <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {order.items.map((item, idx) => {
+                        const itemQty = item.quantity || item.qty || 1;
+                        const itemUnitPrice = Number(item.priceLKR || item.price || 18500);
+                        const itemTotalPrice = itemUnitPrice * itemQty;
+
+                        return (
+                          <div
+                            key={idx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              paddingBottom: idx === order.items.length - 1 ? 0 : '1rem',
+                              borderBottom: idx === order.items.length - 1 ? 'none' : '1px solid #f0ede6',
+                              flexWrap: 'wrap',
+                              gap: '1.2rem'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', minWidth: 0, flex: 1 }}>
+                              {/* Large Prominent Garment Thumbnail for Instant Identification */}
+                              <div 
+                                style={{
+                                  width: '84px',
+                                  height: '104px',
+                                  borderRadius: '4px',
+                                  overflow: 'hidden',
+                                  backgroundColor: '#f8f6f0',
+                                  border: '1px solid #e2ddd5',
+                                  flexShrink: 0,
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                  cursor: (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) ? 'pointer' : 'default'
+                                }}
+                                onClick={() => (item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && setInspectedBespokeItem(item)}
+                                title={item.name}
+                              >
+                                <img
+                                  src={item.image || '/images/hero_tshirt.webp'}
+                                  alt={item.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
+                                />
+                              </div>
+
+                              {/* Garment Identification Details */}
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: '#121316', margin: 0, fontWeight: 500 }}>
+                                    {item.name}
+                                  </h4>
+                                  {(item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setInspectedBespokeItem(item)}
+                                      style={{
+                                        background: '#fcfaf6',
+                                        border: '1px solid #dcc48e',
+                                        color: '#8f6f32',
+                                        padding: '2px 7px',
+                                        borderRadius: '2px',
+                                        fontSize: '0.66rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '3px'
+                                      }}
+                                    >
+                                      <Sparkles size={10} />
+                                      <span>4-SIDES BLUEPRINT</span>
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div style={{ fontSize: '0.8rem', color: '#62646c', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                  <span>Size: <strong style={{ color: '#121316' }}>{item.selectedSize || item.size}</strong></span>
+                                  <span style={{ color: '#b8b4ab' }}>•</span>
+                                  <span>Color: <strong style={{ color: '#121316' }}>{item.color}</strong></span>
+                                  {itemQty > 1 && (
+                                    <>
+                                      <span style={{ color: '#b8b4ab' }}>•</span>
+                                      <span>Qty: <strong style={{ color: '#121316' }}>{itemQty}</strong></span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-                                <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: '#121316', margin: 0, fontWeight: 500 }}>
-                                  {item.name}
-                                </h4>
-                                {(item.isBespokeCustom || item.designCode || (item.name || '').includes('Custom') || (item.name || '').includes('Bespoke')) && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setInspectedBespokeItem(item)}
-                                    style={{
-                                      background: '#fcfaf6',
-                                      border: '1px solid #dcc48e',
-                                      color: '#8f6f32',
-                                      padding: '2px 7px',
-                                      borderRadius: '2px',
-                                      fontSize: '0.66rem',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '3px'
-                                    }}
-                                  >
-                                    <Sparkles size={10} />
-                                    <span>4-SIDES BLUEPRINT</span>
-                                  </button>
-                                )}
-                              </div>
-                              <div style={{ fontSize: '0.76rem', color: '#62646c', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                <span>Size: <strong style={{ color: '#121316' }}>{item.selectedSize}</strong></span>
-                                <span style={{ color: '#b8b4ab' }}>•</span>
-                                <span>Color: <strong style={{ color: '#121316' }}>{item.color}</strong></span>
-                                <span style={{ color: '#b8b4ab' }}>•</span>
-                                <span style={{ color: '#8f6f32', fontWeight: 700 }}>LKR {item.priceLKR ? item.priceLKR.toLocaleString() : '18,500'}</span>
-                              </div>
+                            {/* Item Price */}
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: '#8f6f32', fontWeight: 600 }}>
+                                LKR {itemTotalPrice.toLocaleString()}
+                              </span>
                             </div>
                           </div>
-
-                          {(() => {
-                            const isDelivered = order.status === 'Delivered' || (order.status || '').toLowerCase().includes('delivered');
-
-                            if (!isDelivered) return null;
-
-                            const alreadyReviewed = isItemReviewed(order, item);
-
-                            if (alreadyReviewed) {
-                              return (
-                                <div style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  padding: '5px 11px',
-                                  borderRadius: '3px',
-                                  backgroundColor: '#dcfce7',
-                                  border: '1px solid #86efac',
-                                  color: '#16a34a',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700
-                                }}>
-                                  <Check size={12} color="#16a34a" />
-                                  <span>Reviewed</span>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <button
-                                onClick={() => handleGoToOrderReview(order.orderId)}
-                                style={{
-                                  backgroundColor: '#fbf8f2',
-                                  border: '1px solid #dcc48e',
-                                  color: '#8f6f32',
-                                  fontSize: '0.74rem',
-                                  fontWeight: 600,
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.4rem',
-                                  padding: '6px 12px',
-                                  borderRadius: '3px',
-                                  letterSpacing: '0.04em',
-                                  transition: 'all 0.2s ease'
-                                }}
-                                title="Submit verified review for this delivered piece"
-                              >
-                                <Star size={13} fill="#8f6f32" color="#8f6f32" />
-                                <span>Evaluate Delivered Piece</span>
-                                <ArrowRight size={12} />
-                              </button>
-                            );
-                          })()}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    {/* Order Financial Summary Strip */}
+                    {/* Clean Minimalist Order Summary Footer */}
                     {(() => {
-                      const itemsSubtotal = (order.items || []).reduce((sum, item) => sum + ((parseFloat(item.priceLKR || item.price || 0)) * (parseInt(item.quantity || item.qty || 1, 10))), 0);
-                      const deliveryFee = Number(order.deliveryFeeLKR ?? order.shippingFeeLKR ?? order.deliveryAddress?.deliveryFeeLKR ?? order.delivery_address?.deliveryFeeLKR ?? 0);
-                      const savings = Number(order.savingsLKR || order.discount_lkr || 0);
-                      const voucherDiscount = Number(order.voucherDiscountLKR ?? order.voucher_discount_lkr ?? order.deliveryAddress?.voucherDiscountLKR ?? order.delivery_address?.voucherDiscountLKR ?? 0);
-                      const voucherCode = order.voucherCode || order.voucher_code || order.deliveryAddress?.voucherCode || order.delivery_address?.voucherCode || order.appliedVoucher?.code || '';
-                      const grandTotal = Number(order.grandTotalLKR || order.totalLKR || Math.max(0, itemsSubtotal + deliveryFee - savings - voucherDiscount));
+                      const grandTotal = Number(order.grandTotalLKR || order.totalLKR || total);
 
                       return (
                         <div style={{
@@ -990,35 +953,16 @@ export const AccountPage = ({
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           flexWrap: 'wrap',
-                          gap: '0.8rem'
+                          gap: '0.8rem',
+                          fontSize: '0.82rem'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.76rem', color: '#62646c', flexWrap: 'wrap' }}>
-                            <span>Items Subtotal: <strong style={{ color: '#121316' }}>LKR {itemsSubtotal.toLocaleString()}</strong></span>
-                            <span style={{ color: '#b8b4ab' }}>•</span>
-                            <span>
-                              Delivery: <strong style={{ color: deliveryFee > 0 ? '#8f6f32' : '#16a34a' }}>
-                                {deliveryFee > 0 ? `+ LKR ${deliveryFee.toLocaleString()}` : 'Complimentary (LKR 0)'}
-                              </strong>
-                            </span>
-                            {savings > 0 && (
-                              <>
-                                <span style={{ color: '#b8b4ab' }}>•</span>
-                                <span style={{ color: '#16a34a', fontWeight: 600 }}>Savings: -LKR {savings.toLocaleString()}</span>
-                              </>
-                            )}
-                            {(voucherCode || voucherDiscount > 0) && (
-                              <>
-                                <span style={{ color: '#b8b4ab' }}>•</span>
-                                <span style={{ color: '#16a34a', fontWeight: 600 }}>
-                                  🏷️ Voucher ({voucherCode || 'GIFT'}): -LKR {voucherDiscount.toLocaleString()}
-                                </span>
-                              </>
-                            )}
-                          </div>
+                          <span style={{ color: '#62646c' }}>
+                            {order.items.length} {order.items.length === 1 ? 'Garment' : 'Garments'} • {order.paymentMethod || (isCod ? 'Cash on Delivery' : 'Bank Transfer')}
+                          </span>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '0.72rem', color: '#62646c', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                              Total Paid:
+                            <span style={{ fontSize: '0.74rem', color: '#62646c', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                              Order Total:
                             </span>
                             <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#8f6f32', fontWeight: 700 }}>
                               LKR {grandTotal.toLocaleString()}

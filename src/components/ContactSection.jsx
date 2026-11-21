@@ -162,76 +162,39 @@ export const ContactSection = () => {
                 </div>
               </div>
 
-              {/* Line 1 */}
+              {/* Direct Atelier Advisor */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '0.85rem 1rem',
-                backgroundColor: '#090a0c',
-                border: '1px solid var(--border-dark)',
-                borderRadius: '2px',
-                marginBottom: '0.8rem'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>PRIMARY ADVISOR</div>
-                  <a href="tel:0719092726" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
-                    071 909 2726
-                  </a>
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <a
-                    href="tel:0719092726"
-                    style={{ padding: '4px 10px', fontSize: '0.7rem', color: '#fff', border: '1px solid var(--border-dark)', borderRadius: '2px', textDecoration: 'none' }}
-                  >
-                    Call
-                  </a>
-                  <a
-                    href="https://wa.me/94719092726"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ padding: '4px 10px', fontSize: '0.7rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.1)', border: '1px solid var(--gold-border)', borderRadius: '2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                  >
-                    WhatsApp
-                  </a>
-                </div>
-              </div>
-
-              {/* Line 2 */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0.85rem 1rem',
+                padding: '0.9rem 1.1rem',
                 backgroundColor: '#090a0c',
                 border: '1px solid var(--border-dark)',
                 borderRadius: '2px'
               }}>
                 <div>
-                  <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>SECONDARY ADVISOR</div>
-                  <a href="tel:0712529942" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
-                    071 252 9942
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', letterSpacing: '0.08em' }}>DIRECT ATELIER ADVISOR</div>
+                  <a href="tel:0765293943" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-bright)', fontWeight: 600, fontSize: '1.05rem', textDecoration: 'none' }}>
+                    076 529 3943
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <a
-                    href="tel:0712529942"
-                    style={{ padding: '4px 10px', fontSize: '0.7rem', color: '#fff', border: '1px solid var(--border-dark)', borderRadius: '2px', textDecoration: 'none' }}
+                    href="tel:0765293943"
+                    style={{ padding: '5px 12px', fontSize: '0.72rem', color: '#fff', border: '1px solid var(--border-dark)', borderRadius: '2px', textDecoration: 'none' }}
                   >
                     Call
                   </a>
                   <a
-                    href="https://wa.me/94712529942"
+                    href="https://wa.me/94765293943"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ padding: '4px 10px', fontSize: '0.7rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.1)', border: '1px solid var(--gold-border)', borderRadius: '2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                    style={{ padding: '5px 12px', fontSize: '0.72rem', color: 'var(--gold-bright)', background: 'rgba(197, 160, 89, 0.1)', border: '1px solid var(--gold-border)', borderRadius: '2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
                   >
                     WhatsApp
                   </a>
                 </div>
               </div>
-
-
             </div>
 
             {/* Operating Hours Note */}
@@ -313,7 +276,7 @@ export const ContactSection = () => {
                       <input
                         type="text"
                         required
-                        placeholder="e.g. 071 909 2726"
+                        placeholder="e.g. 076 529 3943"
                         className="form-input"
                         value={formData.contactInfo}
                         onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}

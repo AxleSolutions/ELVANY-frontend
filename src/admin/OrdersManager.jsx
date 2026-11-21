@@ -182,7 +182,7 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                         <div className="admin-client-name">{order.customerName}</div>
                         <div className="admin-table-sub">{order.customerLocation}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                          {order.customerPhone || '071 909 2726'}
+                          {order.customerPhone || '076 529 3943'}
                         </div>
                       </td>
 
