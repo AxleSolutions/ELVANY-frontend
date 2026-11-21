@@ -100,10 +100,10 @@ export const PromotionsSection = ({
 
   return (
     <section className="promotions-section" style={{
-      backgroundColor: '#090a0c',
+      backgroundColor: '#f8f6f0',
       padding: '2.5rem 0 2rem 0',
-      borderTop: '1px solid var(--gold-border)',
-      borderBottom: '1px solid var(--border-dark)',
+      borderTop: '1px solid rgba(197, 160, 89, 0.35)',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -290,17 +290,17 @@ export const PromotionsSection = ({
                             gap: '0.5rem'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-                              <Flame size={15} color="#ef4444" style={{ filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.7))' }} />
-                              <span style={{ color: '#ffffff', fontWeight: 700, letterSpacing: '0.02em', fontSize: '0.85rem' }}>
-                                <strong style={{ color: '#f87171' }}>{sold} sold</strong>
-                                <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>•</span>
-                                <strong style={{ color: isClaimedOut ? '#f87171' : '#ffffff' }}>{remaining} remaining</strong>
+                              <Flame size={15} color="#dc2626" style={{ filter: 'drop-shadow(0 0 6px rgba(220, 38, 38, 0.45))' }} />
+                              <span style={{ color: '#1f2937', fontWeight: 700, letterSpacing: '0.02em', fontSize: '0.85rem' }}>
+                                <strong style={{ color: '#dc2626' }}>{sold} sold</strong>
+                                <span style={{ color: 'rgba(0, 0, 0, 0.25)', margin: '0 8px' }}>•</span>
+                                <strong style={{ color: isClaimedOut ? '#dc2626' : '#1f2937' }}>{remaining} remaining</strong>
                               </span>
                             </div>
                             <span style={{
                               fontSize: '0.76rem',
                               fontWeight: 800,
-                              color: '#f87171',
+                              color: '#dc2626',
                               letterSpacing: '0.08em',
                               textTransform: 'uppercase',
                               background: 'transparent',
@@ -315,7 +315,7 @@ export const PromotionsSection = ({
                           <div style={{
                             width: '100%',
                             height: '5px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.07)',
                             borderRadius: '999px',
                             overflow: 'hidden',
                             position: 'relative'
@@ -326,7 +326,7 @@ export const PromotionsSection = ({
                                 height: '100%',
                                 background: 'linear-gradient(90deg, #dc2626 0%, #ef4444 70%, #f87171 100%)',
                                 borderRadius: '999px',
-                                boxShadow: '0 0 10px rgba(239, 68, 68, 0.65)',
+                                boxShadow: '0 0 8px rgba(220, 38, 38, 0.4)',
                                 transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                               }}
                             />
@@ -421,7 +421,7 @@ export const PromotionsSection = ({
                   style={{
                     width: idx === currentIdx ? '42px' : '16px',
                     height: '4px',
-                    backgroundColor: idx === currentIdx ? 'var(--gold-bright)' : 'rgba(255, 255, 255, 0.25)',
+                    backgroundColor: idx === currentIdx ? 'var(--gold-primary)' : 'rgba(0, 0, 0, 0.16)',
                     border: 'none',
                     borderRadius: '2px',
                     cursor: 'pointer',
