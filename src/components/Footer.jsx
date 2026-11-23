@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mail, Phone, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Mail, Phone, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNavigateToCustomLab }) => {
   return (
@@ -33,6 +34,38 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Client Care & Legal Policies */}
+          <div>
+            <h4 className="footer-col-title">CLIENT CARE & POLICIES</h4>
+            <ul className="footer-links-list">
+              <li className="footer-link-item">
+                <Link to="/return-policy" onClick={() => window.scrollTo(0, 0)}>
+                  Return & Refund Policy
+                </Link>
+              </li>
+              <li className="footer-link-item">
+                <Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)}>
+                  Privacy Policy
+                </Link>
+              </li>
+              <li className="footer-link-item">
+                <Link to="/terms-and-conditions" onClick={() => window.scrollTo(0, 0)}>
+                  Terms & Conditions
+                </Link>
+              </li>
+              {onNavigateToConcierge && (
+                <li className="footer-link-item">
+                  <a 
+                    href="/concierge" 
+                    onClick={(e) => { e.preventDefault(); onNavigateToConcierge(); }}
+                  >
+                    Client Concierge & Sizing
+                  </a>
+                </li>
+              )}
+            </ul>
           </div>
 
           {/* Social Media Links */}
@@ -82,6 +115,9 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
         <div className="footer-bottom-bar">
           <div>© 2026 ELVANY. ALL RIGHTS RESERVED.</div>
           <div className="footer-legal-links">
+            <Link to="/return-policy" onClick={() => window.scrollTo(0, 0)}>Return & Refund Policy</Link>
+            <Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)}>Privacy Policy</Link>
+            <Link to="/terms-and-conditions" onClick={() => window.scrollTo(0, 0)}>Terms & Conditions</Link>
             <span>SRI LANKA</span>
           </div>
         </div>

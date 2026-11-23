@@ -34,6 +34,9 @@ const OrderReviewPortalPage = React.lazy(() => import('./components/OrderReviewP
 const ConciergePage = React.lazy(() => import('./components/ConciergePage').then(m => ({ default: m.ConciergePage })));
 const SearchPage = React.lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 const CustomLabPage = React.lazy(() => import('./components/CustomLabPage').then(m => ({ default: m.CustomLabPage })));
+const ReturnPolicyPage = React.lazy(() => import('./components/ReturnPolicyPage').then(m => ({ default: m.ReturnPolicyPage })));
+const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndConditionsPage').then(m => ({ default: m.TermsAndConditionsPage })));
 
 import { PRODUCTS } from './data/products';
 import { INITIAL_ORDERS } from './data/orders';
@@ -983,6 +986,8 @@ const safeSaveCartToLocalStorage = (cart) => {
     ? 'account'
     : location.pathname === '/concierge' || location.pathname === '/contact'
     ? 'concierge'
+    : location.pathname === '/return-policy' || location.pathname === '/privacy-policy' || location.pathname === '/terms-and-conditions'
+    ? 'policy'
     : location.pathname.startsWith('/order-review')
     ? 'order-review'
     : isAdminView
@@ -1297,6 +1302,20 @@ const safeSaveCartToLocalStorage = (cart) => {
                 onBackToStore={() => navigateToHome()}
               />
             } 
+          />
+
+          {/* Official eCommerce Policy Routes (PayHere Compliance) */}
+          <Route 
+            path="/return-policy" 
+            element={<ReturnPolicyPage />} 
+          />
+          <Route 
+            path="/privacy-policy" 
+            element={<PrivacyPolicyPage />} 
+          />
+          <Route 
+            path="/terms-and-conditions" 
+            element={<TermsAndConditionsPage />} 
           />
 
           {/* Fallback to Home */}
