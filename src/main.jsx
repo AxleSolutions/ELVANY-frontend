@@ -5,6 +5,17 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 import App from './App.jsx';
 
+// Auto-recover from stale chunks after new production deployments
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  const lastReload = sessionStorage.getItem('elvany_chunk_reload');
+  const now = Date.now();
+  if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+    sessionStorage.setItem('elvany_chunk_reload', String(now));
+    window.location.reload();
+  }
+});
+
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1048897515822-sample.apps.googleusercontent.com';
 
 createRoot(document.getElementById('root')).render(

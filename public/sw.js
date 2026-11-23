@@ -1,5 +1,5 @@
 // ELVANY — Haute Couture Progressive Web App Service Worker
-const CACHE_NAME = 'elvany-pwa-v5';
+const CACHE_NAME = 'elvany-pwa-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -60,6 +60,7 @@ self.addEventListener('fetch', (event) => {
     request.method !== 'GET' ||
     (!isSameOrigin && !isGoogleFont) ||
     url.pathname.startsWith('/api') ||
+    url.pathname.startsWith('/assets/') || // Let Vite bundled chunks load directly from network/CDN
     url.searchParams.has('_ping') ||
     url.searchParams.has('nocache') ||
     url.hostname.includes('facebook.com') ||
@@ -91,7 +92,7 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
           })
           .catch(() => {
-            return new Response('', { status: 408, statusText: 'Network request timed out' });
+            return caches.match(request);
           });
       })
     );
@@ -119,7 +120,7 @@ self.addEventListener('fetch', (event) => {
           if (request.mode === 'navigate') {
             return caches.match('/index.html');
           }
-          return new Response('', { status: 408, statusText: 'Offline or Network Timeout' });
+          return caches.match(request);
         });
       })
   );
