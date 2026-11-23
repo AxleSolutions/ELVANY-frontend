@@ -144,7 +144,7 @@ export const ProductsManager = ({
 
       {/* Category Customizer Banner / Panel */}
       <div style={{
-        backgroundColor: '#0e0f12',
+        backgroundColor: '#ffffff',
         border: '1px solid var(--border-dark)',
         borderRadius: '4px',
         padding: '1rem 1.4rem',
@@ -154,8 +154,8 @@ export const ProductsManager = ({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Tag size={15} color="var(--gold-bright, #c5a059)" />
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.08em', color: '#fff', textTransform: 'uppercase' }}>
+            <Tag size={15} color="var(--gold-bright, #8f6f32)" />
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.08em', color: '#121316', textTransform: 'uppercase' }}>
               CUSTOMIZE CATEGORIES & SILHOUETTE PILLARS
             </span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -171,9 +171,9 @@ export const ProductsManager = ({
               value={newCatInput}
               onChange={(e) => setNewCatInput(e.target.value)}
               style={{
-                backgroundColor: '#141518',
-                border: '1px solid var(--border-dark)',
-                color: '#fff',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d5cec2',
+                color: '#121316',
                 padding: '6px 12px',
                 borderRadius: '2px',
                 fontSize: '0.78rem',

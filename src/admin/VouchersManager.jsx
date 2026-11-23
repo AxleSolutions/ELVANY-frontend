@@ -216,11 +216,11 @@ export const VouchersManager = ({
 
       {/* Metrics Ledger Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginBottom: '1.8rem' }}>
-        <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', padding: '1.2rem', borderRadius: '3px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-dark)', padding: '1.2rem', borderRadius: '3px' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>
             TOTAL VOUCHERS ISSUED
           </div>
-          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#ffffff', fontWeight: 700 }}>
+          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#121316', fontWeight: 700 }}>
             {totalCount}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginTop: '4px' }}>
@@ -228,11 +228,11 @@ export const VouchersManager = ({
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#0d0e12', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '1.2rem', borderRadius: '3px' }}>
-          <div style={{ fontSize: '0.72rem', color: '#4ade80', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '1.2rem', borderRadius: '3px' }}>
+          <div style={{ fontSize: '0.72rem', color: '#16a34a', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>
             ACTIVE & UNREDEEMED
           </div>
-          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#4ade80', fontWeight: 700 }}>
+          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#16a34a', fontWeight: 700 }}>
             {activeUnused.length}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginTop: '4px' }}>
@@ -240,7 +240,7 @@ export const VouchersManager = ({
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--gold-border)', padding: '1.2rem', borderRadius: '3px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--gold-border)', padding: '1.2rem', borderRadius: '3px' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>
             REDEEMED ON ORDERS
           </div>
@@ -252,11 +252,11 @@ export const VouchersManager = ({
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#0d0e12', border: '1px solid var(--border-dark)', padding: '1.2rem', borderRadius: '3px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-dark)', padding: '1.2rem', borderRadius: '3px' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>
             TOTAL CREDIT ALLOCATED
           </div>
-          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#ffffff', fontWeight: 700 }}>
+          <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', color: '#121316', fontWeight: 700 }}>
             LKR {totalValueIssuedLKR.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginTop: '4px' }}>
@@ -309,7 +309,7 @@ export const VouchersManager = ({
       </div>
 
       {/* Vouchers Data Table */}
-      <div className="admin-table-wrapper" style={{ backgroundColor: '#0d0e12', borderRadius: '3px', border: '1px solid var(--border-dark)' }}>
+      <div className="admin-table-wrapper" style={{ backgroundColor: '#ffffff', borderRadius: '3px', border: '1px solid var(--border-dark)' }}>
         <table className="admin-table">
           <thead>
             <tr>
@@ -509,12 +509,12 @@ export const VouchersManager = ({
           <div 
             className="admin-dialog" 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '580px', width: '100%', backgroundColor: '#0e1014', border: '1px solid var(--gold-border)', borderRadius: '3px', padding: '2rem' }}
+            style={{ maxWidth: '580px', width: '100%', backgroundColor: '#ffffff', border: '1px solid var(--gold-border)', borderRadius: '3px', padding: '2rem', boxShadow: '0 20px 50px rgba(0,0,0,0.12)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Ticket size={20} color="var(--gold-bright)" />
-                <h3 style={{ fontSize: '1.2rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+                <h3 style={{ fontSize: '1.2rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                   Generate Atelier Voucher
                 </h3>
               </div>

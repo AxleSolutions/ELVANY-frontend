@@ -732,21 +732,21 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
               {/* AVAILABLE COLOURS SECTION */}
               <div style={{
                 padding: '1.2rem',
-                backgroundColor: '#090a0c',
+                backgroundColor: '#fbf9f5',
                 border: '1px solid var(--border-dark)',
                 borderRadius: '3px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid var(--border-light)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Palette size={16} color="var(--gold-bright)" />
-                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#ffffff' }}>
+                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#121316' }}>
                       AVAILABLE COLOURWAYS (ATELIER PALETTE)
                     </span>
                   </div>
                   <span style={{ 
                     fontSize: '0.72rem', 
                     color: 'var(--gold-bright)',
-                    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                    backgroundColor: 'rgba(143, 111, 50, 0.12)',
                     padding: '2px 8px',
                     borderRadius: '2px',
                     fontWeight: 700
@@ -773,10 +773,10 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                             alignItems: 'center',
                             gap: '6px',
                             padding: '4px 8px',
-                            backgroundColor: isAdded ? 'rgba(197, 160, 89, 0.15)' : '#121316',
-                            border: isAdded ? '1px solid var(--gold-bright)' : '1px solid rgba(255, 255, 255, 0.1)',
+                            backgroundColor: isAdded ? 'rgba(143, 111, 50, 0.12)' : '#ffffff',
+                            border: isAdded ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
                             borderRadius: '3px',
-                            color: isAdded ? 'var(--gold-bright)' : '#ffffff',
+                            color: isAdded ? 'var(--gold-bright)' : '#121316',
                             fontSize: '0.72rem',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
@@ -812,7 +812,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                         width: '34px',
                         height: '32px',
                         padding: '1px',
-                        backgroundColor: '#121316',
+                        backgroundColor: '#ffffff',
                         border: '1px solid var(--border-dark)',
                         borderRadius: '2px',
                         cursor: 'pointer'
@@ -850,8 +850,8 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '6px 10px',
-                        backgroundColor: col.isDefault ? 'rgba(197, 160, 89, 0.08)' : '#121316',
-                        border: col.isDefault ? '1px solid var(--gold-border)' : '1px solid rgba(255, 255, 255, 0.06)',
+                        backgroundColor: col.isDefault ? 'rgba(143, 111, 50, 0.08)' : '#ffffff',
+                        border: col.isDefault ? '1px solid var(--gold-border)' : '1px solid var(--border-dark)',
                         borderRadius: '2px'
                       }}
                     >
@@ -937,14 +937,14 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
               {/* IMAGE GALLERY & SEQUENCE ORDER SECTION */}
               <div style={{
                 padding: '1.2rem',
-                backgroundColor: '#090a0c',
+                backgroundColor: '#fbf9f5',
                 border: '1px solid var(--border-dark)',
                 borderRadius: '3px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid var(--border-light)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <ImageIcon size={16} color="var(--gold-bright)" />
-                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#ffffff' }}>
+                    <span className="form-label" style={{ margin: 0, fontWeight: 700, color: '#121316' }}>
                       GARMENT IMAGERY & SEQUENCE ORDER
                     </span>
                   </div>
@@ -1083,8 +1083,8 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '6px 10px',
-                            backgroundColor: isPrimary ? 'rgba(197, 160, 89, 0.08)' : '#121316',
-                            border: isPrimary ? '1px solid var(--gold-bright)' : '1px solid rgba(255, 255, 255, 0.08)',
+                            backgroundColor: isPrimary ? 'rgba(143, 111, 50, 0.08)' : '#ffffff',
+                            border: isPrimary ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
                             borderRadius: '3px'
                           }}
                         >
@@ -1249,7 +1249,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
               </div>
 
               {/* AVAILABLE QUANTITY & INVENTORY MATRIX */}
-              <div className="admin-stock-matrix-box" style={{ padding: '1.2rem', backgroundColor: '#090a0c', border: '1px solid var(--border-dark)', borderRadius: '3px' }}>
+              <div className="admin-stock-matrix-box" style={{ padding: '1.2rem', backgroundColor: '#fbf9f5', border: '1px solid var(--border-dark)', borderRadius: '3px' }}>
                 
                 {/* Header with Total Available Units */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
@@ -1335,14 +1335,14 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '6px 10px',
-                        backgroundColor: '#101114',
+                        backgroundColor: '#ffffff',
                         border: '1px solid var(--border-dark)',
                         borderRadius: '2px'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>{size}</span>
-                        <span style={{ fontSize: '0.68rem', color: count < 5 ? '#f87171' : 'var(--text-light-muted)' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#121316' }}>{size}</span>
+                        <span style={{ fontSize: '0.68rem', color: count < 5 ? '#dc2626' : 'var(--text-light-muted)' }}>
                           {count < 5 ? '(Low Stock)' : 'in stock'}
                         </span>
                       </div>
@@ -1354,9 +1354,9 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                           style={{
                             width: '24px',
                             height: '24px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            backgroundColor: '#f5f1ea',
                             border: '1px solid var(--border-dark)',
-                            color: '#fff',
+                            color: '#121316',
                             borderRadius: '2px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -1380,7 +1380,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                             padding: '4px',
                             fontWeight: 700,
                             color: 'var(--gold-bright)',
-                            backgroundColor: '#090a0c',
+                            backgroundColor: '#ffffff',
                             border: '1px solid var(--border-dark)'
                           }}
                         />
@@ -1391,9 +1391,9 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                           style={{
                             width: '24px',
                             height: '24px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            backgroundColor: '#f5f1ea',
                             border: '1px solid var(--border-dark)',
-                            color: '#fff',
+                            color: '#121316',
                             borderRadius: '2px',
                             cursor: 'pointer',
                             display: 'flex',

@@ -53,7 +53,7 @@ const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }
       )}
 
       {/* Angle Image View */}
-      <div style={{ position: 'relative', width: '100%', minHeight: '160px', maxHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0c0d10', borderRadius: '3px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', minHeight: '160px', maxHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fbf9f5', borderRadius: '3px', overflow: 'hidden' }}>
         <img
           src={activeUrl}
           alt={`Bespoke #${itemCode} - ${currentAngle?.label}`}
@@ -326,13 +326,13 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                     <img src={order.paymentSlipUrl} alt="Bank Slip Receipt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </a>
                 ) : (
-                  <div style={{ width: '85px', height: '100px', borderRadius: '2px', backgroundColor: '#07080a', border: '1px dashed var(--border-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-light-muted)', fontSize: '0.7rem', textAlign: 'center', padding: '6px' }}>
+                  <div style={{ width: '85px', height: '100px', borderRadius: '2px', backgroundColor: '#fbf9f5', border: '1px dashed var(--border-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-light-muted)', fontSize: '0.7rem', textAlign: 'center', padding: '6px' }}>
                     Receipt Attached
                   </div>
                 )}
 
                 <div style={{ flex: 1, minWidth: '220px' }}>
-                  <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '0.84rem', color: '#121316', fontWeight: 600, marginBottom: '4px' }}>
                     {order.paymentSlipName || 'Commercial_Bank_Transfer_Slip.png'}
                   </div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, marginBottom: '0.8rem' }}>
@@ -370,7 +370,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
 
           {/* Citypak Courier Tracking & Dispatch Integration Card */}
           <div style={{
-            backgroundColor: '#0c0d12',
+            backgroundColor: '#fbf9f5',
             border: (selectedStatus === 'Shipped (In Transit)' || trackingInput) ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
             borderRadius: '2px',
             padding: '1.4rem',
@@ -664,7 +664,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
           {/* Bespoke Custom T-Shirts Production & Artwork Inspection */}
           {order.items.some(i => i.isBespokeCustom || i.designCode || (i.title || '').includes('Bespoke') || (i.title || '').includes('Custom')) && (
             <div style={{
-              backgroundColor: '#0c0d12',
+              backgroundColor: '#fbf9f5',
               border: '1px solid var(--gold-border)',
               borderRadius: '3px',
               padding: '1.4rem',
@@ -874,11 +874,11 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
             style={{
               maxWidth: '560px',
               width: '100%',
-              backgroundColor: '#0c0d12',
+              backgroundColor: '#ffffff',
               border: '1px solid #25D366',
               borderRadius: '3px',
               padding: '2rem 1.8rem',
-              boxShadow: '0 24px 70px rgba(0,0,0,0.98)'
+              boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
             }}
           >
             {/* Header */}
@@ -888,7 +888,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                   <MessageSquare size={16} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: 0, fontWeight: 700, letterSpacing: '0.04em' }}>
+                  <h3 style={{ fontSize: '1.1rem', color: '#121316', margin: 0, fontWeight: 700, letterSpacing: '0.04em' }}>
                     WhatsApp Customer Shipping Notice
                   </h3>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -911,8 +911,8 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: '#14161f',
-              border: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: '#fbf9f5',
+              border: '1px solid var(--border-dark)',
               padding: '0.75rem 1rem',
               borderRadius: '2px',
               marginBottom: '1rem'
@@ -924,7 +924,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.84rem', color: '#ffffff', fontWeight: 600 }}>
+                <div style={{ fontSize: '0.84rem', color: '#121316', fontWeight: 600 }}>
                   {order.customerName}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -1044,12 +1044,12 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               </div>
 
               <div style={{
-                backgroundColor: '#07080a',
-                border: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: '#fbf9f5',
+                border: '1px solid var(--border-dark)',
                 padding: '0.9rem',
                 borderRadius: '3px',
                 fontSize: '0.74rem',
-                color: '#d1d5db',
+                color: '#121316',
                 whiteSpace: 'pre-wrap',
                 lineHeight: 1.5,
                 maxHeight: '170px',

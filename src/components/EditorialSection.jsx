@@ -57,7 +57,7 @@ export const EditorialSection = ({ onReadEditorial }) => {
           decoding="async"
         />
         <div className="editorial-watermark-stamp">
-          FLORENCE ATELIER • 2025
+          FLORENCE ATELIER • 2026
         </div>
       </div>
     </section>

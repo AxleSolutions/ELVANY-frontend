@@ -155,7 +155,7 @@ export const AdminHeader = ({
                   liveNotifications.map((n) => (
                     <div key={n.id} className={`admin-notification-item ${n.unread ? 'unread' : ''}`}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                        <strong style={{ fontSize: '0.78rem', color: '#fff' }}>{n.title}</strong>
+                        <strong style={{ fontSize: '0.78rem', color: '#121316' }}>{n.title}</strong>
                         <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>{n.time}</span>
                       </div>
                       <p style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', margin: 0, lineHeight: 1.4 }}>

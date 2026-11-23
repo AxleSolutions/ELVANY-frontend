@@ -708,23 +708,23 @@ export const AdminApp = ({
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#090a0c',
-        backgroundImage: 'radial-gradient(ellipse at center, rgba(197, 160, 89, 0.05) 0%, #090a0c 70%)',
+        backgroundColor: '#f8f6f0',
+        backgroundImage: 'radial-gradient(ellipse at center, rgba(143, 111, 50, 0.08) 0%, #f8f6f0 70%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '2rem 1.5rem',
         fontFamily: 'var(--font-sans)',
-        color: '#ffffff'
+        color: '#121316'
       }}>
         <div style={{
           width: '100%',
           maxWidth: '440px',
-          backgroundColor: '#101114',
-          border: '1px solid var(--gold-border)',
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--border-dark)',
           borderRadius: '4px',
           padding: '2.8rem 2.2rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+          boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.08)'
         }}>
           {/* Logo & Emblem */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -744,7 +744,7 @@ export const AdminApp = ({
             }}>
               ATELIER EXECUTIVE DESK
             </span>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 400, color: '#ffffff', margin: 0 }}>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 400, color: '#121316', margin: 0 }}>
               Management Portal
             </h2>
             <p style={{ color: 'var(--text-light-secondary)', fontSize: '0.82rem', marginTop: '0.4rem', lineHeight: 1.45 }}>
@@ -755,9 +755,9 @@ export const AdminApp = ({
           {/* Error Banner */}
           {loginError && (
             <div style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              color: '#fca5a5',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#dc2626',
               padding: '0.75rem 1rem',
               borderRadius: '2px',
               marginBottom: '1.5rem',
@@ -766,7 +766,7 @@ export const AdminApp = ({
               alignItems: 'center',
               gap: '8px'
             }}>
-              <AlertCircle size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+              <AlertCircle size={15} color="#dc2626" style={{ flexShrink: 0 }} />
               <span>{loginError}</span>
             </div>
           )}
@@ -784,14 +784,15 @@ export const AdminApp = ({
               gap: '0.75rem',
               padding: '0.85rem 1rem',
               backgroundColor: '#ffffff',
-              color: '#111827',
-              border: 'none',
+              color: '#121316',
+              border: '1px solid #d5cec2',
               borderRadius: '2px',
               fontSize: '0.82rem',
               fontWeight: 600,
               cursor: 'pointer',
               marginBottom: '1.5rem',
-              letterSpacing: '0.04em'
+              letterSpacing: '0.04em',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -829,7 +830,7 @@ export const AdminApp = ({
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   className="form-input"
-                  style={{ backgroundColor: '#090a0c', color: '#fff', paddingLeft: '2.4rem' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #d5cec2', paddingLeft: '2.4rem' }}
                 />
                 <Mail size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gold-bright)' }} />
               </div>
@@ -847,7 +848,7 @@ export const AdminApp = ({
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   className="form-input"
-                  style={{ backgroundColor: '#090a0c', color: '#fff', paddingLeft: '2.4rem' }}
+                  style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #d5cec2', paddingLeft: '2.4rem' }}
                 />
                 <Lock size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gold-bright)' }} />
               </div>

@@ -542,7 +542,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                       borderRadius: '2px',
                       cursor: 'pointer',
                       border: durationDays === opt.val ? '1px solid var(--gold-bright)' : '1px solid var(--border-dark)',
-                      backgroundColor: durationDays === opt.val ? 'rgba(197, 160, 89, 0.15)' : '#090a0c',
+                      backgroundColor: durationDays === opt.val ? 'rgba(143, 111, 50, 0.12)' : '#ffffff',
                       color: durationDays === opt.val ? 'var(--gold-bright)' : 'var(--text-light-secondary)',
                       transition: 'all 0.15s ease'
                     }}
@@ -561,7 +561,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                     value={customDateTime}
                     onChange={(e) => setCustomDateTime(e.target.value)}
                     className="form-input admin-input"
-                    style={{ backgroundColor: '#090a0c', color: '#fff' }}
+                    style={{ backgroundColor: '#ffffff', color: '#121316', border: '1px solid #d5cec2' }}
                   />
                 </div>
               )}

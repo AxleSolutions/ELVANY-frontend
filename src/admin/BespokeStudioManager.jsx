@@ -486,8 +486,8 @@ export const BespokeStudioManager = ({ onToast }) => {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(18, 19, 22, 0.45)',
+            backdropFilter: 'blur(4px)',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
@@ -498,24 +498,24 @@ export const BespokeStudioManager = ({ onToast }) => {
         >
           <div 
             style={{
-              backgroundColor: '#101114',
-              border: '1px solid var(--gold-border)',
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--border-dark)',
               borderRadius: '4px',
               width: '100%',
               maxWidth: '920px',
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.9)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.12)',
               position: 'relative'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Sparkles size={18} color="var(--gold-bright)" />
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', fontWeight: 600 }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#121316', fontWeight: 600 }}>
                     Bespoke Atelier Work Order #{selectedDesign.designCode}
                   </h3>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -612,7 +612,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                     )}
 
                     {/* Active Mockup Angle Presentation Box */}
-                    <div style={{ borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#07080a', textAlign: 'center', position: 'relative', minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-dark)', background: '#fbf9f5', textAlign: 'center', position: 'relative', minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <img
                         src={activeMockupUrl}
                         alt={`Bespoke #${selectedDesign.designCode} - ${currentAngleObj?.label}`}

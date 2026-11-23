@@ -391,7 +391,7 @@ export const PopupAdManager = ({
 
             {/* Cloudinary Upload Guidance & Live Active Asset Preview */}
             <div style={{
-              backgroundColor: '#0d0f12',
+              backgroundColor: '#fbf9f5',
               border: '1px solid var(--border-dark)',
               borderRadius: '3px',
               padding: '1rem',
@@ -401,7 +401,7 @@ export const PopupAdManager = ({
               gap: '1rem'
             }}>
               <div>
-                <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#121316', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
                   Cloudinary CDN Storage Only
                 </span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
@@ -541,7 +541,7 @@ export const PopupAdManager = ({
             {/* Simulation Canvas */}
             <div 
               style={{
-                backgroundColor: '#050607',
+                backgroundColor: '#f8f6f0',
                 border: '1px solid var(--border-dark)',
                 borderRadius: '4px',
                 padding: previewDevice === 'mobile' ? '2.5rem 1rem' : '2.5rem',

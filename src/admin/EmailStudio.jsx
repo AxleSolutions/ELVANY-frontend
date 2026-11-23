@@ -606,8 +606,8 @@ export function EmailStudio() {
           {/* Subject Line & Code Controls */}
           <div style={{
             padding: '1.25rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            backgroundColor: '#0c0d10',
+            borderBottom: '1px solid var(--border-light)',
+            backgroundColor: '#fbf9f5',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem'
@@ -853,15 +853,15 @@ export function EmailStudio() {
 
           <div style={{
             padding: '8px 14px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-            backgroundColor: '#0c0d10',
+            borderTop: '1px solid var(--border-light)',
+            backgroundColor: '#fbf9f5',
             fontSize: '0.72rem',
-            color: '#71717a',
+            color: 'var(--text-light-muted)',
             display: 'flex',
             justifyContent: 'space-between'
           }}>
             <span>Inline CSS styles recommended for all email clients.</span>
-            <span style={{ color: '#a1a1aa' }}>Auto-saved to browser</span>
+            <span style={{ color: 'var(--text-light-secondary)' }}>Auto-saved to browser</span>
           </div>
         </div>
 
@@ -870,22 +870,22 @@ export function EmailStudio() {
           
           {/* Live Sandboxed Preview Card */}
           <div style={{
-            background: '#121316',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid var(--border-dark)',
             borderRadius: '4px',
             overflow: 'hidden'
           }}>
             <div style={{
               padding: '0.9rem 1.25rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              backgroundColor: '#0c0d10',
+              borderBottom: '1px solid var(--border-light)',
+              backgroundColor: '#fbf9f5',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Eye style={{ width: 15, height: 15, color: '#c5a059' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ffffff' }}>
+                <Eye style={{ width: 15, height: 15, color: '#8f6f32' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#121316' }}>
                   Live Sandboxed Preview
                 </span>
               </div>
@@ -1086,8 +1086,8 @@ export function EmailStudio() {
               {/* Quick Add Single Contact Form (Name + Email) */}
               <form onSubmit={handleAddSingleContact} style={{
                 marginTop: '10px',
-                background: '#0c0d10',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#fbf9f5',
+                border: '1px solid var(--border-dark)',
                 borderRadius: '4px',
                 padding: '10px 12px',
                 display: 'flex',

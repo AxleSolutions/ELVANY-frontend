@@ -390,18 +390,18 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
             style={{
               maxWidth: '460px',
               width: '100%',
-              backgroundColor: '#0e1014',
-              border: '1px solid var(--gold-border)',
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--border-dark)',
               borderRadius: '3px',
               padding: '2rem 1.8rem',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.95)'
+              boxShadow: '0 20px 45px -10px rgba(0,0,0,0.15)'
             }}
           >
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Truck size={18} color="var(--gold-bright)" />
-                <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+                <h3 style={{ fontSize: '1.1rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                   {pendingChange.isEditingTrackingOnly ? 'Edit Citypak Tracking Number' : 'Confirm Order Status Change'}
                 </h3>
               </div>
@@ -416,7 +416,7 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
             </div>
 
             {/* Order Brief */}
-            <div style={{ backgroundColor: '#14161b', padding: '0.8rem 1rem', borderRadius: '2px', marginBottom: '1.2rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ backgroundColor: '#fbf9f5', padding: '0.8rem 1rem', borderRadius: '2px', marginBottom: '1.2rem', border: '1px solid var(--border-dark)' }}>
               <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>
                 TARGET ORDER
               </div>
@@ -424,7 +424,7 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                 <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: 'var(--gold-bright)', fontWeight: 600 }}>
                   #{pendingChange.order.orderId}
                 </span>
-                <span style={{ fontSize: '0.82rem', color: '#ffffff' }}>
+                <span style={{ fontSize: '0.82rem', color: '#121316', fontWeight: 600 }}>
                   {pendingChange.order.customerName}
                 </span>
               </div>
@@ -441,7 +441,7 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                     {pendingChange.order.status}
                   </span>
                   <span style={{ color: 'var(--gold-bright)', fontWeight: 700 }}>➔</span>
-                  <span style={{ color: '#ffffff', fontWeight: 700, backgroundColor: 'rgba(197, 160, 89, 0.15)', padding: '2px 8px', borderRadius: '2px', border: '1px solid var(--gold-border)' }}>
+                  <span style={{ color: '#121316', fontWeight: 700, backgroundColor: 'rgba(143, 111, 50, 0.1)', padding: '2px 8px', borderRadius: '2px', border: '1px solid var(--gold-border)' }}>
                     {pendingChange.targetStatus}
                   </span>
                 </div>
@@ -466,13 +466,15 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                     fontSize: '0.9rem',
                     letterSpacing: '0.06em',
                     fontWeight: 600,
-                    backgroundColor: '#090a0d'
+                    backgroundColor: '#ffffff',
+                    color: '#121316',
+                    border: '1px solid #d5cec2'
                   }}
                   autoFocus
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)' }}>
-                    Auto-searched on <strong style={{ color: '#ffffff' }}>track.citypak.lk</strong> by the customer.
+                    Auto-searched on <strong style={{ color: '#121316' }}>track.citypak.lk</strong> by the customer.
                   </span>
                   {pendingChange.trackingNumber && (
                     <button 
