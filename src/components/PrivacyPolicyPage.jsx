@@ -37,9 +37,9 @@ export const PrivacyPolicyPage = () => {
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
           <CreditCard size={20} color="#8f6f32" style={{ marginBottom: '0.5rem' }} />
-          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Payment Gateway</div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>PayHere Encrypted</div>
-          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>No card numbers stored on our servers</div>
+          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Payment Security</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>PayHere & HelaPOS</div>
+          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Cards via PayHere • QR via HelaPOS</div>
         </div>
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
@@ -88,7 +88,7 @@ export const PrivacyPolicyPage = () => {
             <strong>Delivery & Billing Information:</strong> Street address, city, postal code, province, and specific delivery instructions for our courier partners.
           </li>
           <li className="policy-list-item">
-            <strong>Order & Transaction Records:</strong> Garment selections, sizing attributes (e.g. S, M, L, XL), bespoke print configurations, Order Passport IDs, total purchase values in Sri Lankan Rupees (LKR), and payment confirmation tokens.
+            <strong>Order & Transaction Records:</strong> Garment selections, sizing attributes (e.g. S, M, L, XL), bespoke print configurations, Order Passport IDs (format: <code>ELV-XXXXX</code>, e.g. <code>ELV-98421</code>), total purchase values in Sri Lankan Rupees (LKR), and payment confirmation tokens.
           </li>
           <li className="policy-list-item">
             <strong>Customer Service Communications:</strong> Records of inquiries, emails, or WhatsApp correspondence regarding sizing, fit advice, order status, or exchanges.
@@ -128,26 +128,26 @@ export const PrivacyPolicyPage = () => {
       <section id="payhere-security" className="policy-section">
         <div className="policy-section-header">
           <span className="policy-section-num">04</span>
-          <h2 className="policy-section-title">Payment Processing Through PayHere</h2>
+          <h2 className="policy-section-title">Payment Processing & Gateway Security</h2>
         </div>
         <div className="policy-callout">
           <strong>Strict Security Guarantee:</strong> ELVANY does <strong>not</strong> collect, process, record, or store any sensitive cardholder data—including full credit/debit card numbers, CVV security codes, or banking passwords—on any of our servers or databases.
         </div>
         <p className="policy-paragraph">
-          All online electronic payment transactions on <strong>https://elvany.lk</strong> are processed through <strong>PayHere</strong>, an approved, regulated payment gateway supervised by the <strong>Central Bank of Sri Lanka</strong> and certified under global <strong>PCI-DSS Level 1 (Payment Card Industry Data Security Standard)</strong> compliance.
-        </p>
-        <p className="policy-paragraph">
-          When you submit payment during checkout:
+          We utilize authorized third-party payment gateways tailored to specific payment methods, ensuring maximum compliance and security under Central Bank of Sri Lanka regulations:
         </p>
         <ul className="policy-list">
           <li className="policy-list-item">
-            Your card and billing credentials are transmitted directly to PayHere via end-to-end 256-bit bank-grade TLS/SSL encryption.
+            <strong>Credit & Debit Cards (PayHere):</strong> Online card transactions (Visa and MasterCard) are handled exclusively by <strong>PayHere</strong>, an approved payment facilitator regulated by the Central Bank of Sri Lanka and certified under global <strong>PCI-DSS Level 1 (Payment Card Industry Data Security Standard)</strong>. Card details are transmitted via end-to-end 256-bit bank-grade TLS/SSL encryption and verified using 3D-Secure bank OTP. PayHere returns only an authorization token to confirm transaction success.
           </li>
           <li className="policy-list-item">
-            PayHere conducts authentication through 3D-Secure verification (e.g. Visa Secure, Mastercard Identity Check) directly with your card-issuing bank.
+            <strong>LankaQR Payments (HelaPOS):</strong> All dynamic and static LankaQR transactions are processed securely through <strong>HelaPOS</strong>, enabling real-time bank-to-bank settlement without exposing customer account credentials.
           </li>
           <li className="policy-list-item">
-            PayHere returns only a secure authorization token and status code to ELVANY to confirm payment success or failure, allowing us to generate your Order Passport.
+            <strong>Instalment Payments (Koko):</strong> Buy Now, Pay Later transactions are managed directly through Koko's secure payment infrastructure.
+          </li>
+          <li className="policy-list-item">
+            <strong>Direct Bank Transfer:</strong> Manual transfers to our corporate account are verified via encrypted receipt slip uploads. No banking login credentials are ever requested or stored.
           </li>
         </ul>
       </section>
@@ -166,7 +166,7 @@ export const PrivacyPolicyPage = () => {
             <strong>Courier Logistics Partners:</strong> We share the recipient's name, delivery shipping address, and telephone number with domestic express courier services solely for the physical transit and delivery of parcels.
           </li>
           <li className="policy-list-item">
-            <strong>Payment Processing Partners:</strong> PayHere for authorizing credit/debit cards, LankaQR, and mobile wallets.
+            <strong>Payment Processing Partners:</strong> PayHere (for credit/debit cards), HelaPOS (for LankaQR payments), and Koko (for BNPL instalment payments).
           </li>
           <li className="policy-list-item">
             <strong>Infrastructure & Database Hosts:</strong> Secure cloud database hosts maintaining encrypted order records and transactional email/notification dispatch.

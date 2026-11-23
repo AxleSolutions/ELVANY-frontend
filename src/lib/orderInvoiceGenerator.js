@@ -40,8 +40,6 @@ export function generateInvoiceHtml(order, isScreenView = false) {
     (netPreSurcharge + (isKoko ? kokoSurcharge : 0))
   );
 
-  const kokoInstalment = isKoko ? Math.round(grandTotal / 3) : 0;
-
   const now = new Date();
   const orderDate = order?.orderDate || now.toLocaleDateString('en-US', {
     month: 'long',
@@ -179,7 +177,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
             SETTLEMENT & LOGISTICS
           </div>
           <div style="font-size: 13px; color: #111215; font-weight: 700;">
-            ${isKoko ? 'Koko Buy Now Pay Later (3x Instalments)' : (order.paymentMethod || 'Online Settlement')}
+            ${isKoko ? 'Koko Buy Now Pay Later' : (order.paymentMethod || 'Online Settlement').replace(/\s*\((3x|3)\s*Instalments?\)/gi, '')}
           </div>
           <div style="font-size: 11px; color: #55555c; margin-top: 6px; line-height: 1.45;">
             ${(order.trackingNumber || order.tracking_number) 
@@ -242,7 +240,7 @@ export function generateInvoiceHtml(order, isScreenView = false) {
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 12px; color: #8c6d2d; border-top: 1px dashed #e2d2b5; margin-top: 4px;">
               <div>
                 <strong style="color: #8c6d2d;">Koko BNPL Surcharge (12%):</strong>
-                <div style="font-size: 9.5px; color: #9c7b38; margin-top: 1px;">Koko 3-month split merchant fee</div>
+                <div style="font-size: 9.5px; color: #9c7b38; margin-top: 1px;">Koko merchant processing fee</div>
               </div>
               <strong style="color: #8c6d2d; font-size: 12.5px;">+ LKR ${kokoSurcharge.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
@@ -256,44 +254,6 @@ export function generateInvoiceHtml(order, isScreenView = false) {
 
         </div>
       </div>
-
-      <!-- Koko 3-Month Equal Installment Breakdown Schedule (When Koko is selected) -->
-      ${isKoko ? `
-        <div style="
-          background-color: #fbf9f4;
-          border: 1px solid #ebd9b7;
-          border-left: 3px solid #c5a059;
-          border-radius: 3px;
-          padding: 12px 18px;
-          margin-bottom: 22px;
-        ">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; color: #8c6d2d; text-transform: uppercase;">
-              KOKO BUY NOW PAY LATER &bull; 3 EQUAL MONTHLY INSTALMENTS
-            </div>
-            <div style="font-size: 11.5px; font-weight: 800; color: #8c6d2d;">
-              3 x LKR ${kokoInstalment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mo
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 10.5px; text-align: center;">
-            <div style="background: #ffffff; padding: 7px; border: 1px solid #e8dbbe; border-radius: 2px;">
-              <div style="font-weight: 700; color: #111215;">Instalment 1</div>
-              <div style="color: #8c6d2d; font-weight: 800; margin-top: 2px;">LKR ${kokoInstalment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <div style="font-size: 9px; color: #15803d; font-weight: 700; margin-top: 2px;">✓ Settled at Checkout</div>
-            </div>
-            <div style="background: #ffffff; padding: 7px; border: 1px solid #e8dbbe; border-radius: 2px;">
-              <div style="font-weight: 700; color: #111215;">Instalment 2</div>
-              <div style="color: #4b4b52; font-weight: 800; margin-top: 2px;">LKR ${kokoInstalment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <div style="font-size: 9px; color: #77777e; margin-top: 2px;">Due in 30 Days</div>
-            </div>
-            <div style="background: #ffffff; padding: 7px; border: 1px solid #e8dbbe; border-radius: 2px;">
-              <div style="font-weight: 700; color: #111215;">Instalment 3</div>
-              <div style="color: #4b4b52; font-weight: 800; margin-top: 2px;">LKR ${kokoInstalment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <div style="font-size: 9px; color: #77777e; margin-top: 2px;">Due in 60 Days</div>
-            </div>
-          </div>
-        </div>
-      ` : ''}
 
       <!-- Special Gift Message / Atelier Delivery Notes (If provided) -->
       ${(order.giftMessage || order.deliveryNotes) ? `

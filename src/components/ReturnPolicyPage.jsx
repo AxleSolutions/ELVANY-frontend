@@ -36,22 +36,22 @@ export const ReturnPolicyPage = () => {
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
           <RefreshCw size={20} color="#8f6f32" style={{ marginBottom: '0.5rem' }} />
           <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Size Exchanges</div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>Complimentary Assistance</div>
-          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Subject to warehouse stock</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>7-Day Request Window</div>
+          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Customer pays courier fee for changes</div>
         </div>
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
           <ShieldCheck size={20} color="#8f6f32" style={{ marginBottom: '0.5rem' }} />
-          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Defective Garments</div>
+          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Damaged Items</div>
           <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>100% Covered by ELVANY</div>
-          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Includes courier fees & refunds</div>
+          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Courier covered only if damaged/defective</div>
         </div>
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
           <Package size={20} color="#8f6f32" style={{ marginBottom: '0.5rem' }} />
-          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Refund Method</div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>Original Payment / Bank</div>
-          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Reversed via PayHere / Direct Transfer</div>
+          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Refund Scope</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>Garment Value Only</div>
+          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Courier fees are strictly non-refundable</div>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ export const ReturnPolicyPage = () => {
             <strong>Original Packaging:</strong> The item must be returned in its original protective sleeve, box, or bag along with any documentation provided.
           </li>
           <li className="policy-list-item">
-            <strong>Proof of Purchase:</strong> You must provide the original Order Number (`#ORD-XXXX`) or electronic invoice issued at checkout.
+            <strong>Proof of Purchase:</strong> You must provide your official Order ID (format: <code>ELV-XXXXX</code>, e.g. <code>ELV-98421</code>) or electronic invoice issued at checkout.
           </li>
         </ul>
       </section>
@@ -111,10 +111,13 @@ export const ReturnPolicyPage = () => {
             <strong>Inventory Availability:</strong> Exchanges are subject to active warehouse stock. If your required size is in stock, we will reserve it upon receiving your return confirmation.
           </li>
           <li className="policy-list-item">
-            <strong>Out-of-Stock Sizing:</strong> If the requested replacement size is unavailable or out of stock, you may choose an alternative garment of equal value, store credit, or a full refund.
+            <strong>Courier Charges for Exchanges:</strong> The customer is responsible for all courier fees associated with size exchanges. This includes the courier cost to send the original garment back to our facility, as well as the standard courier delivery fee for ELVANY to dispatch the replacement exchange item.
           </li>
           <li className="policy-list-item">
-            <strong>Processing Timeline:</strong> Replacement items are dispatched within 2–3 business days after the returned garment has been received and approved by our team.
+            <strong>Out-of-Stock Sizing:</strong> If the requested replacement size is unavailable or out of stock, you may choose an alternative garment of equal value, store credit, or a refund for the garment purchase price.
+          </li>
+          <li className="policy-list-item">
+            <strong>Processing Timeline:</strong> Replacement items are dispatched within 2–3 business days after the returned garment has been received, inspected, approved, and the exchange courier fee settled.
           </li>
         </ul>
       </section>
@@ -129,7 +132,7 @@ export const ReturnPolicyPage = () => {
           Every ELVANY garment undergoes rigorous quality inspection prior to dispatch. However, if your order arrives damaged during transit, defective in fabric/stitching, or contains an incorrect item/size:
         </p>
         <div className="policy-callout">
-          <strong>Immediate Remedy:</strong> We will provide an immediate complimentary replacement, exchange, or 100% full refund at no additional cost to you.
+          <strong>Damaged Deliveries Handled by ELVANY:</strong> Only in cases of damaged, defective, or incorrectly delivered products does ELVANY cover and handle 100% of all courier expenses, providing an immediate complimentary replacement, exchange, or full refund at zero additional cost to you.
         </div>
         <p className="policy-paragraph">
           <strong>Procedure for Reporting Defects:</strong>
@@ -139,10 +142,10 @@ export const ReturnPolicyPage = () => {
             Notify our support team within <strong>48 to 72 hours</strong> of receiving the parcel via email at <a href="mailto:elvanywear@gmail.com" style={{ color: '#8f6f32', fontWeight: 600 }}>elvanywear@gmail.com</a> or WhatsApp at <a href="https://wa.me/94765293943" target="_blank" rel="noopener noreferrer" style={{ color: '#8f6f32', fontWeight: 600 }}>076 529 3943</a>.
           </li>
           <li className="policy-list-item">
-            Provide your <strong>Order Number</strong> along with clear, focused photographs showing the damaged or incorrect area and the attached garment tags.
+            Provide your <strong>Order ID (e.g. ELV-XXXXX)</strong> along with clear, focused photographs showing the damaged or incorrect area and the attached garment tags.
           </li>
           <li className="policy-list-item">
-            Once verified, ELVANY will arrange a courier pickup or instruct you on return dispatch. <strong>ELVANY covers all reasonable return shipping fees</strong> for defective or incorrect orders.
+            Once verified, ELVANY will arrange a courier pickup or instruct you on return dispatch. <strong>ELVANY covers all return shipping fees</strong> for defective or incorrect orders.
           </li>
         </ul>
       </section>
@@ -158,16 +161,18 @@ export const ReturnPolicyPage = () => {
         </p>
         <ul className="policy-list">
           <li className="policy-list-item">
-            <strong>Payment Reversal via Original Method:</strong> Wherever possible, refunds are credited back to the <strong>original payment method</strong> used during checkout. For card payments processed through PayHere, an official reversal instruction is transmitted to PayHere immediately upon approval.
+            <strong>Payment Reversal via Original Method:</strong> Wherever possible, refunds are credited back to the <strong>original payment method</strong> used during checkout:
+            <ul style={{ margin: '6px 0 0 1.2rem', padding: 0, listStyle: 'disc' }}>
+              <li><strong>Card Orders (PayHere):</strong> Reversal instruction transmitted to PayHere immediately upon inspection approval.</li>
+              <li><strong>Koko (BNPL Instalments):</strong> Reversal processed through Koko in accordance with their installment refund schedule.</li>
+              <li><strong>Direct Bank Transfer / LankaQR:</strong> Refund remitted directly to the customer’s verified Sri Lankan bank account via secure SLIPS/CEFT transfer.</li>
+            </ul>
           </li>
           <li className="policy-list-item">
-            <strong>Cash on Delivery (COD) & Direct Deposit Orders:</strong> For orders fulfilled via Cash on Delivery or bank transfer, the refund will be remitted directly to the customer’s verified Sri Lankan bank account via secure SLIPS/CEFT transfer.
+            <strong>Courier Fees Are Strictly Non-Refundable:</strong> If a customer requests a refund, <strong>we do not refund the courier delivery fee</strong>. Only the net garment purchase price is refunded. The courier fee is only refunded if the garment arrived damaged, defective, or was incorrectly delivered by ELVANY.
           </li>
           <li className="policy-list-item">
             <strong>Bank Processing Timeframes:</strong> While ELVANY issues refunds within <strong>2 to 4 business days</strong> of inspection approval, the time required for funds to appear on your bank statement depends on your card issuer or banking institution (typically 3–7 business days).
-          </li>
-          <li className="policy-list-item">
-            <strong>Deductions:</strong> Standard initial delivery fees are non-refundable for change-of-mind returns. For defective or wrong items, the entire transaction amount including delivery fees is refunded in full.
           </li>
         </ul>
       </section>
@@ -176,14 +181,17 @@ export const ReturnPolicyPage = () => {
       <section id="shipping-costs" className="policy-section">
         <div className="policy-section-header">
           <span className="policy-section-num">06</span>
-          <h2 className="policy-section-title">Return Shipping Costs</h2>
+          <h2 className="policy-section-title">Courier Fees & Shipping Responsibility</h2>
         </div>
         <ul className="policy-list">
           <li className="policy-list-item">
-            <strong>Change of Mind or Size Exchanges:</strong> The customer is responsible for standard courier shipping costs to dispatch the returned garment back to our facility. We recommend utilizing a tracked courier service to ensure safe delivery.
+            <strong>Exchanges & Change of Mind:</strong> The customer must pay the courier shipping fees. If you want to change an item or exchange sizes, you must cover the courier fee to return the garment to us, as well as the courier fee for us to dispatch the replacement item to you.
           </li>
           <li className="policy-list-item">
-            <strong>Defective, Damaged, or Incorrect Items:</strong> <strong>ELVANY covers all reasonable return courier charges.</strong> We will either coordinate a direct courier pickup from your location or reimburse the documented courier receipt upon parcel arrival.
+            <strong>Damaged or Defective Items (Covered by ELVANY):</strong> Only if the garment is physically damaged, defective, or incorrectly dispatched by our atelier does ELVANY cover and handle all courier costs.
+          </li>
+          <li className="policy-list-item">
+            <strong>Refunds:</strong> If a refund is requested, the courier delivery fee is non-refundable; only the garment price is refunded.
           </li>
         </ul>
       </section>

@@ -268,7 +268,7 @@ export const CheckoutPage = ({
             ...(pendingOrder || {}),
             orderId: orderIdParam,
             status: 'Payment Verified — Processing Dispatch',
-            paymentMethod: 'Koko Buy Now Pay Later (3 Instalments)',
+            paymentMethod: 'Koko Buy Now Pay Later',
             koko_status: 'SUCCESS',
             koko_trn_id: trnIdParam || verifyRes?.data?.trnId || 'KOKO-CONFIRMED'
           };
@@ -504,7 +504,7 @@ export const CheckoutPage = ({
         paymentMethod: isCard
           ? 'PayHere Secure Online Card Payment'
           : isKoko
-          ? 'Koko Buy Now Pay Later (3 Instalments)'
+          ? 'Koko Buy Now Pay Later'
           : paymentMethod === 'qr'
           ? 'LankaQR Instant Transfer'
           : 'Direct Bank Transfer',

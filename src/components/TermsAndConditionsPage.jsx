@@ -46,9 +46,9 @@ export const TermsAndConditionsPage = () => {
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
           <ShieldCheck size={20} color="#8f6f32" style={{ marginBottom: '0.5rem' }} />
-          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Payment Gateway</div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>PayHere Certified</div>
-          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>Cards, LankaQR & Cash on Delivery</div>
+          <div style={{ fontSize: '0.74rem', color: '#767982', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Payment Methods</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#121316', marginTop: '2px' }}>Card, Koko, QR & Bank</div>
+          <div style={{ fontSize: '0.78rem', color: '#62646c', marginTop: '4px' }}>PayHere, Koko BNPL, HelaPOS LankaQR</div>
         </div>
 
         <div style={{ background: '#faf8f5', border: '1px solid #e8e3da', padding: '1.2rem', borderRadius: '4px' }}>
@@ -131,7 +131,7 @@ export const TermsAndConditionsPage = () => {
         </p>
         <ul className="policy-list">
           <li className="policy-list-item">
-            <strong>Order Passport Issuance:</strong> Upon successful checkout submission, our system automatically generates a unique Order Passport code (`#ORD-XXXX`) and transmits a digital confirmation to your registered email and WhatsApp/SMS.
+            <strong>Order Passport Issuance:</strong> Upon successful checkout submission, our system automatically generates a unique Order Passport ID (format: <code>ELV-XXXXX</code>, e.g. <code>ELV-98421</code>) and transmits a digital confirmation to your registered email and WhatsApp/SMS.
           </li>
           <li className="policy-list-item">
             <strong>Order Acceptance:</strong> Acceptance of your order and formation of the sales contract occurs when your parcel is verified and handed over to our courier logistics partner.
@@ -146,20 +146,23 @@ export const TermsAndConditionsPage = () => {
       <section id="payments" className="policy-section">
         <div className="policy-section-header">
           <span className="policy-section-num">05</span>
-          <h2 className="policy-section-title">Online Payments via PayHere & Available Methods</h2>
+          <h2 className="policy-section-title">Payment Methods & Processing Gateways</h2>
         </div>
         <p className="policy-paragraph">
-          We provide secure, bank-grade payment processing options for clients across Sri Lanka:
+          ELVANY provides four secure, cashless payment options for all orders placed on <strong>https://elvany.lk</strong>. Please note that <strong>we do not offer Cash on Delivery (COD)</strong>; all orders must be prepaid through one of our authorized payment channels:
         </p>
         <ul className="policy-list">
           <li className="policy-list-item">
-            <strong>PayHere Payment Gateway:</strong> Online credit card, debit card (Visa, MasterCard), LankaQR, and approved mobile wallet transactions are processed via <strong>PayHere</strong>, an authorized payment facilitator regulated by the Central Bank of Sri Lanka and certified under PCI-DSS Level 1 compliance.
+            <strong>Card Payments via PayHere:</strong> Online credit card and debit card transactions (Visa and MasterCard) are processed exclusively through <strong>PayHere</strong>, an authorized, regulated payment facilitator supervised by the Central Bank of Sri Lanka and certified under PCI-DSS Level 1 compliance. All card transactions are encrypted with 256-bit TLS/SSL technology and verified through 3D-Secure bank OTP. <strong>ELVANY never stores or handles your credit or debit card numbers, expiration dates, or CVV security codes.</strong>
           </li>
           <li className="policy-list-item">
-            <strong>Cardholder Security:</strong> All payment sessions are encrypted via 256-bit TLS/SSL technology with 3D-Secure bank OTP verification. <strong>ELVANY never stores or handles your credit/debit card numbers or CVV codes.</strong>
+            <strong>LankaQR Payments via HelaPOS:</strong> Dynamic and static national LankaQR transactions are powered and processed through <strong>HelaPOS</strong>, allowing fast, direct payments from any registered Sri Lankan banking or mobile wallet app.
           </li>
           <li className="policy-list-item">
-            <strong>Cash on Delivery (COD):</strong> For eligible island-wide delivery zones, clients may select Cash on Delivery. Payment must be made in full in Sri Lankan Rupees to the courier agent upon parcel handover.
+            <strong>Koko Buy Now, Pay Later (BNPL):</strong> Clients can split purchases into 3 interest-free monthly instalments via Koko. Eligibility, instalment processing, and account authorizations are handled through Koko's secure payment gateway.
+          </li>
+          <li className="policy-list-item">
+            <strong>Direct Bank Transfer / Deposit:</strong> Clients can transfer funds directly to our designated corporate bank account. Orders are processed for dispatch once the verified bank transfer slip or transaction screenshot is uploaded during checkout and verified.
           </li>
         </ul>
       </section>
@@ -228,7 +231,13 @@ export const TermsAndConditionsPage = () => {
             Garments must be unworn, unwashed, unaltered, and accompanied by all original tags and packaging.
           </li>
           <li className="policy-list-item">
-            Defective or incorrectly delivered garments are eligible for an immediate replacement, exchange, or 100% full refund, with return shipping costs covered by ELVANY.
+            <strong>Courier Fees on Exchanges:</strong> If you want to change an item or exchange sizes, you are responsible for paying the courier shipping fee to return the garment as well as the courier fee for ELVANY to send the exchange item.
+          </li>
+          <li className="policy-list-item">
+            <strong>Courier Delivery Fees Non-Refundable:</strong> If a refund is requested, the courier delivery fee is strictly non-refundable; only the net garment cost is refunded.
+          </li>
+          <li className="policy-list-item">
+            <strong>Damaged or Incorrect Deliveries:</strong> Only if an item arrives damaged, defective, or incorrectly dispatched by our atelier does ELVANY cover and handle 100% of all courier costs.
           </li>
         </ul>
         <p className="policy-paragraph">

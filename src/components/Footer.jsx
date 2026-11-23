@@ -61,7 +61,7 @@ export const Footer = ({ onNavigateToCollection, onNavigateToConcierge, onNaviga
                     href="/concierge" 
                     onClick={(e) => { e.preventDefault(); onNavigateToConcierge(); }}
                   >
-                    Client Concierge & Sizing
+                    Client Concierge
                   </a>
                 </li>
               )}

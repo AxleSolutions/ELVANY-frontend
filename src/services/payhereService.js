@@ -20,7 +20,7 @@ export async function getPaymentGatewayConfig() {
   return {
     success: true,
     isSandbox: true,
-    merchantId: '1211149',
+    merchantId: import.meta.env.VITE_PAYHERE_MERCHANT_ID || '1232176',
     currency: 'LKR',
     testCards: []
   };
