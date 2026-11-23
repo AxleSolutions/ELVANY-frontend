@@ -138,21 +138,21 @@ export const BespokeStudioManager = ({ onToast }) => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.2rem', marginBottom: '2rem' }}>
         
         {/* KPI 1 */}
-        <div style={{ background: '#101114', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '1.25rem' }}>
+        <div style={{ background: '#ffffff', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               TOTAL BESPOKE CREATIONS
             </span>
             <Sparkles size={16} color="var(--gold-bright)" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-display)' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#121316', fontFamily: 'var(--font-display)' }}>
             {totalDesigns}
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>Registered Atelier pieces</span>
         </div>
 
         {/* KPI 2 */}
-        <div style={{ background: '#101114', border: '1px solid rgba(197, 160, 89, 0.3)', borderRadius: '4px', padding: '1.25rem' }}>
+        <div style={{ background: '#ffffff', border: '1px solid var(--gold-border)', borderRadius: '4px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               ACTIVE IN PRODUCTION
@@ -166,28 +166,28 @@ export const BespokeStudioManager = ({ onToast }) => {
         </div>
 
         {/* KPI 3 */}
-        <div style={{ background: '#101114', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '1.25rem' }}>
+        <div style={{ background: '#ffffff', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               ESTIMATED BESPOKE VALUE
             </span>
             <Tag size={16} color="#10b981" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-display)' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#121316', fontFamily: 'var(--font-display)' }}>
             LKR {totalRevenueLKR.toLocaleString()}
           </div>
           <span style={{ fontSize: '0.72rem', color: '#10b981' }}>Cumulative custom lab volume</span>
         </div>
 
         {/* KPI 4 */}
-        <div style={{ background: '#101114', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '1.25rem' }}>
+        <div style={{ background: '#ffffff', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
               COMPLETED DISPATCHES
             </span>
             <CheckCircle size={16} color="#3b82f6" />
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-display)' }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#121316', fontFamily: 'var(--font-display)' }}>
             {completedCount}
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>Delivered to private clients</span>
@@ -196,7 +196,7 @@ export const BespokeStudioManager = ({ onToast }) => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="admin-action-bar" style={{ marginBottom: '1.5rem', background: '#101114', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '0.85rem 1.25rem' }}>
+      <div className="admin-action-bar" style={{ marginBottom: '1.5rem', background: '#ffffff', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '0.85rem 1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', flex: 1 }}>
           <div className="admin-search-wrapper" style={{ maxWidth: '380px' }}>
             <Search size={15} className="admin-search-icon" />
@@ -255,9 +255,9 @@ export const BespokeStudioManager = ({ onToast }) => {
           <div>Loading Bespoke Atelier registry...</div>
         </div>
       ) : filteredDesigns.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#101114', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#ffffff', border: '1px solid var(--border-dark)', borderRadius: '4px' }}>
           <Sparkles size={36} color="var(--gold-bright)" style={{ marginBottom: '1rem', opacity: 0.6 }} />
-          <h3 style={{ fontSize: '1.1rem', color: '#fff', margin: '0 0 0.4rem 0', fontWeight: 500 }}>No Bespoke Creations Found</h3>
+          <h3 style={{ fontSize: '1.1rem', color: '#121316', margin: '0 0 0.4rem 0', fontWeight: 500 }}>No Bespoke Creations Found</h3>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-light-muted)', margin: 0, maxWidth: '420px', marginInline: 'auto' }}>
             {searchQuery ? `No custom T-shirts matched "${searchQuery}".` : 'No custom T-shirt creations have been registered in the lab yet.'}
           </p>
@@ -267,19 +267,20 @@ export const BespokeStudioManager = ({ onToast }) => {
           {filteredDesigns.map((design) => {
             const artworksList = Object.entries(design.artworks || {});
             const totalPrints = artworksList.length;
-            const previewImg = design.previewThumbnail || design.image || '/images/hero_tshirt.webpwebp';
+            const previewImg = design.previewThumbnail || design.image || '/images/hero_tshirt.webp';
 
             return (
               <div 
                 key={design.id || design.designCode}
                 style={{
-                  background: '#101114',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: '#ffffff',
+                  border: '1px solid var(--border-dark)',
                   borderRadius: '4px',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'border-color 0.2s ease, transform 0.2s ease'
+                  transition: 'border-color 0.2s ease, transform 0.2s ease',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                 }}
                 className="admin-bespoke-card"
               >
@@ -289,7 +290,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                     position: 'relative',
                     width: '100%',
                     aspectRatio: '16 / 9',
-                    backgroundColor: '#07080a',
+                    backgroundColor: '#fbf9f5',
                     cursor: 'pointer',
                     overflow: 'hidden',
                     display: 'flex',
@@ -356,7 +357,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <div>
-                      <h4 style={{ margin: '0 0 2px 0', fontSize: '0.92rem', color: '#ffffff', fontWeight: 600 }}>
+                      <h4 style={{ margin: '0 0 2px 0', fontSize: '0.92rem', color: '#121316', fontWeight: 600 }}>
                         {design.cutName}
                       </h4>
                       <span style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)' }}>
@@ -375,7 +376,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                   </div>
 
                   {/* Color & Print Swatches */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '3px', marginBottom: '0.85rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: '#fbf9f5', border: '1px solid var(--border-dark)', borderRadius: '3px', marginBottom: '0.85rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span 
                         style={{
@@ -383,20 +384,20 @@ export const BespokeStudioManager = ({ onToast }) => {
                           height: '14px',
                           borderRadius: '50%',
                           backgroundColor: design.colorHex || '#0a0a0b',
-                          border: '1px solid rgba(255,255,255,0.3)',
+                          border: '1px solid rgba(0,0,0,0.15)',
                           display: 'inline-block'
                         }} 
                       />
-                      <span style={{ fontSize: '0.74rem', color: '#fff', fontWeight: 500 }}>
+                      <span style={{ fontSize: '0.74rem', color: '#121316', fontWeight: 500 }}>
                         {design.colorName}
                       </span>
                     </div>
 
                     {design.sleeveColorHex && (
                       <>
-                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                        <span style={{ color: 'var(--border-dark)' }}>•</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: design.sleeveColorHex, border: '1px solid rgba(255,255,255,0.3)' }} />
+                          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: design.sleeveColorHex, border: '1px solid rgba(0,0,0,0.15)' }} />
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>Sleeve</span>
                         </div>
                       </>
@@ -411,7 +412,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginBottom: '0.85rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
                       <User size={12} color="var(--gold-bright)" />
-                      <strong style={{ color: '#fff' }}>{design.customerName || 'VIP Guest'}</strong>
+                      <strong style={{ color: '#121316' }}>{design.customerName || 'VIP Guest'}</strong>
                     </div>
                     {(design.customerEmail || design.customerPhone) && (
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-light-muted)', marginLeft: '17px' }}>
@@ -422,20 +423,20 @@ export const BespokeStudioManager = ({ onToast }) => {
 
                   {/* Customer Notes */}
                   {design.notes && (
-                    <div style={{ fontSize: '0.72rem', color: '#e2e8f0', background: 'rgba(197, 160, 89, 0.06)', borderLeft: '2px solid var(--gold-bright)', padding: '6px 8px', borderRadius: '2px', marginBottom: '0.85rem', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#121316', background: 'rgba(143, 111, 50, 0.08)', borderLeft: '2px solid var(--gold-bright)', padding: '6px 8px', borderRadius: '2px', marginBottom: '0.85rem', fontStyle: 'italic' }}>
                       "{design.notes}"
                     </div>
                   )}
 
                   {/* Status & Actions Footer */}
-                  <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                     
                     <select
                       value={design.status || 'Saved / In Shopping Bag'}
                       onChange={(e) => handleStatusChange(design.id || design.designCode, e.target.value)}
                       style={{
-                        background: '#090a0c',
-                        border: '1px solid rgba(197, 160, 89, 0.4)',
+                        background: '#ffffff',
+                        border: '1px solid #d5cec2',
                         color: 'var(--gold-bright)',
                         fontSize: '0.72rem',
                         fontWeight: 600,
@@ -678,47 +679,47 @@ export const BespokeStudioManager = ({ onToast }) => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 
                 {/* Left Specs Panel */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '1.25rem' }}>
+                <div style={{ background: '#fbf9f5', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '1.25rem' }}>
                   <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--gold-bright)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     GARMENT SPECIFICATIONS
                   </h4>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.78rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Fit & Style:</span>
-                      <strong style={{ color: '#fff' }}>{selectedDesign.cutName}</strong>
+                      <strong style={{ color: '#121316' }}>{selectedDesign.cutName}</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Fabric Grade:</span>
-                      <strong style={{ color: '#fff' }}>{selectedDesign.fabricName}</strong>
+                      <strong style={{ color: '#121316' }}>{selectedDesign.fabricName}</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Colorway:</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedDesign.colorHex || '#0a0a0b', border: '1px solid rgba(255,255,255,0.3)' }} />
-                        <strong style={{ color: '#fff' }}>{selectedDesign.colorName}</strong>
+                        <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedDesign.colorHex || '#0a0a0b', border: '1px solid rgba(0,0,0,0.15)' }} />
+                        <strong style={{ color: '#121316' }}>{selectedDesign.colorName}</strong>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Size & Units:</span>
                       <strong style={{ color: 'var(--gold-bright)' }}>Size {selectedDesign.size} ({selectedDesign.quantity} shirts)</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Total Amount:</span>
                       <strong style={{ color: '#10b981', fontSize: '0.95rem' }}>LKR {Number(selectedDesign.totalPrice || 0).toLocaleString()}</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
                       <span style={{ color: 'var(--text-light-muted)' }}>Client:</span>
-                      <span style={{ color: '#fff' }}>{selectedDesign.customerName} {selectedDesign.customerPhone && `(${selectedDesign.customerPhone})`}</span>
+                      <span style={{ color: '#121316', fontWeight: 600 }}>{selectedDesign.customerName} {selectedDesign.customerPhone && `(${selectedDesign.customerPhone})`}</span>
                     </div>
                   </div>
 
                   {selectedDesign.notes && (
-                    <div style={{ marginTop: '1rem', background: 'rgba(197, 160, 89, 0.08)', padding: '10px', borderRadius: '3px', border: '1px solid rgba(197, 160, 89, 0.2)' }}>
+                    <div style={{ marginTop: '1rem', background: 'rgba(143, 111, 50, 0.08)', padding: '10px', borderRadius: '3px', border: '1px solid var(--gold-border)' }}>
                       <span style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', fontWeight: 700, display: 'block', marginBottom: '2px' }}>
                         CLIENT INSTRUCTIONS & NOTES:
                       </span>
-                      <p style={{ fontSize: '0.78rem', color: '#fff', margin: 0, lineHeight: 1.4 }}>
+                      <p style={{ fontSize: '0.78rem', color: '#121316', margin: 0, lineHeight: 1.4 }}>
                         {selectedDesign.notes}
                       </p>
                     </div>
@@ -726,7 +727,7 @@ export const BespokeStudioManager = ({ onToast }) => {
                 </div>
 
                 {/* Right Raw Print Artwork Assets Panel */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', padding: '1.25rem' }}>
+                <div style={{ background: '#fbf9f5', border: '1px solid var(--border-dark)', borderRadius: '4px', padding: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--gold-bright)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       PRINT ASSETS & COORDINATES
@@ -745,9 +746,9 @@ export const BespokeStudioManager = ({ onToast }) => {
                           if (onToast) onToast('Downloading all customer artwork files...');
                         }}
                         style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          color: '#fff',
+                          background: '#fbf9f5',
+                          border: '1px solid #d5cec2',
+                          color: '#121316',
                           fontSize: '0.7rem',
                           padding: '4px 8px',
                           borderRadius: '2px',
@@ -797,11 +798,11 @@ export const BespokeStudioManager = ({ onToast }) => {
                             <img 
                               src={art.dataUrl} 
                               alt={spotTitle} 
-                              style={{ width: '48px', height: '48px', objectFit: 'contain', background: '#000', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)' }}
+                              style={{ width: '48px', height: '48px', objectFit: 'contain', background: '#ffffff', borderRadius: '2px', border: '1px solid var(--border-dark)' }}
                             />
                             
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <strong style={{ fontSize: '0.82rem', color: '#ffffff', display: 'block' }}>
+                              <strong style={{ fontSize: '0.82rem', color: '#121316', display: 'block' }}>
                                 {spotTitle}
                               </strong>
                               <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
@@ -843,7 +844,7 @@ export const BespokeStudioManager = ({ onToast }) => {
               </div>
 
               {/* Status Update Bar in Modal */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', background: '#090a0c', padding: '1rem', borderRadius: '4px', border: '1px solid rgba(197, 160, 89, 0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', background: '#fbf9f5', padding: '1rem', borderRadius: '4px', border: '1px solid var(--gold-border)' }}>
                 <div>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', display: 'block' }}>UPDATE PRODUCTION STATUS</span>
                   <strong style={{ fontSize: '0.85rem', color: 'var(--gold-bright)' }}>{selectedDesign.status}</strong>

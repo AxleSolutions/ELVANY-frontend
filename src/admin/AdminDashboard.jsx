@@ -258,7 +258,7 @@ export const AdminDashboard = ({
                 reviews.filter(r => r.status === 'Pending').map((rev) => (
                   <div key={rev.id} className="admin-pending-review-item">
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <strong style={{ color: '#fff', fontSize: '0.82rem' }}>{rev.customerName}</strong>
+                      <strong style={{ color: '#121316', fontSize: '0.82rem' }}>{rev.customerName}</strong>
                       <span style={{ color: 'var(--gold-bright)', fontSize: '0.78rem' }}>{'★'.repeat(rev.rating)}</span>
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', marginBottom: '4px' }}>
@@ -292,10 +292,10 @@ export const AdminDashboard = ({
               </button>
             </div>
 
-            <div style={{ padding: '1rem', background: '#090a0c', border: '1px solid var(--border-dark)', borderRadius: '2px', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '1rem', background: '#fbf9f5', border: '1px solid var(--border-dark)', borderRadius: '2px', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block' }}>Total Subscribed Clients</span>
-                <strong style={{ fontSize: '1.2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>
+                <strong style={{ fontSize: '1.2rem', color: '#121316', fontFamily: 'var(--font-display)' }}>
                   {subscribers.length} VIPs
                 </strong>
               </div>
@@ -315,7 +315,7 @@ export const AdminDashboard = ({
                   <div key={s.id || idx} className="admin-stock-alert-item" style={{ padding: '0.6rem 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--gold-bright)' }} />
-                      <span style={{ color: '#fff', fontSize: '0.8rem' }}>{s.email}</span>
+                      <span style={{ color: '#121316', fontSize: '0.8rem' }}>{s.email}</span>
                     </div>
                     <span style={{ color: 'var(--text-light-muted)', fontSize: '0.7rem' }}>
                       {new Date(s.subscribedAt || Date.now()).toLocaleDateString()}
@@ -348,7 +348,7 @@ export const AdminDashboard = ({
                 return (
                   <div key={prod.id} className="admin-stock-alert-item">
                     <div>
-                      <strong style={{ color: '#fff', fontSize: '0.82rem', display: 'block' }}>{prod.title}</strong>
+                      <strong style={{ color: '#121316', fontSize: '0.82rem', display: 'block' }}>{prod.title}</strong>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>{prod.category} • {prod.gsm} GSM</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -427,7 +427,7 @@ export const AdminDashboard = ({
                             onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                           />
                           <div>
-                            <strong style={{ color: '#fff', fontSize: '0.85rem', display: 'block' }}>{prod.title}</strong>
+                            <strong style={{ color: '#121316', fontSize: '0.85rem', display: 'block' }}>{prod.title}</strong>
                             <span style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>{prod.sku || `ELV-${idx + 1}`}</span>
                           </div>
                         </div>
@@ -441,7 +441,7 @@ export const AdminDashboard = ({
                         </strong>
                       </td>
                       <td>
-                        <strong style={{ color: total === 0 ? '#ef4444' : total < 10 ? '#f59e0b' : '#fff' }}>
+                        <strong style={{ color: total === 0 ? '#ef4444' : total < 10 ? '#f59e0b' : '#121316' }}>
                           {total} Units {total === 0 && <span style={{ color: '#ef4444', fontSize: '0.68rem', display: 'block' }}>(Sold Out)</span>}
                         </strong>
                       </td>

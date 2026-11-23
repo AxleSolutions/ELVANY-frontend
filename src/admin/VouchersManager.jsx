@@ -327,7 +327,7 @@ export const VouchersManager = ({
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-light-muted)' }}>
                   <Ticket size={32} color="var(--gold-border)" style={{ margin: '0 auto 0.8rem auto' }} />
-                  <div style={{ fontSize: '0.95rem', color: '#ffffff', marginBottom: '4px' }}>No Vouchers Found</div>
+                  <div style={{ fontSize: '0.95rem', color: '#121316', marginBottom: '4px', fontWeight: 600 }}>No Vouchers Found</div>
                   <div style={{ fontSize: '0.78rem' }}>
                     {searchQuery ? 'No vouchers matched your search query.' : 'Click "GENERATE NEW VOUCHER" above to create your first atelier gift code.'}
                   </div>
@@ -371,7 +371,7 @@ export const VouchersManager = ({
                     </td>
 
                     <td>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#121316' }}>
                         {v.discountType === 'percentage' 
                           ? `${v.discountValue}% OFF` 
                           : `LKR ${(v.discountValue || 0).toLocaleString()} OFF`}
@@ -385,7 +385,7 @@ export const VouchersManager = ({
                     </td>
 
                     <td>
-                      <div style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 500 }}>
+                      <div style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600 }}>
                         {v.recipientName || v.recipientEmail || 'Open Patron Voucher'}
                       </div>
                       {v.notes && (
@@ -637,7 +637,7 @@ export const VouchersManager = ({
               {/* Single-Use Enforced Assurance */}
               <div style={{ backgroundColor: 'rgba(197, 160, 89, 0.08)', border: '1px solid var(--gold-border)', borderRadius: '3px', padding: '0.85rem 1rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <ShieldCheck size={18} color="var(--gold-bright)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div style={{ fontSize: '0.75rem', color: '#ffffff', lineHeight: 1.45 }}>
+                <div style={{ fontSize: '0.75rem', color: '#52545c', lineHeight: 1.45 }}>
                   <strong style={{ color: 'var(--gold-bright)' }}>Single-Use Security Enforcement:</strong> This voucher code can be used <strong>strictly one time only</strong>. As soon as a customer completes their order with this code, the system permanently locks it so it cannot be shared or reused.
                 </div>
               </div>

@@ -270,7 +270,7 @@ export const PopupAdManager = ({
           <div className="admin-card" style={{ padding: '1.6rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: '0 0 0.3rem 0', fontWeight: 600 }}>
+                <h3 style={{ fontSize: '1.05rem', color: '#121316', margin: '0 0 0.3rem 0', fontWeight: 600 }}>
                   Popup Advertisement Status
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-light-muted)', margin: 0 }}>
@@ -312,7 +312,7 @@ export const PopupAdManager = ({
           <div className="admin-card" style={{ padding: '1.6rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.2rem' }}>
               <ImageIcon size={16} color="var(--gold-bright)" />
-              <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+              <h3 style={{ fontSize: '1.05rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                 Advertisement Visual (Pure Image)
               </h3>
             </div>
@@ -426,7 +426,7 @@ export const PopupAdManager = ({
           <div className="admin-card" style={{ padding: '1.6rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.2rem' }}>
               <LinkIcon size={16} color="var(--gold-bright)" />
-              <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+              <h3 style={{ fontSize: '1.05rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                 Click Destination & Visitor Frequency
               </h3>
             </div>
@@ -453,7 +453,7 @@ export const PopupAdManager = ({
                 DISPLAY FREQUENCY
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff', fontSize: '0.84rem', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#121316', fontSize: '0.84rem', cursor: 'pointer' }}>
                   <input 
                     type="radio" 
                     name="frequency" 
@@ -464,7 +464,7 @@ export const PopupAdManager = ({
                   <span>Show once per browsing session (Recommended session experience)</span>
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff', fontSize: '0.84rem', cursor: 'pointer' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#121316', fontSize: '0.84rem', cursor: 'pointer' }}>
                   <input 
                     type="radio" 
                     name="frequency" 
@@ -487,7 +487,7 @@ export const PopupAdManager = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Eye size={16} color="var(--gold-bright)" />
-                <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: 0, fontWeight: 600 }}>
+                <h3 style={{ fontSize: '1.05rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                   Live Storefront Preview
                 </h3>
               </div>
@@ -633,7 +633,7 @@ export const PopupAdManager = ({
               ) : (
                 <div style={{ textAlign: 'center', color: 'var(--text-light-muted)', position: 'relative', zIndex: 2 }}>
                   <div style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>🔕</div>
-                  <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.9rem', marginBottom: '4px' }}>
+                  <div style={{ color: '#121316', fontWeight: 600, fontSize: '0.9rem', marginBottom: '4px' }}>
                     Advertisement is Currently Inactive
                   </div>
                   <p style={{ fontSize: '0.76rem', maxWidth: '240px', margin: '0 auto' }}>

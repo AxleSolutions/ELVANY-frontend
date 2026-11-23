@@ -266,7 +266,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                   <img 
                     src={formData.productImage} 
                     alt="Preview" 
-                    style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--border-dark)', backgroundColor: '#000' }}
+                    style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '3px', border: '1px solid #d5cec2', backgroundColor: '#f5f1ea' }}
                     onError={(e) => { e.target.src = '/images/hero_tshirt.webp'; }}
                   />
                 )}
@@ -404,14 +404,14 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                     }));
                   }}
                   className="form-input admin-input"
-                  style={{ color: '#ffffff', fontWeight: 600 }}
+                  style={{ color: '#121316', fontWeight: 600 }}
                 />
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Total Batch Allocation</span>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>Sold + Remaining</span>
+                  <span style={{ fontSize: '0.68rem', color: '#767982' }}>Sold + Remaining</span>
                 </label>
                 <input
                   type="number"
@@ -429,7 +429,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                     }));
                   }}
                   className="form-input admin-input"
-                  style={{ color: 'var(--text-light-primary)', fontWeight: 600 }}
+                  style={{ color: '#121316', fontWeight: 600 }}
                 />
               </div>
             </div>
@@ -451,27 +451,27 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
               return (
                 <div style={{
                   padding: '0.85rem 1.1rem',
-                  background: 'rgba(239, 68, 68, 0.05)',
-                  border: '1px solid rgba(239, 68, 68, 0.28)',
-                  borderRadius: '2px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '3px',
                   marginTop: '-0.3rem',
                   marginBottom: '0.4rem'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', fontSize: '0.78rem', flexWrap: 'wrap', gap: '0.4rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Flame size={14} color="#ef4444" style={{ filter: 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.6))' }} />
-                      <span style={{ color: '#ffffff', fontWeight: 600 }}>
-                        Storefront Live Red Line: <strong style={{ color: '#f87171' }}>{previewSold} sold</strong> • <strong style={{ color: '#ffffff' }}>{previewRemain} remaining</strong>
-                        <span style={{ color: 'rgba(255,255,255,0.4)', marginLeft: '6px', fontSize: '0.72rem' }}>({previewTotal} total batch)</span>
+                      <span style={{ color: '#121316', fontWeight: 600 }}>
+                        Storefront Live Red Line: <strong style={{ color: '#dc2626' }}>{previewSold} sold</strong> • <strong style={{ color: '#121316' }}>{previewRemain} remaining</strong>
+                        <span style={{ color: '#767982', marginLeft: '6px', fontSize: '0.72rem' }}>({previewTotal} total batch)</span>
                       </span>
                     </div>
                     <span style={{
                       fontSize: '0.68rem',
                       fontWeight: 700,
-                      color: '#f87171',
+                      color: '#b91c1c',
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
-                      background: 'rgba(239, 68, 68, 0.15)',
+                      background: '#fee2e2',
                       padding: '2px 7px',
                       borderRadius: '2px',
                       border: '1px solid rgba(239, 68, 68, 0.3)'
@@ -483,7 +483,7 @@ export const OfferEditModal = ({ isOpen, onClose, offer, onSave, products = [] }
                   <div style={{
                     width: '100%',
                     height: '5px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
                     borderRadius: '999px',
                     overflow: 'hidden'
                   }}>

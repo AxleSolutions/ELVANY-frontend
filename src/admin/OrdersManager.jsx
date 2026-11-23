@@ -309,9 +309,9 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                                 isEditingTrackingOnly: true
                               })}
                               style={{
-                                background: 'rgba(255, 255, 255, 0.06)',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                color: '#ffffff',
+                                background: '#fbf9f5',
+                                border: '1px solid #d5cec2',
+                                color: '#121316',
                                 borderRadius: '2px',
                                 padding: '2px 5px',
                                 fontSize: '0.65rem',

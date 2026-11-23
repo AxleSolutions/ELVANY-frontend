@@ -198,19 +198,20 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
       }}>
         
         <div style={{
-          backgroundColor: '#0d0e12',
+          backgroundColor: '#ffffff',
           border: '1px solid var(--border-dark)',
           borderRadius: '2px',
           padding: '1.4rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem'
+          gap: '0.4rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total Re-Issue Requests</span>
             <Bell size={16} color="var(--gold-bright)" />
           </div>
-          <div style={{ fontSize: '1.8rem', color: '#ffffff', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
+          <div style={{ fontSize: '1.8rem', color: '#121316', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
             {requests.length}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)' }}>
@@ -219,13 +220,14 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
         </div>
 
         <div style={{
-          backgroundColor: '#0d0e12',
+          backgroundColor: '#ffffff',
           border: '1px solid var(--border-dark)',
           borderRadius: '2px',
           padding: '1.4rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem'
+          gap: '0.4rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pending Atelier Review</span>
@@ -240,13 +242,14 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
         </div>
 
         <div style={{
-          backgroundColor: '#0d0e12',
+          backgroundColor: '#ffffff',
           border: '1px solid var(--border-dark)',
           borderRadius: '2px',
           padding: '1.4rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem'
+          gap: '0.4rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>In Production / Sourcing</span>
@@ -261,19 +264,20 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
         </div>
 
         <div style={{
-          backgroundColor: '#0d0e12',
+          backgroundColor: '#ffffff',
           border: '1px solid var(--border-dark)',
           borderRadius: '2px',
           padding: '1.4rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem'
+          gap: '0.4rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Restocked & Notified</span>
-            <CheckCircle2 size={16} color="#4ade80" />
+            <CheckCircle2 size={16} color="#16a34a" />
           </div>
-          <div style={{ fontSize: '1.8rem', color: '#4ade80', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
+          <div style={{ fontSize: '1.8rem', color: '#16a34a', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
             {fulfilledCount}
           </div>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-light-secondary)' }}>
@@ -286,16 +290,17 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
       {/* Top In-Demand Heatmap Widget */}
       {topDemands.length > 0 && (
         <div style={{
-          backgroundColor: '#0d0e12',
+          backgroundColor: '#ffffff',
           border: '1px solid var(--gold-border)',
           borderRadius: '2px',
           padding: '1.4rem',
-          marginBottom: '2rem'
+          marginBottom: '2rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <TrendingUp size={18} color="var(--gold-bright)" />
-              <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: '#ffffff', margin: 0, fontWeight: 400 }}>
+              <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: '#121316', margin: 0, fontWeight: 600 }}>
                 High-Demand Sold Out Pieces (Production Recommendations)
               </h4>
             </div>
@@ -312,10 +317,10 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.9rem',
-                  backgroundColor: '#07080a',
+                  backgroundColor: '#fbf9f5',
                   padding: '0.85rem 1rem',
                   borderRadius: '2px',
-                  border: '1px solid rgba(255,255,255,0.06)'
+                  border: '1px solid var(--border-dark)'
                 }}
               >
                 <img 
@@ -326,7 +331,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
                   title="Click to view image"
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.86rem', color: '#ffffff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.86rem', color: '#121316', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {d.title}
                   </div>
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
@@ -467,15 +472,16 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
 
       {/* Requests Ledger Table with all details */}
       <div style={{
-        backgroundColor: '#0d0e12',
+        backgroundColor: '#ffffff',
         border: '1px solid var(--border-dark)',
         borderRadius: '2px',
-        overflowX: 'auto'
+        overflowX: 'auto',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
       }}>
         {filteredRequests.length === 0 ? (
           <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-light-muted)' }}>
             <Bell size={36} style={{ margin: '0 auto 1rem auto', opacity: 0.35, color: 'var(--gold-bright)' }} />
-            <div style={{ fontSize: '1.05rem', color: '#ffffff', fontWeight: 600 }}>No Re-Issue Requests Found</div>
+            <div style={{ fontSize: '1.05rem', color: '#121316', fontWeight: 600 }}>No Re-Issue Requests Found</div>
             <div style={{ fontSize: '0.82rem', marginTop: '6px', maxWidth: '420px', margin: '6px auto 0 auto', lineHeight: 1.5 }}>
               {searchQuery ? 'No client requests match your current search criteria.' : 'When clients register interest for out-of-stock items, all customer details and garment specifications will appear here in real-time.'}
             </div>
@@ -483,7 +489,7 @@ Requested On: ${new Date(r.createdAt).toLocaleString()}`;
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
             <thead>
-              <tr style={{ backgroundColor: '#07080a', borderBottom: '1px solid var(--border-dark)', color: 'var(--text-light-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <tr style={{ backgroundColor: '#f6f2ea', borderBottom: '1px solid var(--border-dark)', color: 'var(--text-light-secondary)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 <th style={{ padding: '1rem 1.2rem', minWidth: '220px' }}>GARMENT & VARIANT</th>
                 <th style={{ padding: '1rem 1.2rem', minWidth: '200px' }}>CLIENT CONTACT DETAILS</th>
                 <th style={{ padding: '1rem 1.2rem', minWidth: '220px' }}>CLIENT NOTES & INTEREST</th>

@@ -868,7 +868,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                           }} 
                         />
                         <div>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#ffffff' }}>{col.name}</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#121316' }}>{col.name}</span>
                           <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)', marginLeft: '6px' }}>{col.hex}</span>
                         </div>
                       </div>
@@ -994,7 +994,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                       <UploadCloud size={22} color="var(--gold-bright)" />
-                      <span style={{ fontSize: '0.8rem', color: '#fff', fontWeight: 600 }}>
+                      <span style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600 }}>
                         Upload Atelier Angle / Photo to Cloudinary
                       </span>
                       <span style={{ fontSize: '0.68rem', color: 'var(--text-light-muted)' }}>
@@ -1130,7 +1130,7 @@ export const ProductEditModal = ({ isOpen, onClose, product, onSave, existingPro
                                     ★ HERO COVER / THUMBNAIL
                                   </span>
                                 ) : (
-                                  <span style={{ fontSize: '0.72rem', color: '#fff', fontWeight: 600 }}>
+                                  <span style={{ fontSize: '0.72rem', color: '#8f6f32', fontWeight: 700 }}>
                                     Angle #{idx + 1}
                                   </span>
                                 )}

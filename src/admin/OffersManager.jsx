@@ -10,10 +10,10 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
       {/* Top Action Bar */}
       <div className="admin-action-bar">
         <div>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#fff', margin: 0, fontWeight: 400 }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: '#121316', margin: 0, fontWeight: 600 }}>
             Per-Item Privileges & Offers Slideshow
           </h2>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-light-secondary)', margin: '4px 0 0 0' }}>
+          <p style={{ fontSize: '0.78rem', color: '#52545c', margin: '4px 0 0 0' }}>
             {activeCount > 0 
               ? `Currently ${activeCount} item ${activeCount === 1 ? 'offer is' : 'offers are'} rotating in the interactive slideshow below the hero section.` 
               : 'No active offers. The promotional section is automatically hidden from the storefront.'}
@@ -36,10 +36,10 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
         {offers.length === 0 ? (
           <div className="admin-card" style={{ padding: '3.5rem 2rem', textAlign: 'center', color: 'var(--text-light-muted)' }}>
             <Gift size={32} color="var(--gold-bright)" style={{ margin: '0 auto 1rem auto', opacity: 0.6 }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#fff', marginBottom: '0.5rem' }}>
+            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', color: '#121316', marginBottom: '0.5rem' }}>
               No Item Offers Configured
             </h3>
-            <p style={{ fontSize: '0.84rem', color: 'var(--text-light-secondary)', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
+            <p style={{ fontSize: '0.84rem', color: '#52545c', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
               Create your first per-item promotional offer to display in the interactive customer slideshow below the hero.
             </p>
             <button type="button" className="btn-primary-gold" onClick={() => onOpenModal(null)}>
@@ -53,7 +53,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
               key={offer.id} 
               className={`admin-review-card ${offer.isActive ? 'featured' : ''}`}
               style={{
-                borderLeft: offer.isActive ? '3px solid var(--gold-bright)' : '1px solid var(--border-dark)'
+                borderLeft: offer.isActive ? '3px solid #8f6f32' : '1px solid #e8e2d8'
               }}
             >
               <div>
@@ -62,7 +62,7 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                   <img 
                     src={offer.productImage || '/images/hero_tshirt.webp'} 
                     alt={offer.productName} 
-                    style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '2px', backgroundColor: '#090a0c', border: '1px solid var(--border-dark)' }}
+                    style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '3px', backgroundColor: '#f5f1ea', border: '1px solid #e8e2d8' }}
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -78,13 +78,13 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                           alignItems: 'center',
                           gap: '4px',
                           padding: '3px 8px',
-                          borderRadius: '2px',
+                          borderRadius: '3px',
                           fontSize: '0.68rem',
                           fontWeight: 600,
                           cursor: 'pointer',
                           border: 'none',
-                          backgroundColor: offer.isActive ? 'rgba(197, 160, 89, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                          color: offer.isActive ? 'var(--gold-bright)' : 'var(--text-light-muted)'
+                          backgroundColor: offer.isActive ? 'rgba(197, 160, 89, 0.15)' : '#fbf9f5',
+                          color: offer.isActive ? '#8f6f32' : '#767982'
                         }}
                         title="Click to toggle slideshow visibility"
                       >
@@ -93,17 +93,17 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                       </button>
                     </div>
 
-                    <strong style={{ color: '#fff', fontSize: '0.88rem', display: 'block', marginTop: '3px' }}>
+                    <strong style={{ color: '#121316', fontSize: '0.88rem', display: 'block', marginTop: '3px' }}>
                       {offer.productName}
                     </strong>
                   </div>
                 </div>
 
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#fff', margin: '0 0 0.4rem 0', fontWeight: 500 }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', color: '#121316', margin: '0 0 0.4rem 0', fontWeight: 600 }}>
                   {offer.title}
                 </h3>
 
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', lineHeight: 1.5, margin: '0 0 1rem 0' }}>
+                <p style={{ fontSize: '0.82rem', color: '#52545c', lineHeight: 1.5, margin: '0 0 1rem 0' }}>
                   {offer.subtitle}
                 </p>
 
@@ -113,17 +113,17 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                     fontFamily: 'var(--font-display)',
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    color: 'var(--gold-bright)'
+                    color: '#8f6f32'
                   }}>
                     LKR {(offer.offerPriceLKR || 15500).toLocaleString()}
                   </span>
                   {offer.originalPriceLKR && (
-                    <span style={{ fontSize: '0.82rem', color: 'var(--text-light-muted)', textDecoration: 'line-through' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#767982', textDecoration: 'line-through' }}>
                       LKR {offer.originalPriceLKR.toLocaleString()}
                     </span>
                   )}
                   {offer.discountTag && (
-                    <span style={{ fontSize: '0.68rem', color: 'var(--gold-bright)', backgroundColor: 'rgba(197, 160, 89, 0.12)', border: '1px solid var(--gold-border)', padding: '2px 6px', borderRadius: '1px', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.68rem', color: '#8f6f32', backgroundColor: 'rgba(197, 160, 89, 0.12)', border: '1px solid #d5cec2', padding: '2px 6px', borderRadius: '2px', fontWeight: 600 }}>
                       {offer.discountTag}
                     </span>
                   )}
@@ -158,19 +158,19 @@ export const OffersManager = ({ offers = [], onOpenModal, onToggleOfferStatus, o
                   }
 
                   return (
-                    <div style={{ marginTop: '0.8rem', padding: '0.7rem 0.9rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '2px' }}>
+                    <div style={{ marginTop: '0.8rem', padding: '0.7rem 0.9rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '3px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.4rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Flame size={13} color="#ef4444" />
-                          <span style={{ color: '#fff', fontWeight: 600 }}>
-                            <strong style={{ color: '#f87171' }}>{sold} sold</strong> • <strong style={{ color: '#ffffff' }}>{remaining} remaining</strong> ({effectiveTotal} total batch)
+                          <span style={{ color: '#121316', fontWeight: 600 }}>
+                            <strong style={{ color: '#dc2626' }}>{sold} sold</strong> • <strong style={{ color: '#121316' }}>{remaining} remaining</strong> ({effectiveTotal} total batch)
                           </span>
                         </div>
-                        <span style={{ fontSize: '0.68rem', color: '#f87171', fontWeight: 700, background: 'rgba(239, 68, 68, 0.15)', padding: '2px 6px', borderRadius: '2px' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#b91c1c', fontWeight: 700, background: '#fee2e2', padding: '2px 6px', borderRadius: '2px' }}>
                           {soldPercent}% Claimed
                         </span>
                       </div>
-                      <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ width: '100%', height: '4px', background: 'rgba(0,0,0,0.08)', borderRadius: '999px', overflow: 'hidden' }}>
                         <div style={{ width: `${soldPercent}%`, height: '100%', background: 'linear-gradient(90deg, #dc2626, #ef4444)' }} />
                       </div>
                     </div>

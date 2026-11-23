@@ -73,6 +73,22 @@
   position: relative;
 }
 
+.admin-layout h1,
+.admin-layout h2,
+.admin-layout h3,
+.admin-layout h4,
+.admin-layout h5,
+.admin-layout h6 {
+  color: #121316;
+}
+
+.admin-layout input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.admin-layout textarea,
+.admin-layout select {
+  background-color: #ffffff;
+  color: #121316;
+}
+
 /* =========================================================================
    SIDEBAR
    ========================================================================= */

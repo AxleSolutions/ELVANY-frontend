@@ -97,7 +97,7 @@ export const ReviewsModeration = ({ reviews, onToggleStatus, onDeleteReview }) =
               <div className="admin-review-card-header">
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{rev.customerName}</strong>
+                    <strong style={{ color: '#121316', fontSize: '0.95rem' }}>{rev.customerName}</strong>
                     <span className="admin-verified-buyer-badge">
                       <ShieldCheck size={12} />
                       <span>VERIFIED ORDER #{rev.orderId}</span>
@@ -117,7 +117,7 @@ export const ReviewsModeration = ({ reviews, onToggleStatus, onDeleteReview }) =
 
               {/* Garment & Fit Bar */}
               <div className="admin-review-product-bar">
-                <span style={{ color: '#fff', fontWeight: 500 }}>{rev.productTitle}</span>
+                <span style={{ color: '#121316', fontWeight: 600 }}>{rev.productTitle}</span>
                 <span style={{ color: 'var(--gold-bright)', fontSize: '0.76rem' }}>
                   Fit: <strong>{rev.fitRating}</strong>
                 </span>

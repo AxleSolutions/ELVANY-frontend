@@ -122,16 +122,16 @@ export const CategoryManagerModal = ({
         </div>
 
         <div className="admin-dialog-body" style={{ padding: '1.5rem' }}>
-          <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-light-secondary)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
             Create, rename, or remove categories. All categories configured here appear in the 
             <strong> CREATE NEW GARMENT</strong> editor and dynamically on the customer-side storefront collections.
           </p>
 
           {toastMsg && (
             <div style={{
-              backgroundColor: 'rgba(197, 160, 89, 0.15)',
-              border: '1px solid var(--gold-bright, #c5a059)',
-              color: 'var(--gold-bright, #c5a059)',
+              backgroundColor: 'rgba(143, 111, 50, 0.12)',
+              border: '1px solid var(--gold-bright, #8f6f32)',
+              color: 'var(--gold-bright, #8f6f32)',
               padding: '8px 12px',
               borderRadius: '3px',
               fontSize: '0.8rem',
@@ -167,15 +167,15 @@ export const CategoryManagerModal = ({
           </form>
 
           {/* Categories List */}
-          <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--border-dark)', borderRadius: '4px', overflow: 'hidden' }}>
             <div style={{ 
-              backgroundColor: 'rgba(255,255,255,0.03)', 
+              backgroundColor: '#f6f2ea', 
               padding: '10px 14px', 
               fontSize: '0.72rem', 
               textTransform: 'uppercase', 
               letterSpacing: '0.08em', 
-              color: 'rgba(255,255,255,0.5)',
-              borderBottom: '1px solid rgba(255,255,255,0.08)'
+              color: 'var(--text-light-secondary)',
+              borderBottom: '1px solid var(--border-dark)'
             }}>
               Active Categories ({categories.length})
             </div>
@@ -196,8 +196,8 @@ export const CategoryManagerModal = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px 14px',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
-                      backgroundColor: isEditing ? 'rgba(197, 160, 89, 0.08)' : 'transparent'
+                      borderBottom: '1px solid var(--border-light)',
+                      backgroundColor: isEditing ? 'rgba(143, 111, 50, 0.08)' : '#ffffff'
                     }}
                   >
                     {isEditing ? (
@@ -233,12 +233,12 @@ export const CategoryManagerModal = ({
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Tag size={14} color="var(--gold-bright, #c5a059)" opacity={0.7} />
+                        <Tag size={14} color="var(--gold-bright, #8f6f32)" opacity={0.8} />
                         <div>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 500, color: '#fff' }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#121316' }}>
                             {cat.label}
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
                             Key: <code>{cat.key}</code> • {count} {count === 1 ? 'garment' : 'garments'}
                           </div>
                         </div>
@@ -252,14 +252,16 @@ export const CategoryManagerModal = ({
                           onClick={() => handleStartEdit(cat)}
                           title="Rename Category"
                           style={{
-                            background: 'none',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            background: '#ffffff',
+                            border: '1px solid var(--border-dark)',
                             borderRadius: '3px',
-                            color: 'rgba(255,255,255,0.7)',
+                            color: 'var(--text-light-secondary)',
                             padding: '6px',
                             cursor: 'pointer'
                           }}
                         >
+                          <Edit2 size={13} />
+                        </button>
                           <Edit2 size={13} />
                         </button>
                         <button

@@ -25,7 +25,7 @@ const BespokeItemAngleViewer = ({ customItem, linkedBespoke, itemCode, orderId }
   const activeUrl = currentAngle?.url || frontImg || '/images/hero_tshirt.webp';
 
   return (
-    <div style={{ textAlign: 'center', background: '#07080a', borderRadius: '4px', padding: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div style={{ textAlign: 'center', background: '#fbf9f5', borderRadius: '4px', padding: '10px', border: '1px solid var(--border-dark)' }}>
       {/* Angle Selector Tabs */}
       {availableAngles.length > 1 && (
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px', justifyContent: 'center' }}>
@@ -532,7 +532,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 <ShieldCheck size={14} color="var(--gold-bright)" />
                 <span>CLIENT PROFILE</span>
               </div>
-              <strong style={{ fontSize: '1.05rem', color: '#fff', display: 'block', marginBottom: '4px' }}>
+              <strong style={{ fontSize: '1.05rem', color: '#121316', display: 'block', marginBottom: '4px' }}>
                 {order.customerName}
               </strong>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '3px' }}>
@@ -579,7 +579,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 <MapPin size={14} color="var(--gold-bright)" />
                 <span>DELIVERY DESTINATION</span>
               </div>
-              <strong style={{ fontSize: '1.05rem', color: '#fff', display: 'block', marginBottom: '4px' }}>
+              <strong style={{ fontSize: '1.05rem', color: '#121316', display: 'block', marginBottom: '4px' }}>
                 {order.customerLocation}
               </strong>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-light-muted)' }}>
@@ -609,19 +609,19 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                       src={item.image || item.product_image_url || '/images/tshirt_white.webp'} 
                       alt={item.title} 
                       className="admin-parcel-item-thumb" 
-                      style={{ width: '56px', height: '56px', objectFit: 'contain', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ width: '56px', height: '56px', objectFit: 'contain', background: '#ffffff', border: '1px solid var(--border-dark)' }}
                     />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>{item.title || item.name}</div>
+                        <div style={{ fontWeight: 600, color: '#121316', fontSize: '0.9rem' }}>{item.title || item.name}</div>
                         {isBespoke && (
-                          <span style={{ fontSize: '0.65rem', background: 'rgba(197, 160, 89, 0.2)', border: '1px solid var(--gold-bright)', color: 'var(--gold-bright)', padding: '1px 6px', borderRadius: '2px', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.65rem', background: 'rgba(143, 111, 50, 0.12)', border: '1px solid var(--gold-bright)', color: 'var(--gold-bright)', padding: '1px 6px', borderRadius: '2px', fontWeight: 700 }}>
                             BESPOKE LAB {item.designCode ? `#${item.designCode}` : ''}
                           </span>
                         )}
                       </div>
                       <div style={{ fontSize: '0.76rem', color: 'var(--text-light-muted)', marginTop: '2px' }}>
-                        Size: <span style={{ color: '#fff' }}>{item.size || item.selectedSize}</span> • Color: <span style={{ color: '#fff' }}>{item.color || 'Onyx Black'}</span> • Qty: <span style={{ color: '#fff' }}>{item.quantity || 1}</span>
+                        Size: <span style={{ color: '#121316' }}>{item.size || item.selectedSize}</span> • Color: <span style={{ color: '#121316' }}>{item.color || 'Onyx Black'}</span> • Qty: <span style={{ color: '#121316' }}>{item.quantity || 1}</span>
                       </div>
                       {item.customPlacements && item.customPlacements.length > 0 && (
                         <div style={{ fontSize: '0.7rem', color: 'var(--gold-bright)', marginTop: '2px' }}>
@@ -641,8 +641,8 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               <div style={{
                 marginTop: '0.8rem',
                 padding: '0.65rem 0.9rem',
-                backgroundColor: 'rgba(197, 160, 89, 0.08)',
-                border: '1px solid rgba(197, 160, 89, 0.3)',
+                backgroundColor: 'rgba(143, 111, 50, 0.08)',
+                border: '1px solid var(--gold-border)',
                 borderRadius: '3px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -650,7 +650,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Tag size={13} color="var(--gold-bright)" />
-                  <span style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.78rem', color: '#121316', fontWeight: 600 }}>
                     ATELIER VOUCHER APPLIED: <strong style={{ color: 'var(--gold-bright)', letterSpacing: '0.04em' }}>{order.voucherCode || 'GIFT'}</strong>
                   </span>
                 </div>
@@ -706,27 +706,27 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
 
                         {/* Garment Specifications */}
                         <div>
-                          <div style={{ fontSize: '0.88rem', color: '#fff', fontWeight: 600, marginBottom: '6px' }}>
+                          <div style={{ fontSize: '0.88rem', color: '#121316', fontWeight: 600, marginBottom: '6px' }}>
                             {cut}
                           </div>
                           
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '0.74rem', color: 'var(--text-light-secondary)', marginBottom: '10px' }}>
-                            <div>• Fabric Grade: <strong style={{ color: '#fff' }}>{fabric}</strong></div>
-                            <div>• Color: <strong style={{ color: '#fff' }}>{customItem.color || 'Pure Black'}</strong> ({customItem.size || 'L'} / {customItem.quantity || 1} pcs)</div>
+                            <div>• Fabric Grade: <strong style={{ color: '#121316' }}>{fabric}</strong></div>
+                            <div>• Color: <strong style={{ color: '#121316' }}>{customItem.color || 'Pure Black'}</strong> ({customItem.size || 'L'} / {customItem.quantity || 1} pcs)</div>
                             {customItem.customPlacements && customItem.customPlacements.length > 0 && (
                               <div>• Placement Zones: <strong style={{ color: 'var(--gold-bright)' }}>{customItem.customPlacements.join(' • ')}</strong></div>
                             )}
                           </div>
 
                           {notes && (
-                            <div style={{ fontSize: '0.72rem', background: 'rgba(197, 160, 89, 0.08)', borderLeft: '2px solid var(--gold-bright)', padding: '5px 8px', borderRadius: '2px', color: '#fff', fontStyle: 'italic', marginBottom: '8px' }}>
+                            <div style={{ fontSize: '0.72rem', background: 'rgba(143, 111, 50, 0.08)', borderLeft: '2px solid var(--gold-bright)', padding: '5px 8px', borderRadius: '2px', color: '#121316', fontStyle: 'italic', marginBottom: '8px' }}>
                               "{notes}"
                             </div>
                           )}
 
                           {/* Print Assets & Coordinates Section */}
                           {artworkList.length > 0 && (
-                            <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
                               <div style={{ fontSize: '0.72rem', color: 'var(--gold-bright)', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                                 PRINT ASSETS & COORDINATES ({artworkList.length})
                               </div>
@@ -748,8 +748,8 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                                     <div
                                       key={spotKey}
                                       style={{
-                                        background: 'rgba(0,0,0,0.4)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        background: '#fbf9f5',
+                                        border: '1px solid var(--border-dark)',
                                         borderRadius: '3px',
                                         padding: '6px 10px',
                                         display: 'flex',
@@ -761,11 +761,11 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                                         <img
                                           src={artImg}
                                           alt={spotTitle}
-                                          style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#000', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.15)' }}
+                                          style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#ffffff', borderRadius: '2px', border: '1px solid var(--border-dark)' }}
                                         />
                                       )}
                                       <div style={{ flex: 1, minWidth: 0 }}>
-                                        <strong style={{ fontSize: '0.76rem', color: '#ffffff', display: 'block' }}>
+                                        <strong style={{ fontSize: '0.76rem', color: '#121316', display: 'block' }}>
                                           {spotTitle}
                                         </strong>
                                         {typeof art === 'object' && art.x !== undefined && (

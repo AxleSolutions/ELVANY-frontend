@@ -523,15 +523,16 @@ export function EmailStudio() {
       
       {/* Top Banner */}
       <div style={{
-        background: '#121316',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        background: '#ffffff',
+        border: '1px solid #e8e2d8',
         borderRadius: '4px',
         padding: '1.25rem 1.5rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '1rem'
+        gap: '1rem',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -539,22 +540,22 @@ export function EmailStudio() {
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              backgroundColor: '#c5a059',
+              backgroundColor: '#8f6f32',
               display: 'inline-block'
             }} />
             <h1 style={{
               margin: 0,
               fontSize: '1.15rem',
-              fontWeight: 500,
+              fontWeight: 600,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: '#ffffff',
+              color: '#121316',
               fontFamily: 'var(--font-sans, inherit)'
             }}>
               Email Studio & Campaign Dispatch
             </h1>
           </div>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#a1a1aa' }}>
+          <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#52545c' }}>
             Custom HTML code editor, live sandboxed preview & Google serverless email dispatch engine.
           </p>
         </div>
@@ -572,10 +573,10 @@ export function EmailStudio() {
               fontWeight: 600,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              borderRadius: '2px',
-              backgroundColor: googleEndpoint ? 'rgba(16, 185, 129, 0.12)' : 'rgba(197, 160, 89, 0.15)',
-              color: googleEndpoint ? '#34d399' : '#c5a059',
-              border: googleEndpoint ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(197, 160, 89, 0.4)',
+              borderRadius: '3px',
+              backgroundColor: googleEndpoint ? 'rgba(16, 185, 129, 0.12)' : '#fbf9f5',
+              color: googleEndpoint ? '#059669' : '#8f6f32',
+              border: googleEndpoint ? '1px solid rgba(5, 150, 105, 0.3)' : '1px solid #d5cec2',
               cursor: 'pointer'
             }}
           >
@@ -595,18 +596,19 @@ export function EmailStudio() {
         
         {/* LEFT COLUMN: Customizable Code Environment */}
         <div style={{
-          background: '#121316',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#ffffff',
+          border: '1px solid #e8e2d8',
           borderRadius: '4px',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
         }}>
           
           {/* Subject Line & Code Controls */}
           <div style={{
             padding: '1.25rem',
-            borderBottom: '1px solid var(--border-light)',
+            borderBottom: '1px solid #e8e2d8',
             backgroundColor: '#fbf9f5',
             display: 'flex',
             flexDirection: 'column',
@@ -618,7 +620,8 @@ export function EmailStudio() {
                 fontSize: '0.7rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                color: '#a1a1aa',
+                color: '#52545c',
+                fontWeight: 600,
                 marginBottom: '6px'
               }}>
                 Email Subject Line
@@ -631,12 +634,12 @@ export function EmailStudio() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  background: '#07080a',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  borderRadius: '2px',
+                  background: '#ffffff',
+                  border: '1px solid #d5cec2',
+                  borderRadius: '3px',
                   padding: '9px 12px',
                   fontSize: '0.85rem',
-                  color: '#ffffff',
+                  color: '#121316',
                   outline: 'none'
                 }}
               />
@@ -649,7 +652,8 @@ export function EmailStudio() {
                   fontSize: '0.7rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
-                  color: '#a1a1aa',
+                  color: '#52545c',
+                  fontWeight: 600,
                   marginBottom: '4px'
                 }}>
                   Sender Display Name
@@ -665,12 +669,12 @@ export function EmailStudio() {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    background: '#07080a',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '2px',
+                    background: '#ffffff',
+                    border: '1px solid #d5cec2',
+                    borderRadius: '3px',
                     padding: '8px 10px',
                     fontSize: '0.8rem',
-                    color: '#ffffff',
+                    color: '#121316',
                     outline: 'none'
                   }}
                 />
@@ -682,7 +686,8 @@ export function EmailStudio() {
                   fontSize: '0.7rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
-                  color: '#a1a1aa',
+                  color: '#52545c',
+                  fontWeight: 600,
                   marginBottom: '4px'
                 }}>
                   Sender Email Alias (e.g. @elvany)
@@ -698,12 +703,12 @@ export function EmailStudio() {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    background: '#07080a',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '2px',
+                    background: '#ffffff',
+                    border: '1px solid #d5cec2',
+                    borderRadius: '3px',
                     padding: '8px 10px',
                     fontSize: '0.8rem',
-                    color: '#ffffff',
+                    color: '#121316',
                     outline: 'none'
                   }}
                 />
@@ -717,13 +722,13 @@ export function EmailStudio() {
               gap: '6px',
               flexWrap: 'wrap',
               fontSize: '0.7rem',
-              color: '#71717a',
-              background: '#07080a',
+              color: '#52545c',
+              background: '#ffffff',
               padding: '6px 10px',
-              borderRadius: '2px',
-              border: '1px solid rgba(255, 255, 255, 0.05)'
+              borderRadius: '3px',
+              border: '1px solid #e8e2d8'
             }}>
-              <span style={{ color: '#c5a059', fontWeight: 600 }}>Official Logos:</span>
+              <span style={{ color: '#8f6f32', fontWeight: 600 }}>Official Logos:</span>
               <button
                 type="button"
                 onClick={() => {
@@ -732,13 +737,14 @@ export function EmailStudio() {
                   setTimeout(() => setLogoCopied(false), 2000);
                 }}
                 style={{
-                  background: '#1a1b20',
-                  border: '1px solid rgba(197, 160, 89, 0.3)',
-                  color: '#e2be75',
+                  background: '#fbf9f5',
+                  border: '1px solid #d5cec2',
+                  color: '#8f6f32',
                   padding: '2px 8px',
-                  borderRadius: '2px',
+                  borderRadius: '3px',
                   cursor: 'pointer',
-                  fontSize: '0.68rem'
+                  fontSize: '0.68rem',
+                  fontWeight: 600
                 }}
               >
                 📋 Copy Gold Logo URL
@@ -751,18 +757,19 @@ export function EmailStudio() {
                   setTimeout(() => setLogoCopied(false), 2000);
                 }}
                 style={{
-                  background: '#1a1b20',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
+                  background: '#fbf9f5',
+                  border: '1px solid #d5cec2',
+                  color: '#121316',
                   padding: '2px 8px',
-                  borderRadius: '2px',
+                  borderRadius: '3px',
                   cursor: 'pointer',
-                  fontSize: '0.68rem'
+                  fontSize: '0.68rem',
+                  fontWeight: 600
                 }}
               >
                 📋 Copy White Logo URL
               </button>
-              {logoCopied && <span style={{ color: '#34d399', fontWeight: 600 }}>Copied {logoCopied}!</span>}
+              {logoCopied && <span style={{ color: '#059669', fontWeight: 600 }}>Copied {logoCopied}!</span>}
             </div>
 
             <div style={{
@@ -773,11 +780,11 @@ export function EmailStudio() {
               gap: '0.5rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Code style={{ width: 15, height: 15, color: '#c5a059' }} />
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#ffffff' }}>
+                <Code style={{ width: 15, height: 15, color: '#8f6f32' }} />
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#121316' }}>
                   Custom HTML Code
                 </span>
-                <span style={{ fontSize: '0.72rem', color: '#71717a' }}>
+                <span style={{ fontSize: '0.72rem', color: '#767982' }}>
                   ({htmlCode.length.toLocaleString()} chars)
                 </span>
               </div>
@@ -793,11 +800,12 @@ export function EmailStudio() {
                   style={{
                     padding: '4px 10px',
                     fontSize: '0.7rem',
-                    background: '#1a1b20',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#a1a1aa',
-                    borderRadius: '2px',
-                    cursor: 'pointer'
+                    background: '#fbf9f5',
+                    border: '1px solid #d5cec2',
+                    color: '#121316',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    fontWeight: 500
                   }}
                 >
                   Reset Template
@@ -814,9 +822,10 @@ export function EmailStudio() {
                     fontSize: '0.7rem',
                     background: 'rgba(239, 68, 68, 0.12)',
                     border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#f87171',
-                    borderRadius: '2px',
-                    cursor: 'pointer'
+                    color: '#dc2626',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    fontWeight: 600
                   }}
                 >
                   Clear Code
@@ -826,7 +835,7 @@ export function EmailStudio() {
           </div>
 
           {/* The Pure Single Customizable Code Box */}
-          <div style={{ padding: '0.75rem', background: '#050608' }}>
+          <div style={{ padding: '0.75rem', background: '#f6f2ea' }}>
             <textarea
               value={htmlCode}
               onChange={(e) => setHtmlCode(e.target.value)}
@@ -836,10 +845,10 @@ export function EmailStudio() {
                 width: '100%',
                 height: '520px',
                 boxSizing: 'border-box',
-                background: '#07080a',
+                background: '#121316',
                 color: '#4ade80',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '2px',
+                border: '1px solid #d5cec2',
+                borderRadius: '3px',
                 padding: '12px',
                 fontFamily: 'Consolas, "Fira Code", Monaco, Menlo, monospace',
                 fontSize: '0.78rem',
@@ -853,15 +862,15 @@ export function EmailStudio() {
 
           <div style={{
             padding: '8px 14px',
-            borderTop: '1px solid var(--border-light)',
+            borderTop: '1px solid #e8e2d8',
             backgroundColor: '#fbf9f5',
             fontSize: '0.72rem',
-            color: 'var(--text-light-muted)',
+            color: '#767982',
             display: 'flex',
             justifyContent: 'space-between'
           }}>
             <span>Inline CSS styles recommended for all email clients.</span>
-            <span style={{ color: 'var(--text-light-secondary)' }}>Auto-saved to browser</span>
+            <span style={{ color: '#52545c', fontWeight: 500 }}>Auto-saved to browser</span>
           </div>
         </div>
 
@@ -871,13 +880,14 @@ export function EmailStudio() {
           {/* Live Sandboxed Preview Card */}
           <div style={{
             background: '#ffffff',
-            border: '1px solid var(--border-dark)',
+            border: '1px solid #e8e2d8',
             borderRadius: '4px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
           }}>
             <div style={{
               padding: '0.9rem 1.25rem',
-              borderBottom: '1px solid var(--border-light)',
+              borderBottom: '1px solid #e8e2d8',
               backgroundColor: '#fbf9f5',
               display: 'flex',
               justifyContent: 'space-between',
@@ -891,7 +901,7 @@ export function EmailStudio() {
               </div>
 
               {/* Device switch buttons */}
-              <div style={{ display: 'flex', background: '#07080a', padding: '2px', borderRadius: '3px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', background: '#fbf9f5', padding: '2px', borderRadius: '3px', border: '1px solid #d5cec2' }}>
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('desktop')}
@@ -902,9 +912,11 @@ export function EmailStudio() {
                     padding: '4px 10px',
                     fontSize: '0.7rem',
                     borderRadius: '2px',
-                    background: previewDevice === 'desktop' ? '#1f2127' : 'transparent',
-                    color: previewDevice === 'desktop' ? '#ffffff' : '#71717a',
+                    background: previewDevice === 'desktop' ? '#ffffff' : 'transparent',
+                    color: previewDevice === 'desktop' ? '#121316' : '#767982',
                     border: 'none',
+                    fontWeight: previewDevice === 'desktop' ? 600 : 500,
+                    boxShadow: previewDevice === 'desktop' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                     cursor: 'pointer'
                   }}
                 >
@@ -921,9 +933,11 @@ export function EmailStudio() {
                     padding: '4px 10px',
                     fontSize: '0.7rem',
                     borderRadius: '2px',
-                    background: previewDevice === 'mobile' ? '#1f2127' : 'transparent',
-                    color: previewDevice === 'mobile' ? '#ffffff' : '#71717a',
+                    background: previewDevice === 'mobile' ? '#ffffff' : 'transparent',
+                    color: previewDevice === 'mobile' ? '#121316' : '#767982',
                     border: 'none',
+                    fontWeight: previewDevice === 'mobile' ? 600 : 500,
+                    boxShadow: previewDevice === 'mobile' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                     cursor: 'pointer'
                   }}
                 >
@@ -935,24 +949,25 @@ export function EmailStudio() {
 
             {/* Centered Preview Display Area */}
             <div style={{
-              background: '#07080a',
+              background: '#f6f2ea',
               padding: '1.25rem',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'flex-start',
               minHeight: '380px',
               maxHeight: '440px',
-              overflow: 'auto'
+              overflow: 'auto',
+              borderBottom: '1px solid #e8e2d8'
             }}>
               <div style={{
                 width: previewDevice === 'mobile' ? '375px' : '600px',
                 maxWidth: '100%',
                 transition: 'width 0.25s ease',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                border: '1px solid #d5cec2',
                 borderRadius: '4px',
                 overflow: 'hidden',
-                backgroundColor: '#000000',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)'
+                backgroundColor: '#ffffff',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)'
               }}>
                 <iframe
                   title="Email Preview"
@@ -971,24 +986,25 @@ export function EmailStudio() {
 
           {/* Bulk Contact Upload & Dispatch Hub */}
           <div style={{
-            background: '#121316',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid #e8e2d8',
             borderRadius: '4px',
             padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1.25rem'
+            gap: '1.25rem',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
           }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: '1px solid #e8e2d8',
               paddingBottom: '0.75rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Users style={{ width: 16, height: 16, color: '#c5a059' }} />
-                <h3 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ffffff' }}>
+                <Users style={{ width: 16, height: 16, color: '#8f6f32' }} />
+                <h3 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#121316', fontWeight: 600 }}>
                   Bulk Contact List & Dispatch
                 </h3>
               </div>
@@ -1010,15 +1026,15 @@ export function EmailStudio() {
 
             {/* 1. CSV File Upload Area */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52545c', fontWeight: 600, marginBottom: '8px' }}>
                 Upload Contact List (CSV with Names & Emails)
               </label>
 
               <div
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  border: '1px dashed rgba(197, 160, 89, 0.45)',
-                  background: 'rgba(11, 12, 14, 0.8)',
+                  border: '1px dashed #c5a059',
+                  background: '#fbf9f5',
                   borderRadius: '4px',
                   padding: '1.25rem',
                   textAlign: 'center',
@@ -1033,15 +1049,15 @@ export function EmailStudio() {
                   accept=".csv,.txt"
                   style={{ display: 'none' }}
                 />
-                <Upload style={{ width: 24, height: 24, color: '#c5a059', margin: '0 auto 8px auto' }} />
-                <div style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 500 }}>
+                <Upload style={{ width: 24, height: 24, color: '#8f6f32', margin: '0 auto 8px auto' }} />
+                <div style={{ fontSize: '0.8rem', color: '#121316', fontWeight: 600 }}>
                   {isParsingFile ? (
-                    <span style={{ color: '#c5a059' }}>Extracting names & emails...</span>
+                    <span style={{ color: '#8f6f32' }}>Extracting names & emails...</span>
                   ) : (
-                    <span>Click to browse and upload <strong style={{ color: '#c5a059' }}>.csv</strong></span>
+                    <span>Click to browse and upload <strong style={{ color: '#8f6f32' }}>.csv</strong></span>
                   )}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#767982', marginTop: '4px' }}>
                   Auto-detects Name (Full Name, First/Last) and Email Address columns.
                 </div>
               </div>
@@ -1051,15 +1067,15 @@ export function EmailStudio() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: '#07080a',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: '#fbf9f5',
+                  border: '1px solid #e8e2d8',
                   padding: '8px 12px',
-                  borderRadius: '2px',
+                  borderRadius: '3px',
                   marginTop: '8px',
                   fontSize: '0.75rem'
                 }}>
-                  <span style={{ color: '#d4d4d8' }}>
-                    Loaded: <strong style={{ color: '#ffffff' }}>{uploadStats.source}</strong> ({uploadStats.count} contacts total)
+                  <span style={{ color: '#52545c' }}>
+                    Loaded: <strong style={{ color: '#121316' }}>{uploadStats.source}</strong> ({uploadStats.count} contacts total)
                   </span>
                   <button
                     type="button"
@@ -1070,7 +1086,7 @@ export function EmailStudio() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#f87171',
+                      color: '#dc2626',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -1087,7 +1103,7 @@ export function EmailStudio() {
               <form onSubmit={handleAddSingleContact} style={{
                 marginTop: '10px',
                 background: '#fbf9f5',
-                border: '1px solid var(--border-dark)',
+                border: '1px solid #e8e2d8',
                 borderRadius: '4px',
                 padding: '10px 12px',
                 display: 'flex',
@@ -1095,7 +1111,7 @@ export function EmailStudio() {
                 gap: '8px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c5a059', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8f6f32', fontWeight: 700 }}>
                     Add Contact Manually
                   </label>
                   <button
@@ -1104,7 +1120,7 @@ export function EmailStudio() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#a1a1aa',
+                      color: '#767982',
                       fontSize: '0.7rem',
                       cursor: 'pointer',
                       padding: 0,
@@ -1122,12 +1138,12 @@ export function EmailStudio() {
                     onChange={(e) => setSingleName(e.target.value)}
                     placeholder="Patron Name (e.g. John Doe)"
                     style={{
-                      background: '#07080a',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      borderRadius: '2px',
+                      background: '#ffffff',
+                      border: '1px solid #d5cec2',
+                      borderRadius: '3px',
                       padding: '7px 10px',
                       fontSize: '0.75rem',
-                      color: '#ffffff',
+                      color: '#121316',
                       outline: 'none'
                     }}
                   />
@@ -1137,12 +1153,12 @@ export function EmailStudio() {
                     onChange={(e) => setSingleEmail(e.target.value)}
                     placeholder="Email (e.g. patron@gmail.com)"
                     style={{
-                      background: '#07080a',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      borderRadius: '2px',
+                      background: '#ffffff',
+                      border: '1px solid #d5cec2',
+                      borderRadius: '3px',
                       padding: '7px 10px',
                       fontSize: '0.75rem',
-                      color: '#ffffff',
+                      color: '#121316',
                       outline: 'none'
                     }}
                   />
@@ -1151,12 +1167,12 @@ export function EmailStudio() {
                     style={{
                       padding: '7px 14px',
                       fontSize: '0.75rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       textTransform: 'uppercase',
-                      background: '#1f2127',
-                      border: '1px solid rgba(197, 160, 89, 0.35)',
-                      color: '#c5a059',
-                      borderRadius: '2px',
+                      background: '#121316',
+                      border: '1px solid #121316',
+                      color: '#ffffff',
+                      borderRadius: '3px',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap'
                     }}
@@ -1175,12 +1191,12 @@ export function EmailStudio() {
                       style={{
                         width: '100%',
                         boxSizing: 'border-box',
-                        background: '#07080a',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        color: '#ffffff',
+                        background: '#ffffff',
+                        border: '1px solid #d5cec2',
+                        color: '#121316',
                         fontSize: '0.75rem',
                         padding: '8px',
-                        borderRadius: '2px',
+                        borderRadius: '3px',
                         outline: 'none'
                       }}
                     />
@@ -1191,11 +1207,12 @@ export function EmailStudio() {
                         alignSelf: 'flex-start',
                         padding: '5px 12px',
                         fontSize: '0.72rem',
-                        background: '#1f2127',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        color: '#ffffff',
-                        borderRadius: '2px',
-                        cursor: 'pointer'
+                        background: '#fbf9f5',
+                        border: '1px solid #d5cec2',
+                        color: '#121316',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: 600
                       }}
                     >
                       Add Pasted Contacts
@@ -1208,14 +1225,14 @@ export function EmailStudio() {
             {/* Added Contacts Table (Names & Emails) */}
             {contacts.length > 0 && (
               <div style={{
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                borderTop: '1px solid #e8e2d8',
                 paddingTop: '0.9rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.6rem'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c5a059', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8f6f32', fontWeight: 700 }}>
                     Loaded Patrons Roster ({contacts.length})
                   </label>
                   <button
@@ -1227,10 +1244,11 @@ export function EmailStudio() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#f87171',
+                      color: '#dc2626',
                       fontSize: '0.7rem',
                       cursor: 'pointer',
-                      padding: 0
+                      padding: 0,
+                      fontWeight: 600
                     }}
                   >
                     Clear Roster
@@ -1246,12 +1264,12 @@ export function EmailStudio() {
                     style={{
                       width: '100%',
                       boxSizing: 'border-box',
-                      background: '#07080a',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '2px',
+                      background: '#ffffff',
+                      border: '1px solid #d5cec2',
+                      borderRadius: '3px',
                       padding: '6px 10px',
                       fontSize: '0.75rem',
-                      color: '#ffffff',
+                      color: '#121316',
                       outline: 'none'
                     }}
                   />
@@ -1260,30 +1278,30 @@ export function EmailStudio() {
                 <div style={{
                   maxHeight: '230px',
                   overflowY: 'auto',
-                  background: '#07080a',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '2px'
+                  background: '#ffffff',
+                  border: '1px solid #e8e2d8',
+                  borderRadius: '3px'
                 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.73rem' }}>
                     <thead>
-                      <tr style={{ background: '#0e0f13', color: '#a1a1aa', textAlign: 'left', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <th style={{ padding: '7px 10px', width: '30px' }}>#</th>
-                        <th style={{ padding: '7px 10px' }}>Patron Name</th>
-                        <th style={{ padding: '7px 10px' }}>Email Address</th>
+                      <tr style={{ background: '#f6f2ea', color: '#52545c', textAlign: 'left', borderBottom: '1px solid #e8e2d8' }}>
+                        <th style={{ padding: '7px 10px', width: '30px', fontWeight: 700 }}>#</th>
+                        <th style={{ padding: '7px 10px', fontWeight: 700 }}>Patron Name</th>
+                        <th style={{ padding: '7px 10px', fontWeight: 700 }}>Email Address</th>
                         <th style={{ padding: '7px 10px', width: '24px' }}></th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredContacts.map((c, idx) => (
-                        <tr key={c.id || idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                          <td style={{ padding: '6px 10px', color: '#71717a' }}>{idx + 1}</td>
-                          <td style={{ padding: '6px 10px', color: '#ffffff', fontWeight: 500 }}>{c.name}</td>
-                          <td style={{ padding: '6px 10px', color: '#c5a059', fontFamily: 'monospace' }}>{c.email}</td>
+                        <tr key={c.id || idx} style={{ borderBottom: '1px solid #f0ebe1' }}>
+                          <td style={{ padding: '6px 10px', color: '#767982' }}>{idx + 1}</td>
+                          <td style={{ padding: '6px 10px', color: '#121316', fontWeight: 600 }}>{c.name}</td>
+                          <td style={{ padding: '6px 10px', color: '#8f6f32', fontFamily: 'monospace', fontWeight: 600 }}>{c.email}</td>
                           <td style={{ padding: '6px 10px', textAlign: 'right' }}>
                             <button
                               type="button"
                               onClick={() => handleRemoveContact(c.email)}
-                              style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
+                              style={{ background: 'none', border: 'none', color: '#767982', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
                               title="Remove"
                             >
                               &times;
@@ -1298,7 +1316,7 @@ export function EmailStudio() {
             )}
 
             {/* Campaign Broadcast Action */}
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
+            <div style={{ borderTop: '1px solid #e8e2d8', paddingTop: '1rem' }}>
               <button
                 type="button"
                 onClick={handleBroadcastCampaign}
@@ -1310,11 +1328,11 @@ export function EmailStudio() {
                   fontWeight: 700,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  borderRadius: '2px',
+                  borderRadius: '3px',
                   background: (isBroadcasting || contacts.length === 0)
-                    ? '#1f2127'
+                    ? '#f0ede6'
                     : 'linear-gradient(135deg, #c5a059 0%, #e2be75 100%)',
-                  color: (isBroadcasting || contacts.length === 0) ? '#71717a' : '#000000',
+                  color: (isBroadcasting || contacts.length === 0) ? '#a1a1aa' : '#000000',
                   border: 'none',
                   cursor: (isBroadcasting || contacts.length === 0) ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -1342,34 +1360,34 @@ export function EmailStudio() {
                 <div style={{
                   marginTop: '12px',
                   padding: '12px',
-                  background: '#07080a',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '2px',
+                  background: '#fbf9f5',
+                  border: '1px solid #e8e2d8',
+                  borderRadius: '3px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#ffffff' }}>
-                    <span>Progress: {broadcastProgress.sent} of {broadcastProgress.total} sent</span>
-                    <span style={{ color: '#c5a059', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#121316' }}>
+                    <span style={{ fontWeight: 600 }}>Progress: {broadcastProgress.sent} of {broadcastProgress.total} sent</span>
+                    <span style={{ color: '#8f6f32', fontWeight: 700 }}>
                       {Math.round((broadcastProgress.sent / (broadcastProgress.total || 1)) * 100)}%
                     </span>
                   </div>
 
-                  <div style={{ width: '100%', height: '4px', background: '#1a1b20', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '6px', background: '#e8e2d8', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${Math.round((broadcastProgress.sent / (broadcastProgress.total || 1)) * 100)}%`,
                       height: '100%',
-                      backgroundColor: '#c5a059',
+                      backgroundColor: '#8f6f32',
                       transition: 'width 0.3s ease'
                     }} />
                   </div>
 
                   <div style={{ maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem' }}>
                     {broadcastProgress.logs.map((log, idx) => (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: '#71717a' }}>
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: '#52545c' }}>
                         <span>[{log.time}] {log.batch} ({log.count} recipients)</span>
-                        <span style={{ color: log.status.includes('Delivered') ? '#34d399' : '#f87171' }}>
+                        <span style={{ color: log.status.includes('Delivered') ? '#059669' : '#dc2626', fontWeight: 600 }}>
                           {log.status}
                         </span>
                       </div>
@@ -1389,7 +1407,7 @@ export function EmailStudio() {
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backgroundColor: 'rgba(18, 19, 22, 0.45)',
           backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
@@ -1397,13 +1415,13 @@ export function EmailStudio() {
           padding: '1rem'
         }}>
           <div style={{
-            background: '#121316',
-            border: '1px solid rgba(197, 160, 89, 0.4)',
+            background: '#ffffff',
+            border: '1px solid #e8e2d8',
             borderRadius: '4px',
             maxWidth: '560px',
             width: '100%',
             padding: '1.5rem',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.8)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
             display: 'flex',
             flexDirection: 'column',
             gap: '1.25rem'
@@ -1412,35 +1430,35 @@ export function EmailStudio() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: '1px solid #e8e2d8',
               paddingBottom: '0.75rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Settings style={{ width: 18, height: 18, color: '#c5a059' }} />
-                <h3 style={{ margin: 0, fontSize: '0.85rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ffffff' }}>
+                <Settings style={{ width: 18, height: 18, color: '#8f6f32' }} />
+                <h3 style={{ margin: 0, fontSize: '0.85rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#121316', fontWeight: 700 }}>
                   Google Apps Script Endpoint Setup
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowConfigModal(false)}
-                style={{ background: 'none', border: 'none', color: '#a1a1aa', fontSize: '1.2rem', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: '#767982', fontSize: '1.2rem', cursor: 'pointer' }}
               >
                 &times;
               </button>
             </div>
 
-            <div style={{ fontSize: '0.78rem', color: '#a1a1aa', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ fontSize: '0.78rem', color: '#52545c', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <p style={{ margin: 0 }}>
                 To send emails directly from your official Google account without any backend server:
               </p>
 
               <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li>
-                  Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" style={{ color: '#c5a059', textDecoration: 'underline' }}>script.google.com</a> and click <strong>New Project</strong>.
+                  Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" style={{ color: '#8f6f32', textDecoration: 'underline', fontWeight: 600 }}>script.google.com</a> and click <strong>New Project</strong>.
                 </li>
                 <li>
-                  Copy the code from <code style={{ color: '#ffffff', background: '#1f2127', padding: '2px 6px', borderRadius: '2px' }}>google_apps_script.js</code> (in your project folder) and paste it into the editor.
+                  Copy the code from <code style={{ color: '#121316', background: '#fbf9f5', border: '1px solid #d5cec2', padding: '2px 6px', borderRadius: '3px' }}>google_apps_script.js</code> (in your project folder) and paste it into the editor.
                 </li>
                 <li>
                   Click <strong>Deploy &rarr; New deployment &rarr; Select type: Web app</strong>:
@@ -1455,7 +1473,7 @@ export function EmailStudio() {
               </ol>
 
               <div style={{ marginTop: '0.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ffffff', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#121316', fontWeight: 700, marginBottom: '6px' }}>
                   Paste Google Web App URL:
                 </label>
                 <input
@@ -1466,12 +1484,12 @@ export function EmailStudio() {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    background: '#07080a',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '2px',
+                    background: '#fbf9f5',
+                    border: '1px solid #d5cec2',
+                    borderRadius: '3px',
                     padding: '9px 12px',
                     fontSize: '0.75rem',
-                    color: '#ffffff',
+                    color: '#121316',
                     fontFamily: 'monospace',
                     outline: 'none'
                   }}
@@ -1484,7 +1502,7 @@ export function EmailStudio() {
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: '0.75rem',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: '1px solid #e8e2d8',
               paddingTop: '0.75rem'
             }}>
               <button
@@ -1496,10 +1514,11 @@ export function EmailStudio() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#c5a059',
+                  color: '#8f6f32',
                   fontSize: '0.72rem',
                   textDecoration: 'underline',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontWeight: 600
                 }}
               >
                 Reset to Default Endpoint
@@ -1511,11 +1530,12 @@ export function EmailStudio() {
                   style={{
                     padding: '7px 14px',
                     fontSize: '0.75rem',
-                    background: '#1f2127',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#ffffff',
-                    borderRadius: '2px',
-                    cursor: 'pointer'
+                    background: '#fbf9f5',
+                    border: '1px solid #d5cec2',
+                    color: '#121316',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    fontWeight: 600
                   }}
                 >
                   Close
@@ -1531,11 +1551,11 @@ export function EmailStudio() {
                   style={{
                     padding: '7px 16px',
                     fontSize: '0.75rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     background: 'linear-gradient(135deg, #c5a059 0%, #e2be75 100%)',
                     color: '#000000',
                     border: 'none',
-                    borderRadius: '2px',
+                    borderRadius: '3px',
                     cursor: 'pointer'
                   }}
                 >
