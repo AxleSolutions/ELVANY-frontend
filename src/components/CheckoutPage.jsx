@@ -479,7 +479,7 @@ export const CheckoutPage = ({
     if (!phone || !phone.trim()) {
       errors.phone = 'Primary mobile phone number is required.';
     } else if (!sriLankanMobileRegex.test(cleanPhone)) {
-      errors.phone = 'Enter a valid mobile number: 07XXXXXXXX (10 digits), 7XXXXXXXX (9 digits), or +947XXXXXXXX.';
+      errors.phone = 'Enter a valid mobile number: 07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX.';
     }
 
     if (secondaryPhone && secondaryPhone.trim()) {
@@ -1368,43 +1368,46 @@ export const CheckoutPage = ({
                     </div>
                   </div>
 
+                  {/* Email Address */}
+                  <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
+                    <label className="form-label" htmlFor="checkout-email">EMAIL ADDRESS *</label>
+                    <input 
+                      id="checkout-email"
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setUseDefaultAddress(false);
+                        clearFieldError('email');
+                      }} 
+                      onBlur={() => {
+                        if (email && email.trim()) {
+                          const res = validateClientEmail(email);
+                          if (!res.isValid) {
+                            setFormErrors((prev) => ({ ...prev, email: res.error }));
+                          }
+                        }
+                      }}
+                      className="form-input" 
+                      style={{
+                        borderColor: formErrors.email ? '#dc2626' : undefined,
+                        boxShadow: formErrors.email ? '0 0 0 1px #dc2626' : undefined
+                      }}
+                      aria-invalid={Boolean(formErrors.email)}
+                      placeholder="client@elvany.com"
+                    />
+                    {formErrors.email && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                        <AlertCircle size={12} color="#dc2626" />
+                        <span>{formErrors.email}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Primary & Secondary Mobile Phones (Side-by-Side in 2-Column Grid) */}
                   <div className="checkout-form-grid-2">
                     <div className="checkout-form-group">
-                      <label className="form-label" htmlFor="checkout-email">EMAIL ADDRESS *</label>
-                      <input 
-                        id="checkout-email"
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setUseDefaultAddress(false);
-                          clearFieldError('email');
-                        }} 
-                        onBlur={() => {
-                          if (email && email.trim()) {
-                            const res = validateClientEmail(email);
-                            if (!res.isValid) {
-                              setFormErrors((prev) => ({ ...prev, email: res.error }));
-                            }
-                          }
-                        }}
-                        className="form-input" 
-                        style={{
-                          borderColor: formErrors.email ? '#dc2626' : undefined,
-                          boxShadow: formErrors.email ? '0 0 0 1px #dc2626' : undefined
-                        }}
-                        aria-invalid={Boolean(formErrors.email)}
-                        placeholder="client@elvany.com"
-                      />
-                      {formErrors.email && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                          <AlertCircle size={12} color="#dc2626" />
-                          <span>{formErrors.email}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="checkout-form-group">
-                      <label className="form-label" htmlFor="checkout-phone">PRIMARY MOBILE PHONE (COURIER CONTACT) *</label>
+                      <label className="form-label" htmlFor="checkout-phone">PRIMARY MOBILE PHONE *</label>
                       <input 
                         id="checkout-phone"
                         type="tel" 
@@ -1441,7 +1444,7 @@ export const CheckoutPage = ({
                           boxShadow: formErrors.phone ? '0 0 0 1px #dc2626' : undefined
                         }}
                         aria-invalid={Boolean(formErrors.phone)}
-                        placeholder="07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX"
+                        placeholder="e.g. 07XXXXXXXX or +947XXXXXXXX"
                       />
                       {formErrors.phone && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
@@ -1450,62 +1453,61 @@ export const CheckoutPage = ({
                         </div>
                       )}
                     </div>
-                  </div>
 
-                  {/* Secondary / Alternate Mobile Contact */}
-                  <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                      <label className="form-label" htmlFor="checkout-secondaryPhone" style={{ marginBottom: 0 }}>
-                        SECONDARY MOBILE PHONE (BACKUP COURIER CONTACT)
-                      </label>
-                      <span style={{ fontSize: '0.68rem', color: '#8f6f32', letterSpacing: '0.04em', fontWeight: 600 }}>
-                        OPTIONAL • RECOMMENDED FOR COURIER
-                      </span>
-                    </div>
-                    <input 
-                      id="checkout-secondaryPhone"
-                      type="tel" 
-                      inputMode="tel"
-                      maxLength={12}
-                      value={secondaryPhone} 
-                      onKeyDown={(e) => {
-                        if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-                          return;
-                        }
-                        if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
-                          return;
-                        }
-                        if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !secondaryPhone.includes('+'))) {
-                          return;
-                        }
-                        if (!/^\d$/.test(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        const hasPlus = raw.startsWith('+');
-                        const digits = raw.replace(/\D/g, '');
-                        const sanitized = (hasPlus ? '+' : '') + digits;
-                        const maxLen = hasPlus ? 12 : 11;
-                        setSecondaryPhone(sanitized.slice(0, maxLen));
-                        setUseDefaultAddress(false);
-                        clearFieldError('secondaryPhone');
-                      }} 
-                      className="form-input" 
-                      style={{
-                        borderColor: formErrors.secondaryPhone ? '#dc2626' : undefined,
-                        boxShadow: formErrors.secondaryPhone ? '0 0 0 1px #dc2626' : undefined
-                      }}
-                      aria-invalid={Boolean(formErrors.secondaryPhone)}
-                      placeholder="07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX"
-                    />
-                    {formErrors.secondaryPhone && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
-                        <AlertCircle size={12} color="#dc2626" />
-                        <span>{formErrors.secondaryPhone}</span>
+                    <div className="checkout-form-group">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <label className="form-label" htmlFor="checkout-secondaryPhone" style={{ marginBottom: 0 }}>
+                          SECONDARY MOBILE
+                        </label>
+                        <span style={{ fontSize: '0.65rem', color: '#8f6f32', letterSpacing: '0.04em', fontWeight: 600 }}>
+                          OPTIONAL • BACKUP
+                        </span>
                       </div>
-                    )}
+                      <input 
+                        id="checkout-secondaryPhone"
+                        type="tel" 
+                        inputMode="tel"
+                        maxLength={12}
+                        value={secondaryPhone} 
+                        onKeyDown={(e) => {
+                          if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                            return;
+                          }
+                          if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                            return;
+                          }
+                          if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !secondaryPhone.includes('+'))) {
+                            return;
+                          }
+                          if (!/^\d$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const hasPlus = raw.startsWith('+');
+                          const digits = raw.replace(/\D/g, '');
+                          const sanitized = (hasPlus ? '+' : '') + digits;
+                          const maxLen = hasPlus ? 12 : 11;
+                          setSecondaryPhone(sanitized.slice(0, maxLen));
+                          setUseDefaultAddress(false);
+                          clearFieldError('secondaryPhone');
+                        }} 
+                        className="form-input" 
+                        style={{
+                          borderColor: formErrors.secondaryPhone ? '#dc2626' : undefined,
+                          boxShadow: formErrors.secondaryPhone ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.secondaryPhone)}
+                        placeholder="e.g. 07XXXXXXXX or +947XXXXXXXX"
+                      />
+                      {formErrors.secondaryPhone && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.secondaryPhone}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
