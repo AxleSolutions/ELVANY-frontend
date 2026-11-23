@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Home, Star, Check, ShieldCheck, ArrowRight, PackageCheck, Eye, MessageSquare, Camera, Upload, X, Sparkles, Maximize2, Lock } from 'lucide-react';
-import { INITIAL_ORDERS } from '../data/orders';
 import { getOrderById, getReviews, recordReviewInLocalRegistry } from '../services/dbService';
 import { uploadReviewImageToCloudinary } from '../lib/cloudinary';
 
-export const OrderReviewPortalPage = ({ ordersList = INITIAL_ORDERS, onAddNewReview, allReviewsMap = {} }) => {
+export const OrderReviewPortalPage = ({ ordersList = [], onAddNewReview, allReviewsMap = {} }) => {
   const { orderId } = useParams();
   const navigate = useNavigate();
 

@@ -7,8 +7,6 @@ import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
 import { SizeChartModal } from './SizeChartModal';
 
-import { INITIAL_ORDERS } from '../data/orders';
-
 export const CITIES_LIST = [
   'Ampara',
   'Anuradhapura',
@@ -43,7 +41,7 @@ export const AccountPage = ({
   onUpdateUser,
   onLogout,
   onOpenAuthModal,
-  ordersList = INITIAL_ORDERS,
+  ordersList = [],
   allReviewsMap = {}
 }) => {
   const navigate = useNavigate();
@@ -103,15 +101,27 @@ export const AccountPage = ({
   };
   const storedUser = getStoredUser();
 
-  // Account & Security State (No dummy data - uses real authenticated credentials)
+  const isUserAuthenticated = Boolean(
+    userProfile?.email || 
+    storedUser?.email || 
+    (loggedInUser && loggedInUser.trim().length > 0)
+  );
+
+  // Account & Security State (Strictly empty when unauthenticated to prevent data leaks)
   const [clientName, setClientName] = useState(
-    userProfile?.name || storedUser.name || (loggedInUser ? loggedInUser.replace(/\s*\([^)]*\)/g, '') : '')
+    isUserAuthenticated
+      ? (userProfile?.name || storedUser.name || (loggedInUser ? loggedInUser.replace(/\s*\([^)]*\)/g, '') : ''))
+      : ''
   );
   const [clientEmail, setClientEmail] = useState(
-    userProfile?.email || storedUser.email || (loggedInUser && loggedInUser.includes('@') ? loggedInUser : '')
+    isUserAuthenticated
+      ? (userProfile?.email || storedUser.email || (loggedInUser && loggedInUser.includes('@') ? loggedInUser : ''))
+      : ''
   );
   const [clientPhone, setClientPhone] = useState(
-    userProfile?.phone || storedUser.phone || ''
+    isUserAuthenticated
+      ? (userProfile?.phone || storedUser.phone || '')
+      : ''
   );
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -166,6 +176,19 @@ export const AccountPage = ({
   };
 
   const fetchClientOrders = async () => {
+    let mySessionOrderIds = [];
+    try {
+      mySessionOrderIds = JSON.parse(localStorage.getItem('elvany_my_order_ids') || '[]');
+    } catch {}
+
+    // Security Gate: Only query database if user is authenticated or has active guest session orders
+    const targetEmail = (clientEmail || userProfile?.email || storedUser?.email || '').trim();
+    if (!isUserAuthenticated && !targetEmail && !loggedInUser && mySessionOrderIds.length === 0) {
+      setFetchedOrders([]);
+      setIsLoadingOrders(false);
+      return;
+    }
+
     setIsLoadingOrders(true);
     try {
       const all = await getOrders();
@@ -191,47 +214,43 @@ export const AccountPage = ({
       window.removeEventListener('elvany_order_placed', handleOrderPlaced);
       window.removeEventListener('elvany_order_updated', handleOrderPlaced);
     };
-  }, [clientEmail, clientPhone, clientName]);
+  }, [clientEmail, clientPhone, clientName, isUserAuthenticated]);
 
-  // Determine effective orders belonging to this client
+  // Determine effective orders belonging strictly to this authenticated client or session
   const effectiveOrders = useMemo(() => {
-    const source = fetchedOrders.length > 0 ? fetchedOrders : (Array.isArray(ordersList) && ordersList.length > 0 ? ordersList : []);
-    
-    const targetEmail = (clientEmail || userProfile?.email || storedUser?.email || '').toLowerCase().trim();
-    const targetPhone = (clientPhone || userProfile?.phone || storedUser?.phone || '').replace(/[^0-9]/g, '');
-    const targetName = (clientName || userProfile?.name || storedUser?.name || '').toLowerCase().trim();
-
     let mySessionOrderIds = [];
     try {
       mySessionOrderIds = JSON.parse(localStorage.getItem('elvany_my_order_ids') || '[]');
     } catch {}
 
-    if (targetEmail || targetPhone || targetName || mySessionOrderIds.length > 0) {
-      const matched = source.filter((o) => {
-        const oEmail = (o.customerEmail || o.deliveryAddress?.email || '').toLowerCase().trim();
-        const oPhone = (o.customerPhone || o.deliveryAddress?.phone || '').replace(/[^0-9]/g, '');
-        const oName = (o.customerName || o.deliveryAddress?.recipientName || '').toLowerCase().trim();
-        const oId = (o.orderId || o.order_code || o.id || '').toUpperCase();
+    const targetEmail = (clientEmail || userProfile?.email || storedUser?.email || '').toLowerCase().trim();
+    const targetPhone = (clientPhone || userProfile?.phone || storedUser?.phone || '').replace(/[^0-9]/g, '');
+    const targetName = (clientName || userProfile?.name || storedUser?.name || '').toLowerCase().trim();
 
-        const emailMatches = Boolean(targetEmail && oEmail && oEmail === targetEmail);
-        const phoneMatches = Boolean(targetPhone && oPhone && (oPhone.includes(targetPhone) || targetPhone.includes(oPhone)));
-        const nameMatches = Boolean(targetName && oName && (oName === targetName || oName.includes(targetName) || targetName.includes(oName)));
-        const sessionMatches = Boolean(mySessionOrderIds.some((sid) => sid.toUpperCase() === oId));
-
-        return emailMatches || phoneMatches || nameMatches || sessionMatches;
-      });
-
-      if (matched.length > 0) return matched;
+    // Security Gate: If not authenticated and no guest session orders, strictly return empty array
+    if (!isUserAuthenticated && mySessionOrderIds.length === 0) {
+      return [];
     }
 
-    if (mySessionOrderIds.length > 0) {
-      const sessionOnly = source.filter((o) => mySessionOrderIds.includes(o.orderId || o.order_code || o.id));
-      if (sessionOnly.length > 0) return sessionOnly;
-    }
+    const source = fetchedOrders.length > 0 ? fetchedOrders : (Array.isArray(ordersList) ? ordersList : []);
 
-    // Fallback: Return all source orders if guest or demo
-    return source;
-  }, [fetchedOrders, ordersList, clientEmail, clientPhone, clientName, userProfile, storedUser]);
+    const matched = source.filter((o) => {
+      const oEmail = (o.customerEmail || o.deliveryAddress?.email || '').toLowerCase().trim();
+      const oPhone = (o.customerPhone || o.deliveryAddress?.phone || '').replace(/[^0-9]/g, '');
+      const oAltPhone = (o.customerSecondaryPhone || o.deliveryAddress?.secondaryPhone || '').replace(/[^0-9]/g, '');
+      const oName = (o.customerName || o.deliveryAddress?.recipientName || '').toLowerCase().trim();
+      const oId = (o.orderId || o.order_code || o.id || '').toUpperCase();
+
+      const emailMatches = Boolean(targetEmail && oEmail && oEmail === targetEmail);
+      const phoneMatches = Boolean(targetPhone && ((oPhone && (oPhone.includes(targetPhone) || targetPhone.includes(oPhone))) || (oAltPhone && (oAltPhone.includes(targetPhone) || targetPhone.includes(oAltPhone)))));
+      const nameMatches = Boolean(targetName && oName && oName === targetName);
+      const sessionMatches = Boolean(mySessionOrderIds.some((sid) => sid && String(sid).toUpperCase() === oId));
+
+      return emailMatches || phoneMatches || nameMatches || sessionMatches;
+    });
+
+    return matched;
+  }, [fetchedOrders, ordersList, clientEmail, clientPhone, clientName, userProfile, storedUser, isUserAuthenticated]);
 
   // 1-Click Reorder Action for Rejected Slips or Past Orders
   const handleReorderItems = (order) => {
@@ -530,22 +549,34 @@ export const AccountPage = ({
 
               <div>
                 <div style={{ color: '#8f6f32', fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px' }}>
-                  PRIVATE CLIENT ID
+                  {isUserAuthenticated ? 'PRIVATE CLIENT ID' : 'GUEST CLIENT'}
                 </div>
                 <h1 className="account-client-title">
-                  {clientName || 'Julian Sterling'}
+                  {isUserAuthenticated ? (clientName || 'Private Client') : 'Guest Session'}
                 </h1>
               </div>
             </div>
 
-            <button
-              onClick={handleSignOut}
-              className="account-signout-btn"
-              title="Sign Out of Session"
-            >
-              <LogOut size={14} />
-              <span>LOG OUT</span>
-            </button>
+            {isUserAuthenticated ? (
+              <button
+                onClick={handleSignOut}
+                className="account-signout-btn"
+                title="Sign Out of Session"
+              >
+                <LogOut size={14} />
+                <span>LOG OUT</span>
+              </button>
+            ) : (
+              <button
+                onClick={onOpenAuthModal}
+                className="btn-primary-gold"
+                style={{ padding: '0.65rem 1.4rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                title="Sign In to Your Account"
+              >
+                <Lock size={13} />
+                <span>SIGN IN</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -613,14 +644,65 @@ export const AccountPage = ({
               </button>
             </div>
 
-            {isLoadingOrders && effectiveOrders.length === 0 ? (
+            {!isUserAuthenticated && effectiveOrders.length === 0 ? (
+              <div style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2ddd5',
+                padding: '4rem 2rem',
+                textAlign: 'center',
+                borderRadius: '4px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                maxWidth: '620px',
+                margin: '1.5rem auto'
+              }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(143, 111, 50, 0.08)',
+                  border: '1px solid rgba(143, 111, 50, 0.28)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.4rem auto'
+                }}>
+                  <Lock size={26} color="#8f6f32" />
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#121316', marginBottom: '0.6rem' }}>
+                  Client Sign-In Required
+                </h3>
+                <p style={{ color: '#62646c', fontSize: '0.88rem', lineHeight: '1.65', marginBottom: '2rem' }}>
+                  Please sign in to your ELVANY account to view your confirmed acquisitions, track active courier dispatches, and download official invoices.
+                </p>
+                <div style={{ display: 'flex', gap: '0.9rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn-primary-gold"
+                    onClick={onOpenAuthModal}
+                    style={{ padding: '0.85rem 2.2rem', fontSize: '0.84rem' }}
+                  >
+                    SIGN IN / REGISTER
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-outline-gold"
+                    onClick={() => navigate('/collection')}
+                    style={{ padding: '0.85rem 2.2rem', fontSize: '0.84rem' }}
+                  >
+                    EXPLORE COLLECTION
+                  </button>
+                </div>
+              </div>
+            ) : isLoadingOrders && effectiveOrders.length === 0 ? (
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '3.5rem', textAlign: 'center', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
                 <RefreshCw size={28} color="#8f6f32" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', display: 'inline-block' }} />
                 <p style={{ color: '#121316', fontSize: '0.9rem', margin: 0 }}>Syncing your order history from the atelier...</p>
               </div>
             ) : effectiveOrders.length === 0 ? (
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '3.5rem', textAlign: 'center', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
-                <p style={{ color: '#62646c', marginBottom: '1.5rem', fontSize: '0.9rem' }}>You have no recorded client orders in this session.</p>
+                <p style={{ color: '#62646c', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                  You have no recorded orders under {clientEmail || 'this account'}.
+                </p>
                 <button className="btn-primary-gold" onClick={() => navigate('/collection')}>
                   EXPLORE T-SHIRTS
                 </button>
@@ -1158,7 +1240,49 @@ export const AccountPage = ({
             TAB 3: ACCOUNT SETTINGS & ADDRESSES
             ========================================================================= */}
         {activeTab === 'settings' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          !isUserAuthenticated ? (
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2ddd5',
+              padding: '4rem 2rem',
+              textAlign: 'center',
+              borderRadius: '4px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              maxWidth: '620px',
+              margin: '1.5rem auto'
+            }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(143, 111, 50, 0.08)',
+                border: '1px solid rgba(143, 111, 50, 0.28)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.4rem auto'
+              }}>
+                <Lock size={26} color="#8f6f32" />
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', color: '#121316', marginBottom: '0.6rem' }}>
+                Sign In to Manage Account
+              </h3>
+              <p style={{ color: '#62646c', fontSize: '0.88rem', lineHeight: '1.65', marginBottom: '2rem' }}>
+                Please sign in to your ELVANY account to view and update your name, security credentials, and saved shipping addresses.
+              </p>
+              <div style={{ display: 'flex', gap: '0.9rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn-primary-gold"
+                  onClick={onOpenAuthModal}
+                  style={{ padding: '0.85rem 2.2rem', fontSize: '0.84rem' }}
+                >
+                  SIGN IN / REGISTER
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             
             {/* 1. Account Credentials Form */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2ddd5', padding: '2.2rem 1.8rem', borderRadius: '4px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
@@ -1602,6 +1726,7 @@ export const AccountPage = ({
             </div>
 
           </div>
+          )
         )}
 
       {/* Unlink Social Account & Create Password Warning Modal */}
@@ -2036,7 +2161,10 @@ export const AccountPage = ({
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#121316', lineHeight: 1.6 }}>
                   <div><strong>Recipient:</strong> {inspectingOrderDetails.customerName || inspectingOrderDetails.deliveryAddress?.recipientName || 'Valued Client'}</div>
-                  {inspectingOrderDetails.customerPhone && <div><strong>Phone:</strong> {inspectingOrderDetails.customerPhone}</div>}
+                  {inspectingOrderDetails.customerPhone && <div><strong>Primary Phone:</strong> {inspectingOrderDetails.customerPhone}</div>}
+                  {(inspectingOrderDetails.customerSecondaryPhone || inspectingOrderDetails.deliveryAddress?.secondaryPhone) && (
+                    <div><strong>Secondary Phone:</strong> {inspectingOrderDetails.customerSecondaryPhone || inspectingOrderDetails.deliveryAddress?.secondaryPhone}</div>
+                  )}
                   {inspectingOrderDetails.customerEmail && <div><strong>Email:</strong> {inspectingOrderDetails.customerEmail}</div>}
                   <div style={{ color: '#62646c', marginTop: '4px' }}>
                     <strong>Address:</strong> {[

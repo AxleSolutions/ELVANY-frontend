@@ -34,14 +34,32 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
   ).length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
 
+  const formatOrderDateTime = (order) => {
+    const raw = order.createdAt || order.created_at;
+    let dateStr = order.orderDate || 'Recent';
+    let timeStr = order.orderTime || '';
+
+    if (raw) {
+      try {
+        const d = new Date(raw);
+        if (!isNaN(d.getTime())) {
+          dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+      } catch {}
+    }
+    return { dateStr, timeStr };
+  };
+
   const filteredOrders = orders.filter((order) => {
     const id = (order.orderId || '').toLowerCase();
     const name = (order.customerName || '').toLowerCase();
     const loc = (order.customerLocation || '').toLowerCase();
     const phone = (order.customerPhone || '').toLowerCase();
+    const altPhone = (order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone || '').toLowerCase();
     const search = searchQuery.toLowerCase();
 
-    const matchesSearch = id.includes(search) || name.includes(search) || loc.includes(search) || phone.includes(search);
+    const matchesSearch = id.includes(search) || name.includes(search) || loc.includes(search) || phone.includes(search) || altPhone.includes(search);
     if (!matchesSearch) return false;
     
     if (statusFilter === 'all') return true;
@@ -172,7 +190,20 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                     <tr key={order.orderId}>
                       <td>
                         <strong className="admin-order-code">#{order.orderId}</strong>
-                        <div className="admin-table-sub">{order.orderDate}</div>
+                        {(() => {
+                          const dt = formatOrderDateTime(order);
+                          return (
+                            <div className="admin-table-sub" style={{ marginTop: '2px' }}>
+                              <div>{dt.dateStr}</div>
+                              {dt.timeStr && (
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#c5a059', fontSize: '0.68rem', fontWeight: 600, marginTop: '1px' }}>
+                                  <Clock size={10} />
+                                  <span>{dt.timeStr}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <div style={{ fontSize: '0.68rem', color: 'var(--gold-primary)', marginTop: '2px' }}>
                           {order.paymentMethod || 'Mastercard'}
                         </div>
@@ -182,7 +213,12 @@ export const OrdersManager = ({ orders, onUpdateOrderStatus, onViewOrder }) => {
                         <div className="admin-client-name">{order.customerName}</div>
                         <div className="admin-table-sub">{order.customerLocation}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-light-muted)' }}>
-                          {order.customerPhone || '076 529 3943'}
+                          {order.customerPhone || 'N/A'}
+                          {(order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone) && (
+                            <div style={{ fontSize: '0.68rem', color: 'var(--gold-primary)', marginTop: '2px' }}>
+                              Alt: {order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone}
+                            </div>
+                          )}
                         </div>
                       </td>
 

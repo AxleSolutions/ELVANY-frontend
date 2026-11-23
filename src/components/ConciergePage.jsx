@@ -72,7 +72,7 @@ export const ConciergePage = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <div className="concierge-avatar">
                 <img 
-                  src="/logo/Main-4.png" 
+                  src="/logo/Main-3.png" 
                   alt="ELVANY Monogram" 
                   style={{ width: '34px', height: '34px', objectFit: 'contain' }}
                 />

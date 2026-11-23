@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { downloadImageFile } from '../lib/bespokeMockupGenerator';
 import { downloadOrderInvoice } from '../lib/orderInvoiceGenerator';
+import { validateClientEmail } from '../lib/emailValidator';
 import { validateVoucher, redeemVoucher, getVoucherRateLimitStatus, recordOfferPurchases } from '../services/dbService';
 import { 
   getPayHereParameters, 
@@ -98,7 +99,8 @@ export const CheckoutPage = ({
           firstName: names[0] || '',
           lastName: names.slice(1).join(' ') || '',
           email: userProfile?.email || '',
-          phone: userProfile?.phone || '',
+          phone: defaultAddr.phone || userProfile?.phone || '',
+          secondaryPhone: defaultAddr.secondaryPhone || userProfile?.secondaryPhone || '',
           address: defaultAddr.streetAddress || '',
           apartment: defaultAddr.apartment || '',
           city: defaultAddr.city || 'Kandy',
@@ -116,6 +118,7 @@ export const CheckoutPage = ({
         lastName: names.slice(1).join(' ') || '',
         email: userProfile.email || '',
         phone: userProfile.phone || '',
+        secondaryPhone: userProfile.secondaryPhone || '',
         address: userProfile.address || '',
         apartment: userProfile.apartment || '',
         city: userProfile.city || 'Kandy',
@@ -164,6 +167,7 @@ export const CheckoutPage = ({
   const initialNameParts = isLoggedIn ? (userProfile?.name || loggedInUser || '').replace(/\s*\([^)]*\)/g, '').trim().split(' ') : [];
   const [email, setEmail] = useState(isLoggedIn ? (savedDefault?.email || userProfile?.email || '') : '');
   const [phone, setPhone] = useState(isLoggedIn ? (savedDefault?.phone || userProfile?.phone || '') : '');
+  const [secondaryPhone, setSecondaryPhone] = useState(isLoggedIn ? (savedDefault?.secondaryPhone || userProfile?.secondaryPhone || '') : '');
   const [firstName, setFirstName] = useState(isLoggedIn ? (savedDefault?.firstName || initialNameParts[0] || '') : '');
   const [lastName, setLastName] = useState(isLoggedIn ? (savedDefault?.lastName || initialNameParts.slice(1).join(' ') || '') : '');
   const [address, setAddress] = useState(isLoggedIn ? (savedDefault?.address || '') : '');
@@ -172,6 +176,16 @@ export const CheckoutPage = ({
   const [postalCode, setPostalCode] = useState(isLoggedIn ? (savedDefault?.postalCode || '') : '');
   const [country, setCountry] = useState('Sri Lanka');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [formErrors, setFormErrors] = useState({});
+
+  const clearFieldError = (field) => {
+    setFormErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Strict Client Email Guard: Detach voucher if email changed away from assigned recipient
   useEffect(() => {
@@ -186,6 +200,7 @@ export const CheckoutPage = ({
   // Handle toggling default address
   const handleToggleDefaultAddress = (checked) => {
     setUseDefaultAddress(checked);
+    setFormErrors({});
     if (checked) {
       const def = getSavedDefaultAddress();
       if (def) {
@@ -193,6 +208,7 @@ export const CheckoutPage = ({
         if (def.lastName) setLastName(def.lastName);
         if (def.email) setEmail(def.email);
         if (def.phone) setPhone(def.phone);
+        if (def.secondaryPhone) setSecondaryPhone(def.secondaryPhone);
         setAddress(def.address);
         setApartment(def.apartment);
         setCity(def.city);
@@ -200,6 +216,7 @@ export const CheckoutPage = ({
         setCountry(def.country);
       }
     } else {
+      setSecondaryPhone('');
       setAddress('');
       setApartment('');
       setPostalCode('');
@@ -438,14 +455,75 @@ export const CheckoutPage = ({
     setSlipUploadError(true);
   };
 
+  const validateDeliveryForm = () => {
+    const errors = {};
+    if (!firstName || !firstName.trim()) {
+      errors.firstName = 'First name is required.';
+    } else if (firstName.trim().length < 2) {
+      errors.firstName = 'First name must be at least 2 characters.';
+    }
+
+    if (!lastName || !lastName.trim()) {
+      errors.lastName = 'Last name is required.';
+    } else if (lastName.trim().length < 2) {
+      errors.lastName = 'Last name must be at least 2 characters.';
+    }
+
+    const emailResult = validateClientEmail(email);
+    if (!emailResult.isValid) {
+      errors.email = emailResult.error;
+    }
+
+    const cleanPhone = (phone || '').trim().replace(/[\s\-]/g, '');
+    const sriLankanMobileRegex = /^(\+947\d{8}|947\d{8}|07\d{8}|7\d{8})$/;
+    if (!phone || !phone.trim()) {
+      errors.phone = 'Primary mobile phone number is required.';
+    } else if (!sriLankanMobileRegex.test(cleanPhone)) {
+      errors.phone = 'Enter a valid mobile number: 07XXXXXXXX (10 digits), 7XXXXXXXX (9 digits), or +947XXXXXXXX.';
+    }
+
+    if (secondaryPhone && secondaryPhone.trim()) {
+      const cleanSecondary = secondaryPhone.trim().replace(/[\s\-]/g, '');
+      if (!sriLankanMobileRegex.test(cleanSecondary)) {
+        errors.secondaryPhone = 'Enter a valid mobile number: 07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX.';
+      } else if (cleanSecondary === cleanPhone) {
+        errors.secondaryPhone = 'Secondary number cannot be the same as your primary number.';
+      }
+    }
+
+    if (!address || !address.trim()) {
+      errors.address = 'Street address is required.';
+    } else if (address.trim().length < 5) {
+      errors.address = 'Please enter a complete street address.';
+    }
+
+    if (!city || !city.trim()) {
+      errors.city = 'Please select your delivery city.';
+    }
+
+    if (!postalCode || !postalCode.trim()) {
+      errors.postalCode = 'Postal code is required.';
+    } else if (postalCode.trim().length < 3) {
+      errors.postalCode = 'Please enter a valid postal code.';
+    }
+
+    return errors;
+  };
+
   const handleProceedToPayment = (e) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || !phone || !address || !city) return;
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 7) {
-      alert('Please enter a valid phone number for courier delivery contact.');
+    const errors = validateDeliveryForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      const firstField = Object.keys(errors)[0];
+      const targetElement = document.getElementById(`checkout-${firstField}`);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetElement.focus();
+      }
       return;
     }
+    setFormErrors({});
     setCurrentStep(2);
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
@@ -479,6 +557,7 @@ export const CheckoutPage = ({
         customerName: `${firstName} ${lastName}`.trim(),
         customerEmail: email,
         customerPhone: phone,
+        customerSecondaryPhone: secondaryPhone.trim() || null,
         customerLocation: fullLocation,
         deliveryAddress: {
           firstName,
@@ -486,6 +565,7 @@ export const CheckoutPage = ({
           recipientName: `${firstName} ${lastName}`.trim(),
           email,
           phone,
+          secondaryPhone: secondaryPhone.trim() || null,
           streetAddress: address,
           apartment,
           city,
@@ -493,8 +573,13 @@ export const CheckoutPage = ({
           country,
           deliveryNotes,
           location: fullLocation,
-          deliveryFeeLKR: deliveryFee
+          deliveryFeeLKR: deliveryFee,
+          orderedAt: new Date().toISOString(),
+          orderTime: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
         },
+        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        orderTime: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
         orderDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
         status: isCard
           ? 'Payment Verified — Processing Dispatch'
@@ -556,6 +641,8 @@ export const CheckoutPage = ({
             id: `addr-${Date.now()}`,
             isDefault: true,
             recipientName: `${firstName} ${lastName}`.trim() || 'Client',
+            phone: phone || '',
+            secondaryPhone: secondaryPhone || '',
             streetAddress: address,
             apartment: apartment || '',
             city: city || 'Kandy',
@@ -1137,7 +1224,7 @@ export const CheckoutPage = ({
             
             {/* STEP 1: DELIVERY & CONTACT FORM */}
             {currentStep === 1 && (
-              <form onSubmit={handleProceedToPayment}>
+              <form onSubmit={handleProceedToPayment} noValidate>
                 <div className="checkout-card">
                   
                   <div className="checkout-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -1177,6 +1264,26 @@ export const CheckoutPage = ({
                     )}
                   </div>
 
+                  {/* Validation Error Banner */}
+                  {Object.keys(formErrors).length > 0 && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      padding: '0.85rem 1rem',
+                      marginBottom: '1.25rem',
+                      backgroundColor: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '4px',
+                      color: '#991b1b',
+                      fontSize: '0.82rem',
+                      fontWeight: 500
+                    }}>
+                      <AlertCircle size={16} color="#dc2626" style={{ flexShrink: 0 }} />
+                      <span>Please complete the required courier delivery details highlighted below.</span>
+                    </div>
+                  )}
+
                   {/* Saved Profile Address Selector for Logged In User */}
                   {isLoggedIn && savedDefault?.hasAddress && (
                     <div 
@@ -1208,58 +1315,101 @@ export const CheckoutPage = ({
                   {/* Form Input Groups */}
                   <div className="checkout-form-grid-2">
                     <div className="checkout-form-group">
-                      <label className="form-label">FIRST NAME *</label>
+                      <label className="form-label" htmlFor="checkout-firstName">FIRST NAME *</label>
                       <input 
+                        id="checkout-firstName"
                         type="text" 
-                        required 
                         value={firstName} 
                         onChange={(e) => {
                           setFirstName(e.target.value);
                           setUseDefaultAddress(false);
+                          clearFieldError('firstName');
                         }} 
                         className="form-input" 
+                        style={{
+                          borderColor: formErrors.firstName ? '#dc2626' : undefined,
+                          boxShadow: formErrors.firstName ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.firstName)}
                         placeholder="Julian"
                       />
+                      {formErrors.firstName && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.firstName}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="checkout-form-group">
-                      <label className="form-label">LAST NAME *</label>
+                      <label className="form-label" htmlFor="checkout-lastName">LAST NAME *</label>
                       <input 
+                        id="checkout-lastName"
                         type="text" 
-                        required 
                         value={lastName} 
                         onChange={(e) => {
                           setLastName(e.target.value);
                           setUseDefaultAddress(false);
+                          clearFieldError('lastName');
                         }} 
                         className="form-input" 
+                        style={{
+                          borderColor: formErrors.lastName ? '#dc2626' : undefined,
+                          boxShadow: formErrors.lastName ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.lastName)}
                         placeholder="Sterling"
                       />
+                      {formErrors.lastName && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.lastName}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="checkout-form-grid-2">
                     <div className="checkout-form-group">
-                      <label className="form-label">EMAIL ADDRESS *</label>
+                      <label className="form-label" htmlFor="checkout-email">EMAIL ADDRESS *</label>
                       <input 
+                        id="checkout-email"
                         type="email" 
-                        required 
                         value={email} 
                         onChange={(e) => {
                           setEmail(e.target.value);
                           setUseDefaultAddress(false);
+                          clearFieldError('email');
                         }} 
+                        onBlur={() => {
+                          if (email && email.trim()) {
+                            const res = validateClientEmail(email);
+                            if (!res.isValid) {
+                              setFormErrors((prev) => ({ ...prev, email: res.error }));
+                            }
+                          }
+                        }}
                         className="form-input" 
+                        style={{
+                          borderColor: formErrors.email ? '#dc2626' : undefined,
+                          boxShadow: formErrors.email ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.email)}
                         placeholder="client@elvany.com"
                       />
+                      {formErrors.email && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.email}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="checkout-form-group">
-                      <label className="form-label">MOBILE PHONE (COURIER CONTACT) *</label>
+                      <label className="form-label" htmlFor="checkout-phone">PRIMARY MOBILE PHONE (COURIER CONTACT) *</label>
                       <input 
+                        id="checkout-phone"
                         type="tel" 
-                        required 
                         inputMode="tel"
-                        pattern="[0-9+]*"
-                        maxLength={16}
+                        maxLength={12}
                         value={phone} 
                         onKeyDown={(e) => {
                           if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
@@ -1280,28 +1430,109 @@ export const CheckoutPage = ({
                           const hasPlus = raw.startsWith('+');
                           const digits = raw.replace(/\D/g, '');
                           const sanitized = (hasPlus ? '+' : '') + digits;
-                          setPhone(sanitized);
+                          const maxLen = hasPlus ? 12 : 11;
+                          setPhone(sanitized.slice(0, maxLen));
                           setUseDefaultAddress(false);
+                          clearFieldError('phone');
                         }} 
                         className="form-input" 
-                        placeholder="0771234567 or +94771234567"
+                        style={{
+                          borderColor: formErrors.phone ? '#dc2626' : undefined,
+                          boxShadow: formErrors.phone ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.phone)}
+                        placeholder="07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX"
                       />
+                      {formErrors.phone && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.phone}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Secondary / Alternate Mobile Contact */}
                   <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
-                    <label className="form-label">STREET ADDRESS *</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                      <label className="form-label" htmlFor="checkout-secondaryPhone" style={{ marginBottom: 0 }}>
+                        SECONDARY MOBILE PHONE (BACKUP COURIER CONTACT)
+                      </label>
+                      <span style={{ fontSize: '0.68rem', color: '#8f6f32', letterSpacing: '0.04em', fontWeight: 600 }}>
+                        OPTIONAL • RECOMMENDED FOR COURIER
+                      </span>
+                    </div>
                     <input 
+                      id="checkout-secondaryPhone"
+                      type="tel" 
+                      inputMode="tel"
+                      maxLength={12}
+                      value={secondaryPhone} 
+                      onKeyDown={(e) => {
+                        if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                          return;
+                        }
+                        if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                          return;
+                        }
+                        if (e.key === '+' && (e.currentTarget.selectionStart === 0 && !secondaryPhone.includes('+'))) {
+                          return;
+                        }
+                        if (!/^\d$/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const hasPlus = raw.startsWith('+');
+                        const digits = raw.replace(/\D/g, '');
+                        const sanitized = (hasPlus ? '+' : '') + digits;
+                        const maxLen = hasPlus ? 12 : 11;
+                        setSecondaryPhone(sanitized.slice(0, maxLen));
+                        setUseDefaultAddress(false);
+                        clearFieldError('secondaryPhone');
+                      }} 
+                      className="form-input" 
+                      style={{
+                        borderColor: formErrors.secondaryPhone ? '#dc2626' : undefined,
+                        boxShadow: formErrors.secondaryPhone ? '0 0 0 1px #dc2626' : undefined
+                      }}
+                      aria-invalid={Boolean(formErrors.secondaryPhone)}
+                      placeholder="07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX"
+                    />
+                    {formErrors.secondaryPhone && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                        <AlertCircle size={12} color="#dc2626" />
+                        <span>{formErrors.secondaryPhone}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="checkout-form-group" style={{ marginBottom: '1.2rem' }}>
+                    <label className="form-label" htmlFor="checkout-address">STREET ADDRESS *</label>
+                    <input 
+                      id="checkout-address"
                       type="text" 
-                      required 
                       value={address} 
                       onChange={(e) => {
                         setAddress(e.target.value);
                         setUseDefaultAddress(false);
+                        clearFieldError('address');
                       }} 
                       className="form-input" 
+                      style={{
+                        borderColor: formErrors.address ? '#dc2626' : undefined,
+                        boxShadow: formErrors.address ? '0 0 0 1px #dc2626' : undefined
+                      }}
+                      aria-invalid={Boolean(formErrors.address)}
                       placeholder="14 Alfred House Gardens"
                     />
+                    {formErrors.address && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                        <AlertCircle size={12} color="#dc2626" />
+                        <span>{formErrors.address}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="checkout-form-grid-3">
@@ -1319,33 +1550,58 @@ export const CheckoutPage = ({
                       />
                     </div>
                     <div className="checkout-form-group">
-                      <label className="form-label">CITY *</label>
+                      <label className="form-label" htmlFor="checkout-city">CITY *</label>
                       <select 
+                        id="checkout-city"
                         value={city} 
                         onChange={(e) => {
                           setCity(e.target.value);
                           setUseDefaultAddress(false);
+                          clearFieldError('city');
                         }} 
                         className="form-select"
+                        style={{
+                          borderColor: formErrors.city ? '#dc2626' : undefined,
+                          boxShadow: formErrors.city ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.city)}
                       >
                         {CITIES_LIST.map((c) => (
                           <option key={c} value={c} style={{ backgroundColor: '#ffffff', color: '#121316' }}>{c}</option>
                         ))}
                       </select>
+                      {formErrors.city && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.city}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="checkout-form-group">
-                      <label className="form-label">POSTAL CODE *</label>
+                      <label className="form-label" htmlFor="checkout-postalCode">POSTAL CODE *</label>
                       <input 
+                        id="checkout-postalCode"
                         type="text" 
-                        required 
                         value={postalCode} 
                         onChange={(e) => {
                           setPostalCode(e.target.value);
                           setUseDefaultAddress(false);
+                          clearFieldError('postalCode');
                         }} 
                         className="form-input" 
+                        style={{
+                          borderColor: formErrors.postalCode ? '#dc2626' : undefined,
+                          boxShadow: formErrors.postalCode ? '0 0 0 1px #dc2626' : undefined
+                        }}
+                        aria-invalid={Boolean(formErrors.postalCode)}
                         placeholder="00300"
                       />
+                      {formErrors.postalCode && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 500 }}>
+                          <AlertCircle size={12} color="#dc2626" />
+                          <span>{formErrors.postalCode}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1433,7 +1689,7 @@ export const CheckoutPage = ({
                       {firstName} {lastName} • {address}, {city}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: '#767982' }}>
-                      {email} • {phone}
+                      {email} • {phone}{secondaryPhone ? ` • Alt: ${secondaryPhone}` : ''}
                     </div>
                   </div>
 

@@ -250,8 +250,26 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                 >
                   {selectedStatus}
                 </span>
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)' }}>
-                  Placed: {order.orderDate}
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-light-muted)', display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <span>Placed: {order.orderDate}</span>
+                  {(() => {
+                    const raw = order.createdAt || order.created_at;
+                    let t = order.orderTime;
+                    if (!t && raw) {
+                      try {
+                        const d = new Date(raw);
+                        if (!isNaN(d.getTime())) {
+                          t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                        }
+                      } catch {}
+                    }
+                    return t ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--gold-bright)', fontWeight: 600 }}>
+                        <Clock size={11} />
+                        <span>{t}</span>
+                      </span>
+                    ) : null;
+                  })()}
                 </span>
               </div>
             </div>
@@ -524,7 +542,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-light-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Phone size={12} />
-                  <span>{order.customerPhone || '071 909 2726'}</span>
+                  <span>Primary: {order.customerPhone || 'N/A'}</span>
                 </div>
                 <button
                   type="button"
@@ -548,6 +566,12 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                   <span>WhatsApp</span>
                 </button>
               </div>
+              {(order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone) && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--gold-bright)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '3px' }}>
+                  <Phone size={12} />
+                  <span>Secondary: {order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone}</span>
+                </div>
+              )}
             </div>
 
             <div className="admin-info-card">
@@ -923,8 +947,40 @@ export const OrderDetailsModal = ({ isOpen, onClose, order, onUpdateStatus }) =>
                   className="admin-input"
                   style={{ width: '100%', fontSize: '0.82rem', fontFamily: 'monospace' }}
                 />
-                <div style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', marginTop: '3px' }}>
-                  Format: {formatWhatsAppPhone(whatsAppPhone) ? `+${formatWhatsAppPhone(whatsAppPhone)}` : 'Enter mobile number'}
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-light-muted)', marginTop: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                  <span>Format: {formatWhatsAppPhone(whatsAppPhone) ? `+${formatWhatsAppPhone(whatsAppPhone)}` : 'Enter mobile number'}</span>
+                  {(order?.customerSecondaryPhone || order?.deliveryAddress?.secondaryPhone) && (
+                    <span style={{ display: 'inline-flex', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setWhatsAppPhone(order?.customerPhone || '')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: whatsAppPhone === order?.customerPhone ? 'var(--gold-bright)' : 'var(--text-light-muted)',
+                          fontSize: '0.65rem',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Use Primary
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setWhatsAppPhone(order?.customerSecondaryPhone || order?.deliveryAddress?.secondaryPhone || '')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: whatsAppPhone === (order?.customerSecondaryPhone || order?.deliveryAddress?.secondaryPhone) ? 'var(--gold-bright)' : 'var(--text-light-muted)',
+                          fontSize: '0.65rem',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Use Secondary
+                      </button>
+                    </span>
+                  )}
                 </div>
               </div>
 

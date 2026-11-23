@@ -166,7 +166,8 @@ export function generateInvoiceHtml(order, isScreenView = false) {
           </div>
           <div style="font-size: 11.5px; color: #4b4b52; margin-top: 4px; line-height: 1.5;">
             ${order.customerLocation || 'Sri Lanka'}<br/>
-            ${order.customerPhone ? `Courier Contact: <strong style="color: #111215;">${order.customerPhone}</strong><br/>` : ''}
+            ${order.customerPhone ? `Primary Contact: <strong style="color: #111215;">${order.customerPhone}</strong><br/>` : ''}
+            ${(order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone) ? `Secondary Contact: <strong style="color: #111215;">${order.customerSecondaryPhone || order.deliveryAddress?.secondaryPhone}</strong><br/>` : ''}
             ${order.customerEmail ? `Email: <span style="color: #111215;">${order.customerEmail}</span>` : ''}
           </div>
         </div>

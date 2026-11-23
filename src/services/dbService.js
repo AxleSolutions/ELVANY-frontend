@@ -559,8 +559,12 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
     return item;
   }));
 
+  const nowIso = new Date().toISOString();
   const completeOrder = {
     ...orderPayload,
+    createdAt: orderPayload.createdAt || nowIso,
+    created_at: orderPayload.created_at || orderPayload.createdAt || nowIso,
+    orderTime: orderPayload.orderTime || new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
     items: processedItems,
     hasSlipAttached: !!(slipData?.url || paymentSlipFile || orderPayload.hasSlipAttached),
     paymentSlipUrl: slipData?.url || slipData?.secure_url || orderPayload.paymentSlipUrl || null,
@@ -617,6 +621,7 @@ export async function createOrder(orderPayload, paymentSlipFile = null) {
         .from('orders')
         .insert({
           order_code: completeOrder.orderId,
+          created_at: completeOrder.createdAt || nowIso,
           customer_name: completeOrder.customerName,
           customer_email: completeOrder.customerEmail || 'client@elvany.com',
           customer_phone: completeOrder.customerPhone || '',
@@ -762,6 +767,7 @@ export async function getOrders() {
             customerName: o.customer_name || o.customerName,
             customerEmail: o.customer_email || o.customerEmail,
             customerPhone: o.customer_phone || o.customerPhone,
+            customerSecondaryPhone: o.customer_secondary_phone || o.customerSecondaryPhone || o.delivery_address?.secondaryPhone || o.deliveryAddress?.secondaryPhone || null,
             customerLocation: o.delivery_address?.location || o.customerLocation || 'Sri Lanka',
             deliveryAddress: o.delivery_address || o.deliveryAddress,
             // Accurate live tracking number: check direct field, column, delivery_address JSONB, or courier notes
@@ -769,6 +775,8 @@ export async function getOrders() {
             tracking_number: o.trackingNumber || o.tracking_number || o.delivery_address?.trackingNumber || o.deliveryAddress?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || (typeof o.courier_notes === 'string' && !o.courier_notes.includes(' ') ? o.courier_notes : null) || null,
             orderDate: new Date(o.created_at || o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at || o.createdAt,
+            created_at: o.created_at || o.createdAt,
+            orderTime: o.orderTime || o.delivery_address?.orderTime || (o.created_at || o.createdAt ? new Date(o.created_at || o.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''),
             status: o.status || 'Pending Slip Verification',
             paymentMethod: resolvePaymentMethod(o),
             hasSlipAttached: Boolean(o.has_slip_attached || o.paymentSlipUrl || o.payment_slip_url),
@@ -830,10 +838,13 @@ export async function getOrders() {
             customerName: o.customer_name,
             customerEmail: o.customer_email,
             customerPhone: o.customer_phone,
+            customerSecondaryPhone: o.customer_secondary_phone || o.delivery_address?.secondaryPhone || null,
             customerLocation: o.delivery_address?.location || 'Sri Lanka',
             deliveryAddress: o.delivery_address,
             orderDate: new Date(o.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
             createdAt: o.created_at,
+            created_at: o.created_at,
+            orderTime: o.delivery_address?.orderTime || (o.created_at ? new Date(o.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''),
             status: o.status,
             trackingNumber: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,
             tracking_number: o.tracking_number || o.delivery_address?.trackingNumber || (o.courier_notes?.match(/(?:Citypak|Tracking|Citypak Tracking)[\s:]*([A-Za-z0-9\-]+)/i)?.[1]) || o.courier_notes || null,

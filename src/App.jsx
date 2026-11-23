@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import { LogOut } from 'lucide-react';
 import { Navbar } from './components/Navbar';
@@ -39,7 +39,6 @@ const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPag
 const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndConditionsPage').then(m => ({ default: m.TermsAndConditionsPage })));
 
 import { PRODUCTS } from './data/products';
-import { INITIAL_ORDERS } from './data/orders';
 import { INITIAL_OFFERS } from './data/offers';
 import { DEFAULT_POPUP_AD } from './data/popupAd';
 import { 
@@ -154,12 +153,11 @@ export function App() {
     }
 
     try {
-      const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes, dbOrdersRes] = await Promise.allSettled([
+      const [dbProductsRes, dbOffersRes, dbReviewsRes, dbPopupAdRes] = await Promise.allSettled([
         getProducts(),
         getOffers(),
         getReviews(),
-        getPopupAdSettings(),
-        getOrders()
+        getPopupAdSettings()
       ]);
 
       const fetchedProducts = dbProductsRes.status === 'fulfilled' ? dbProductsRes.value : null;
@@ -188,9 +186,6 @@ export function App() {
       }
       if (dbPopupAdRes.status === 'fulfilled' && dbPopupAdRes.value) {
         setPopupAdSettings(dbPopupAdRes.value);
-      }
-      if (dbOrdersRes.status === 'fulfilled' && Array.isArray(dbOrdersRes.value)) {
-        setOrdersList(dbOrdersRes.value);
       }
 
       const dbReviews = dbReviewsRes.status === 'fulfilled' ? dbReviewsRes.value : [];
@@ -1249,6 +1244,7 @@ const safeSaveCartToLocalStorage = (cart) => {
           />
 
           {/* Dedicated Full Standalone Account & Settings Page Route */}
+          <Route path="/orders" element={<Navigate to="/account?tab=orders" replace />} />
           <Route 
             path="/account" 
             element={
