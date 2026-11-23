@@ -482,13 +482,13 @@ export const CheckoutPage = ({
       errors.phone = 'Enter a valid mobile number: 07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX.';
     }
 
-    if (secondaryPhone && secondaryPhone.trim()) {
-      const cleanSecondary = secondaryPhone.trim().replace(/[\s\-]/g, '');
-      if (!sriLankanMobileRegex.test(cleanSecondary)) {
-        errors.secondaryPhone = 'Enter a valid mobile number: 07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX.';
-      } else if (cleanSecondary === cleanPhone) {
-        errors.secondaryPhone = 'Secondary number cannot be the same as your primary number.';
-      }
+    const cleanSecondary = (secondaryPhone || '').trim().replace(/[\s\-]/g, '');
+    if (!secondaryPhone || !secondaryPhone.trim()) {
+      errors.secondaryPhone = 'Secondary mobile phone number is required.';
+    } else if (!sriLankanMobileRegex.test(cleanSecondary)) {
+      errors.secondaryPhone = 'Enter a valid mobile number: 07XXXXXXXX, 7XXXXXXXX, or +947XXXXXXXX.';
+    } else if (cleanSecondary === cleanPhone) {
+      errors.secondaryPhone = 'Secondary number cannot be the same as your primary number.';
     }
 
     if (!address || !address.trim()) {
@@ -1455,14 +1455,7 @@ export const CheckoutPage = ({
                     </div>
 
                     <div className="checkout-form-group">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                        <label className="form-label" htmlFor="checkout-secondaryPhone" style={{ marginBottom: 0 }}>
-                          SECONDARY MOBILE
-                        </label>
-                        <span style={{ fontSize: '0.65rem', color: '#8f6f32', letterSpacing: '0.04em', fontWeight: 600 }}>
-                          OPTIONAL • BACKUP
-                        </span>
-                      </div>
+                      <label className="form-label" htmlFor="checkout-secondaryPhone">SECONDARY MOBILE PHONE *</label>
                       <input 
                         id="checkout-secondaryPhone"
                         type="tel" 
